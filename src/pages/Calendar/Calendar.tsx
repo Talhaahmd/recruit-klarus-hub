@@ -1,9 +1,8 @@
-
 import React, { useState } from 'react';
 import { Header } from '@/components/Layout/MainLayout';
 import { mockCalendarEvents, CalendarEventType } from '@/data/mockData';
 import { Calendar as CalendarIcon, PlusCircle, ChevronLeft, ChevronRight } from 'lucide-react';
-import { format, addMonths, subMonths, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay } from 'date-fns';
+import { format, addMonths, subMonths, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, parseISO } from 'date-fns';
 import { toast } from 'sonner';
 import {
   Dialog,
@@ -66,12 +65,15 @@ const Calendar: React.FC = () => {
     }
     
     // Add mock event to demonstrate functionality
+    const eventDate = selectedDate || new Date();
+    
+    // Create new event with proper Date objects
     const newEvent: CalendarEventType = {
       id: `event-${events.length + 1}`,
       title: `New ${type.charAt(0).toUpperCase() + type.slice(1)}`,
       description: `This is a new ${type} event.`,
-      startDate: selectedDate ? selectedDate.toISOString() : new Date().toISOString(),
-      endDate: selectedDate ? selectedDate.toISOString() : new Date().toISOString(),
+      startDate: eventDate, // Use the Date object directly
+      endDate: eventDate, // Use the Date object directly
       type: type === 'job' ? 'Job Posting' : type === 'candidate' ? 'Interview' : 'LinkedIn Post',
     };
     
@@ -79,7 +81,13 @@ const Calendar: React.FC = () => {
   };
   
   const getEventsForDate = (date: Date) => {
-    return events.filter(event => isSameDay(new Date(event.startDate), date));
+    return events.filter(event => {
+      // Handle the case where event.startDate might be a string
+      const eventDate = typeof event.startDate === 'string' 
+        ? parseISO(event.startDate) 
+        : event.startDate;
+      return isSameDay(eventDate, date);
+    });
   };
   
   const getEventColor = (type: string) => {
@@ -170,8 +178,17 @@ const Calendar: React.FC = () => {
         <h3 className="font-medium mb-4">Upcoming Events</h3>
         <div className="space-y-3">
           {events
-            .filter(event => new Date(event.startDate) >= new Date())
-            .sort((a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime())
+            .filter(event => {
+              const eventDate = typeof event.startDate === 'string' 
+                ? parseISO(event.startDate) 
+                : event.startDate;
+              return eventDate >= new Date();
+            })
+            .sort((a, b) => {
+              const aDate = typeof a.startDate === 'string' ? parseISO(a.startDate) : a.startDate;
+              const bDate = typeof b.startDate === 'string' ? parseISO(b.startDate) : b.startDate;
+              return aDate.getTime() - bDate.getTime();
+            })
             .slice(0, 5)
             .map((event) => (
               <div key={event.id} className="glass-card p-4 flex items-start gap-4">
@@ -182,7 +199,10 @@ const Calendar: React.FC = () => {
                 <div>
                   <h4 className="font-medium">{event.title}</h4>
                   <div className="text-sm text-text-200 mt-1">
-                    {format(new Date(event.startDate), 'MMM d, yyyy - h:mm a')}
+                    {format(
+                      typeof event.startDate === 'string' ? parseISO(event.startDate) : event.startDate, 
+                      'MMM d, yyyy - h:mm a'
+                    )}
                   </div>
                   <div className="text-sm mt-1">{event.description}</div>
                 </div>
