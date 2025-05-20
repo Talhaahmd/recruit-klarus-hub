@@ -87,6 +87,27 @@ export type Database = {
         }
         Relationships: []
       }
+      cv_links: {
+        Row: {
+          file_name: string
+          file_url: string
+          id: string
+          inserted_at: string | null
+        }
+        Insert: {
+          file_name: string
+          file_url: string
+          id?: string
+          inserted_at?: string | null
+        }
+        Update: {
+          file_name?: string
+          file_url?: string
+          id?: string
+          inserted_at?: string | null
+        }
+        Relationships: []
+      }
       jobs: {
         Row: {
           active_days: number

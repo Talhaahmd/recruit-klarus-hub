@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { 
   Dialog, 
@@ -9,7 +10,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Upload, File } from 'lucide-react';
 import { toast } from 'sonner';
-import { supabase } from '@/lib/supabaseClient'; // adjust if needed
+import { supabase } from '@/integrations/supabase/client'; // Corrected import path
 
 interface AddCandidateModalProps {
   isOpen: boolean;

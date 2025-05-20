@@ -95,7 +95,7 @@ const Calendar: React.FC = () => {
     try {
       // First create the job
       const formData = jobData.formData;
-      const jobData = {
+      const newJobData = {  // Changed variable name to avoid conflict
         title: formData.title,
         description: formData.description,
         location: formData.location,
@@ -105,10 +105,10 @@ const Calendar: React.FC = () => {
         technologies: formData.technologies || [],
         workplace_type: formData.workplaceType || 'Remote',
         active_days: parseInt(formData.activeDays) || 30,
-        applicants: 0 // Add this missing field
+        applicants: 0
       };
       
-      const newJob = await jobsService.createJob(jobData);
+      const newJob = await jobsService.createJob(newJobData);
       
       if (!newJob) {
         toast.error('Failed to create job');
@@ -120,8 +120,8 @@ const Calendar: React.FC = () => {
       const eventDate = selectedDate || new Date();
       
       const newEvent = await calendarService.createEvent({
-        title: jobData.title,
-        description: jobData.description,
+        title: newJobData.title,
+        description: newJobData.description,
         startDate: eventDate,
         endDate: eventDate,
         type: 'Job Posting',
