@@ -84,19 +84,18 @@ const CandidateProfile: React.FC = () => {
     <div className="overflow-auto">
       <div className="sticky top-0 z-10 bg-background pb-4">
         <Header 
-          title={
-            <div className="flex items-center">
-              <button 
-                onClick={handleGoBack}
-                className="mr-4 p-2 rounded-full hover:bg-gray-100"
-              >
-                <ArrowLeft size={20} />
-              </button>
-              Candidate Profile
-            </div>
-          } 
+          title="Candidate Profile"
           subtitle="View detailed candidate information"
         />
+        <div className="ml-4 mt-2">
+          <button 
+            onClick={handleGoBack}
+            className="flex items-center gap-2 p-2 rounded-full hover:bg-gray-100"
+          >
+            <ArrowLeft size={20} />
+            <span>Back to Candidates</span>
+          </button>
+        </div>
       </div>
       
       <div className="p-6 bg-background">
@@ -353,3 +352,4 @@ const CandidateProfile: React.FC = () => {
 };
 
 export default CandidateProfile;
+
