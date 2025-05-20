@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -43,7 +44,7 @@ const jobFormSchema = z.object({
 const qualificationFormSchema = z.object({
   qualification: z.string().optional(),
   complexity: z.string().min(1, { message: "Role complexity is required" }),
-  technologies: z.string().array().min(1, { message: "At least one technology is required" })
+  technologies: z.array(z.string()).min(1, { message: "At least one technology is required" })
 });
 
 // Combine both schemas for the final data
@@ -285,12 +286,8 @@ const AddJobModal: React.FC<AddJobModalProps> = ({ isOpen, onClose, onSave }) =>
                     <FormItem>
                       <FormLabel>Role Complexity</FormLabel>
                       <Select 
-                        onValueChange={(value) => {
-                          console.log("Selected complexity:", value);
-                          field.onChange(value);
-                        }}
+                        onValueChange={field.onChange}
                         value={field.value}
-                        defaultValue={field.value}
                       >
                         <FormControl>
                           <SelectTrigger>
