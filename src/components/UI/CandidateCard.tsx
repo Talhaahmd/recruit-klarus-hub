@@ -1,10 +1,10 @@
 
 import React from 'react';
-import { CandidateType } from '@/data/mockData';
+import { Candidate } from '@/services/candidatesService';
 import { Mail, Phone, Edit, Trash2 } from 'lucide-react';
 
 interface CandidateCardProps {
-  candidate: CandidateType;
+  candidate: Candidate;
   onEdit: (id: string) => void;
   onDelete: (id: string) => void;
   onView: (id: string) => void;

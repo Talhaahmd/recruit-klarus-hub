@@ -9,6 +9,8 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { linkedinService } from '@/services/linkedinService';
+import { calendarService } from '@/services/calendarService';
 
 type NicheType = 'tech' | 'hr' | 'marketing' | 'finance' | 'healthcare';
 
@@ -63,7 +65,7 @@ const BuildProfile: React.FC = () => {
     ]
   };
   
-  const handleGenerate = () => {
+  const handleGenerate = async () => {
     if (!prompt) {
       toast.error('Please enter a prompt');
       return;
@@ -71,20 +73,57 @@ const BuildProfile: React.FC = () => {
     
     setIsGenerating(true);
     
-    // Simulate AI generation (in a real app, this would call an API)
-    setTimeout(() => {
-      let content = `# Exciting Opportunity at Klarus HR!\n\nWe're revolutionizing the hiring process with our AI-powered platform that reduces screening times by 80% while eliminating unconscious bias.\n\n🚀 We're currently looking for talented individuals to join our growing team!\n\nAt Klarus HR, we believe in:\n- Innovation-driven solutions\n- Inclusive hiring practices\n- Work-life balance\n- Continuous learning\n\nCheck out our open positions and be part of our journey to transform recruitment: [Link]\n\n#KlarusHR #AIRecruitment #Hiring #TechJobs #CareerOpportunities`;
-      
-      setGeneratedContent(content);
+    try {
+      // Simulate AI generation (in a real app, this would call an API)
+      setTimeout(async () => {
+        let content = `# Exciting Opportunity at Klarus HR!\n\nWe're revolutionizing the hiring process with our AI-powered platform that reduces screening times by 80% while eliminating unconscious bias.\n\n🚀 We're currently looking for talented individuals to join our growing team!\n\nAt Klarus HR, we believe in:\n- Innovation-driven solutions\n- Inclusive hiring practices\n- Work-life balance\n- Continuous learning\n\nCheck out our open positions and be part of our journey to transform recruitment: [Link]\n\n#KlarusHR #AIRecruitment #Hiring #TechJobs #CareerOpportunities`;
+        
+        setGeneratedContent(content);
+        
+        // Save to database based on schedule settings
+        if (showSchedule && date && time) {
+          const linkedInPost = await linkedinService.createPost({
+            content: content,
+            scheduledDate: date,
+            scheduledTime: time,
+            posted: false,
+            niche: selectedNiche
+          });
+          
+          // Create a calendar event for the scheduled post
+          if (linkedInPost) {
+            await calendarService.createEvent({
+              title: 'LinkedIn Post: ' + prompt.substring(0, 30) + (prompt.length > 30 ? '...' : ''),
+              description: 'Scheduled LinkedIn post about: ' + prompt,
+              startDate: date,
+              endDate: date,
+              type: 'LinkedIn Post'
+            });
+            
+            toast.success(`Content scheduled for ${format(date, 'PPP')} at ${time}`);
+          }
+          
+          setShowSchedule(false);
+        } else {
+          // Immediate post (just save to database)
+          await linkedinService.createPost({
+            content: content,
+            scheduledDate: null,
+            scheduledTime: null,
+            posted: true,
+            niche: selectedNiche
+          });
+          
+          setShowSuccessDialog(true);
+        }
+        
+        setIsGenerating(false);
+      }, 2000);
+    } catch (error) {
+      console.error('Error generating content:', error);
+      toast.error('Failed to generate content');
       setIsGenerating(false);
-      
-      if (showSchedule && date && time) {
-        toast.success(`Content scheduled for ${format(date, 'PPP')} at ${time}`);
-        setShowSchedule(false);
-      } else {
-        setShowSuccessDialog(true);
-      }
-    }, 2000);
+    }
   };
   
   const handleCopyContent = () => {
@@ -126,7 +165,7 @@ const BuildProfile: React.FC = () => {
               <button
                 key={niche.id}
                 className={`px-4 py-2 rounded-lg transition-all ${
-                  selectedNiche === niche.id
+                  selectedNiche === niche.id as NicheType
                     ? 'bg-primary-100 text-white'
                     : 'bg-white border border-gray-200 hover:border-primary-100'
                 }`}

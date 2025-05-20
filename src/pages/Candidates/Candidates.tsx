@@ -1,8 +1,7 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Header } from '@/components/Layout/MainLayout';
-import { mockCandidates, mockJobs, CandidateType } from '@/data/mockData';
 import { PlusCircle, Search, Filter, List, Grid, Mail, Edit, Trash2 } from 'lucide-react';
 import CandidateCard from '@/components/UI/CandidateCard';
 import { toast } from 'sonner';
@@ -25,6 +24,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { candidatesService, Candidate } from '@/services/candidatesService';
+import { jobsService, Job } from '@/services/jobsService';
 
 // Sample locations and expertise for filters
 const locations = ["San Francisco, CA", "New York, NY", "Austin, TX", "Seattle, WA", "Remote"];
@@ -33,18 +34,42 @@ const expertise = ["React", "TypeScript", "Node.js", "GraphQL", "AWS", "Docker",
 
 const Candidates: React.FC = () => {
   const navigate = useNavigate();
-  const [candidates, setCandidates] = useState<CandidateType[]>(mockCandidates);
+  const [candidates, setCandidates] = useState<Candidate[]>([]);
+  const [jobs, setJobs] = useState<Job[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedJob, setSelectedJob] = useState<string | 'all'>('all');
   const [showAddModal, setShowAddModal] = useState(false);
   const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid');
   const [showFilters, setShowFilters] = useState(false);
   
-  // New filters
+  // Filters
   const [selectedLocations, setSelectedLocations] = useState<string[]>([]);
   const [selectedExperiences, setSelectedExperiences] = useState<string[]>([]);
   const [selectedExpertise, setSelectedExpertise] = useState<string[]>([]);
   const [analysisFilter, setAnalysisFilter] = useState<number | null>(null);
+  
+  // Fetch data when component mounts
+  useEffect(() => {
+    const fetchData = async () => {
+      setIsLoading(true);
+      try {
+        const [candidatesData, jobsData] = await Promise.all([
+          candidatesService.getCandidates(),
+          jobsService.getJobs()
+        ]);
+        
+        setCandidates(candidatesData);
+        setJobs(jobsData);
+      } catch (error) {
+        console.error('Error fetching candidates data:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    fetchData();
+  }, []);
   
   const getAnalysisColor = (score: number) => {
     if (score >= 8) return 'bg-green-100 text-green-800';
@@ -54,31 +79,6 @@ const Candidates: React.FC = () => {
   
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(e.target.value);
-  };
-  
-  const handleEdit = (id: string) => {
-    toast.info(`Edit candidate with ID: ${id}`);
-  };
-  
-  const handleDelete = (id: string) => {
-    toast.success(`Candidate removed successfully`);
-    setCandidates(candidates.filter(candidate => candidate.id !== id));
-  };
-  
-  const handleView = (id: string) => {
-    navigate(`/candidates/${id}`);
-  };
-  
-  const handleEmail = (email: string) => {
-    toast.info(`Send email to: ${email}`);
-  };
-  
-  const handleAddCandidate = () => {
-    setShowAddModal(true);
-  };
-  
-  const handleJobFilterChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setSelectedJob(e.target.value);
   };
   
   const handleLocationChange = (location: string) => {
@@ -105,40 +105,102 @@ const Candidates: React.FC = () => {
     );
   };
   
-  const handleSaveCandidate = (candidateData: any) => {
-    // In a real app, this would add the candidate to the database
-    if (candidateData.type === 'cv') {
-      // Process CV file
-      const newCandidate: CandidateType = {
-        id: `${Date.now()}`,
-        jobId: selectedJob === 'all' ? mockJobs[0].id : selectedJob,
-        name: 'New Candidate',
-        email: 'candidate@example.com',
-        phone: '555-000-0000',
-        resumeUrl: `/resumes/${candidateData.file.name}`,
-        appliedDate: new Date().toISOString().split('T')[0],
-        status: 'New',
-        notes: `Uploaded via CV on ${new Date().toLocaleDateString()}`,
-        rating: 3
-      };
+  const handleEdit = (id: string) => {
+    toast.info(`Edit candidate with ID: ${id}`);
+  };
+  
+  const handleDelete = async (id: string, jobId: string) => {
+    try {
+      const success = await candidatesService.deleteCandidate(id, jobId);
+      if (success) {
+        setCandidates(candidates.filter(candidate => candidate.id !== id));
+        toast.success(`Candidate removed successfully`);
+      }
+    } catch (error) {
+      console.error('Error deleting candidate:', error);
+    }
+  };
+  
+  const handleView = (id: string) => {
+    navigate(`/candidates/${id}`);
+  };
+  
+  const handleEmail = (email: string) => {
+    toast.info(`Send email to: ${email}`);
+  };
+  
+  const handleAddCandidate = () => {
+    setShowAddModal(true);
+  };
+  
+  const handleJobFilterChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setSelectedJob(e.target.value);
+  };
+  
+  const handleSaveCandidate = async (candidateData: any) => {
+    try {
+      if (candidateData.type === 'cv') {
+        // Upload the resume
+        const resumeUrl = await candidatesService.uploadResume(candidateData.file);
+        
+        if (resumeUrl) {
+          // Get the job ID to associate with
+          const jobId = selectedJob === 'all' && jobs.length > 0 ? jobs[0].id : selectedJob;
+          
+          if (!jobId || jobId === 'all') {
+            toast.error('Please select a job or create one first');
+            return;
+          }
+          
+          const newCandidate = await candidatesService.createCandidate({
+            jobId: jobId,
+            name: candidateData.file.name.replace(/\.[^/.]+$/, ""), // Remove file extension
+            email: `candidate${Date.now()}@example.com`,
+            phone: '000-000-0000',
+            resumeUrl: resumeUrl,
+            appliedDate: new Date().toISOString().split('T')[0],
+            status: 'New',
+            notes: `Uploaded on ${new Date().toLocaleDateString()}`,
+            rating: 3
+          });
+          
+          if (newCandidate) {
+            setCandidates([newCandidate, ...candidates]);
+          }
+        }
+      } else if (candidateData.type === 'bulk') {
+        // Process CSV bulk upload (simulation)
+        const jobId = selectedJob === 'all' && jobs.length > 0 ? jobs[0].id : selectedJob;
+        
+        if (!jobId || jobId === 'all') {
+          toast.error('Please select a job or create one first');
+          return;
+        }
+        
+        // For demo purposes, simulate adding 3 candidates
+        for (let i = 0; i < 3; i++) {
+          const newCandidate = await candidatesService.createCandidate({
+            jobId: jobId,
+            name: `Bulk Candidate ${i + 1}`,
+            email: `bulk${i + 1}@example.com`,
+            phone: `555-000-${i + 1000}`,
+            resumeUrl: '/resumes/bulk-upload.pdf',
+            appliedDate: new Date().toISOString().split('T')[0],
+            status: 'New',
+            notes: `Added via bulk upload on ${new Date().toLocaleDateString()}`,
+            rating: 3
+          });
+          
+          if (newCandidate) {
+            setCandidates(prev => [newCandidate, ...prev]);
+          }
+        }
+      }
       
-      setCandidates([newCandidate, ...candidates]);
-    } else if (candidateData.type === 'bulk') {
-      // Process CSV bulk upload (simulation)
-      const bulkCandidates: CandidateType[] = Array(3).fill(null).map((_, i) => ({
-        id: `${Date.now() + i}`,
-        jobId: selectedJob === 'all' ? mockJobs[0].id : selectedJob,
-        name: `Bulk Candidate ${i + 1}`,
-        email: `bulk${i + 1}@example.com`,
-        phone: `555-000-${i + 1000}`,
-        resumeUrl: '/resumes/bulk-upload.pdf',
-        appliedDate: new Date().toISOString().split('T')[0],
-        status: 'New',
-        notes: `Added via bulk upload on ${new Date().toLocaleDateString()}`,
-        rating: 3
-      }));
-      
-      setCandidates([...bulkCandidates, ...candidates]);
+      setShowAddModal(false);
+    } catch (error) {
+      console.error('Error processing candidate:', error);
+      toast.error('Failed to process candidate');
     }
   };
   
@@ -166,7 +228,7 @@ const Candidates: React.FC = () => {
   });
   
   const getJobTitle = (jobId: string) => {
-    const job = mockJobs.find(job => job.id === jobId);
+    const job = jobs.find(job => job.id === jobId);
     return job ? job.title : 'Unknown Job';
   };
   
@@ -182,6 +244,20 @@ const Candidates: React.FC = () => {
       default: return 'bg-gray-100 text-gray-800';
     }
   };
+  
+  if (isLoading) {
+    return (
+      <div>
+        <Header 
+          title="Candidates" 
+          subtitle="Loading candidates data..."
+        />
+        <div className="flex justify-center items-center h-64">
+          <div className="animate-spin h-8 w-8 border-4 border-primary-100 border-t-transparent rounded-full"></div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div>
@@ -243,7 +319,7 @@ const Candidates: React.FC = () => {
                     className="w-full p-2 rounded-lg glass border-none"
                   >
                     <option value="all">All Jobs</option>
-                    {mockJobs.map((job) => (
+                    {jobs.map((job) => (
                       <option key={job.id} value={job.id}>{job.title}</option>
                     ))}
                   </select>
@@ -355,7 +431,7 @@ const Candidates: React.FC = () => {
               key={candidate.id}
               candidate={candidate}
               onEdit={handleEdit}
-              onDelete={handleDelete}
+              onDelete={() => handleDelete(candidate.id, candidate.jobId)}
               onView={handleView}
               onEmail={handleEmail}
               jobTitle={getJobTitle(candidate.jobId)}
@@ -425,7 +501,7 @@ const Candidates: React.FC = () => {
                           <button 
                             onClick={(e) => {
                               e.stopPropagation();
-                              handleDelete(candidate.id);
+                              handleDelete(candidate.id, candidate.jobId);
                             }}
                             className="p-1.5 rounded-full hover:bg-gray-100"
                             title="Delete"

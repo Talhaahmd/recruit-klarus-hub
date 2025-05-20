@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { JobType } from '@/data/mockData';
+import { Job } from '@/services/jobsService';
 import {
   Dialog,
   DialogContent,
@@ -19,7 +19,7 @@ import {
 } from 'lucide-react';
 
 interface JobDetailsModalProps {
-  job: JobType;
+  job: Job;
   isOpen: boolean;
   onClose: () => void;
 }

@@ -1,7 +1,6 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Header } from '@/components/Layout/MainLayout';
-import { mockJobs, JobType } from '@/data/mockData';
 import { PlusCircle, Search, List, LayoutGrid, Filter } from 'lucide-react';
 import JobCard from '@/components/UI/JobCard';
 import { toast } from 'sonner';
@@ -15,18 +14,39 @@ import {
 } from '@/components/ui/popover';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { jobsService, Job } from '@/services/jobsService';
+import { useNavigate } from 'react-router-dom';
 
 const Jobs: React.FC = () => {
-  const [jobs, setJobs] = useState<JobType[]>(mockJobs);
+  const navigate = useNavigate();
+  const [jobs, setJobs] = useState<Job[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [showAddModal, setShowAddModal] = useState(false);
   const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid');
-  const [selectedJob, setSelectedJob] = useState<JobType | null>(null);
+  const [selectedJob, setSelectedJob] = useState<Job | null>(null);
   const [filters, setFilters] = useState({
     position: '',
     location: '',
     time: ''
   });
+  
+  // Fetch jobs when component mounts
+  useEffect(() => {
+    const fetchJobs = async () => {
+      setIsLoading(true);
+      try {
+        const data = await jobsService.getJobs();
+        setJobs(data);
+      } catch (error) {
+        console.error('Error fetching jobs:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    fetchJobs();
+  }, []);
   
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(e.target.value);
@@ -44,13 +64,18 @@ const Jobs: React.FC = () => {
     toast.info(`Edit job with ID: ${id}`);
   };
   
-  const handleDelete = (id: string) => {
-    // In a real app, this would show a confirmation modal
-    toast.success(`Job deleted successfully`);
-    setJobs(jobs.filter(job => job.id !== id));
+  const handleDelete = async (id: string) => {
+    try {
+      const success = await jobsService.deleteJob(id);
+      if (success) {
+        setJobs(jobs.filter(job => job.id !== id));
+      }
+    } catch (error) {
+      console.error('Error deleting job:', error);
+    }
   };
   
-  const handleView = (job: JobType) => {
+  const handleView = (job: Job) => {
     setSelectedJob(job);
   };
   
@@ -58,26 +83,31 @@ const Jobs: React.FC = () => {
     setShowAddModal(true);
   };
   
-  const handleSaveNewJob = (jobData: NewJobData) => {
-    const newJob: JobType = {
-      id: `job-${Date.now()}`,
-      title: jobData.title,
-      description: jobData.description,
-      location: jobData.location,
-      type: jobData.type,
-      status: 'Active',
-      applicants: 0,
-      postedDate: new Date().toLocaleDateString(),
-      technologies: jobData.technologies,
-      workplaceType: jobData.workplaceType,
-      complexity: jobData.complexity,
-      qualification: jobData.qualification || 'None',
-      activeDays: jobData.activeDays
-    };
-    
-    setJobs([newJob, ...jobs]);
-    setShowAddModal(false);
-    toast.success('New job added successfully');
+  const handleSaveNewJob = async (jobData: NewJobData) => {
+    try {
+      const newJob = await jobsService.createJob({
+        title: jobData.title,
+        description: jobData.description,
+        location: jobData.location,
+        type: jobData.type,
+        status: 'Active',
+        applicants: 0,
+        postedDate: new Date().toISOString().split('T')[0],
+        technologies: jobData.technologies,
+        workplaceType: jobData.workplaceType,
+        complexity: jobData.complexity,
+        qualification: jobData.qualification || 'None',
+        activeDays: jobData.activeDays
+      });
+      
+      if (newJob) {
+        setJobs([newJob, ...jobs]);
+      }
+      
+      setShowAddModal(false);
+    } catch (error) {
+      console.error('Error creating job:', error);
+    }
   };
   
   const filteredJobs = jobs.filter(job => {
@@ -197,31 +227,39 @@ const Jobs: React.FC = () => {
         </div>
       </div>
       
-      {viewMode === 'grid' ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredJobs.map((job) => (
-            <JobCard
-              key={job.id}
-              job={job}
-              onEdit={handleEdit}
-              onDelete={handleDelete}
-              onView={() => handleView(job)}
-            />
-          ))}
-          
-          {filteredJobs.length === 0 && (
-            <div className="col-span-3 py-12 text-center">
-              <p className="text-text-200">No jobs found matching your search.</p>
-            </div>
-          )}
+      {isLoading ? (
+        <div className="flex justify-center items-center h-64">
+          <div className="animate-spin h-8 w-8 border-4 border-primary-100 border-t-transparent rounded-full"></div>
         </div>
       ) : (
-        <JobsTable 
-          jobs={filteredJobs}
-          onEdit={handleEdit}
-          onDelete={handleDelete}
-          onView={handleView}
-        />
+        <>
+          {viewMode === 'grid' ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filteredJobs.map((job) => (
+                <JobCard
+                  key={job.id}
+                  job={job}
+                  onEdit={handleEdit}
+                  onDelete={handleDelete}
+                  onView={() => handleView(job)}
+                />
+              ))}
+              
+              {filteredJobs.length === 0 && (
+                <div className="col-span-3 py-12 text-center">
+                  <p className="text-text-200">No jobs found matching your search.</p>
+                </div>
+              )}
+            </div>
+          ) : (
+            <JobsTable 
+              jobs={filteredJobs}
+              onEdit={handleEdit}
+              onDelete={handleDelete}
+              onView={handleView}
+            />
+          )}
+        </>
       )}
 
       <AddJobModal 

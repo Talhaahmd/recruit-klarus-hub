@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { JobType } from '@/data/mockData';
+import { Job } from '@/services/jobsService';
 import { 
   Table,
   TableBody,
@@ -13,10 +13,10 @@ import { Button } from '@/components/ui/button';
 import { Eye, Pencil, Trash2 } from 'lucide-react';
 
 interface JobsTableProps {
-  jobs: JobType[];
+  jobs: Job[];
   onEdit: (id: string) => void;
   onDelete: (id: string) => void;
-  onView: (job: JobType) => void;
+  onView: (job: Job) => void;
 }
 
 const JobsTable: React.FC<JobsTableProps> = ({ jobs, onEdit, onDelete, onView }) => {

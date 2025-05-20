@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { JobType } from '@/data/mockData';
+import { Job } from '@/services/jobsService';
 import { 
   Edit, 
   Trash2, 
@@ -11,7 +11,7 @@ import {
 } from 'lucide-react';
 
 interface JobCardProps {
-  job: JobType;
+  job: Job;
   onEdit: (id: string) => void;
   onDelete: (id: string) => void;
   onView: () => void;

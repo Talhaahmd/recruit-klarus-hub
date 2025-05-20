@@ -1,7 +1,6 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Header } from '@/components/Layout/MainLayout';
-import { mockCalendarEvents, CalendarEventType } from '@/data/mockData';
 import { Calendar as CalendarIcon, PlusCircle, ChevronLeft, ChevronRight } from 'lucide-react';
 import { format, addMonths, subMonths, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, parseISO } from 'date-fns';
 import { toast } from 'sonner';
@@ -23,15 +22,36 @@ import { Button } from '@/components/ui/button';
 import AddJobModal, { NewJobData } from '@/components/UI/AddJobModal';
 import AddCandidateModal from '@/components/UI/AddCandidateModal';
 import { useNavigate } from 'react-router-dom';
+import { calendarService, CalendarEvent } from '@/services/calendarService';
+import { jobsService } from '@/services/jobsService';
+import { candidatesService } from '@/services/candidatesService';
 
 const Calendar: React.FC = () => {
   const navigate = useNavigate();
   const [currentDate, setCurrentDate] = useState(new Date());
-  const [events, setEvents] = useState<CalendarEventType[]>(mockCalendarEvents);
+  const [events, setEvents] = useState<CalendarEvent[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [isEventTypeDialogOpen, setIsEventTypeDialogOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [showAddJobModal, setShowAddJobModal] = useState(false);
   const [showAddCandidateModal, setShowAddCandidateModal] = useState(false);
+  
+  // Fetch events when component mounts
+  useEffect(() => {
+    const fetchEvents = async () => {
+      setIsLoading(true);
+      try {
+        const data = await calendarService.getEvents();
+        setEvents(data);
+      } catch (error) {
+        console.error('Error fetching events:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    fetchEvents();
+  }, []);
   
   const nextMonth = () => {
     setCurrentDate(addMonths(currentDate, 1));
@@ -72,42 +92,105 @@ const Calendar: React.FC = () => {
     }
   };
 
-  const handleSaveNewJob = (jobData: NewJobData) => {
-    setShowAddJobModal(false);
-    
-    // Add new calendar event for the job posting
-    const eventDate = selectedDate || new Date();
-    
-    const newEvent: CalendarEventType = {
-      id: `event-${events.length + 1}`,
-      title: jobData.title,
-      description: jobData.description,
-      startDate: eventDate,
-      endDate: eventDate,
-      type: 'Job Posting',
-    };
-    
-    setEvents([...events, newEvent]);
-    toast.success(`Job posting scheduled for ${format(eventDate, 'MMMM d, yyyy')}`);
+  const handleSaveNewJob = async (jobData: NewJobData) => {
+    try {
+      // First create the job
+      const newJob = await jobsService.createJob({
+        title: jobData.title,
+        description: jobData.description,
+        location: jobData.location,
+        type: jobData.type,
+        status: 'Active',
+        applicants: 0,
+        postedDate: new Date().toISOString().split('T')[0],
+        technologies: jobData.technologies,
+        workplaceType: jobData.workplaceType,
+        complexity: jobData.complexity,
+        qualification: jobData.qualification || 'None',
+        activeDays: jobData.activeDays
+      });
+      
+      if (!newJob) {
+        toast.error('Failed to create job');
+        setShowAddJobModal(false);
+        return;
+      }
+      
+      // Then add calendar event
+      const eventDate = selectedDate || new Date();
+      
+      const newEvent = await calendarService.createEvent({
+        title: jobData.title,
+        description: jobData.description,
+        startDate: eventDate,
+        endDate: eventDate,
+        type: 'Job Posting',
+      });
+      
+      if (newEvent) {
+        setEvents([...events, newEvent]);
+      }
+      
+      setShowAddJobModal(false);
+      toast.success(`Job posting scheduled for ${format(eventDate, 'MMMM d, yyyy')}`);
+    } catch (error) {
+      console.error('Error creating job and event:', error);
+      toast.error('Failed to create job posting');
+    }
   };
   
-  const handleSaveCandidate = (candidateData: any) => {
-    setShowAddCandidateModal(false);
-    
-    // Add new calendar event for the candidate interview
-    const eventDate = selectedDate || new Date();
-    
-    const newEvent: CalendarEventType = {
-      id: `event-${events.length + 1}`,
-      title: `New ${candidateData.type === 'cv' ? 'Candidate Interview' : 'Bulk Candidates'}`,
-      description: `${candidateData.type === 'cv' ? 'Interview with candidate' : 'Process multiple candidates'} from ${candidateData.file.name}`,
-      startDate: eventDate,
-      endDate: eventDate,
-      type: 'Interview',
-    };
-    
-    setEvents([...events, newEvent]);
-    toast.success(`Candidate ${candidateData.type === 'cv' ? 'interview' : 'processing'} scheduled for ${format(eventDate, 'MMMM d, yyyy')}`);
+  const handleSaveCandidate = async (candidateData: any) => {
+    try {
+      setShowAddCandidateModal(false);
+      
+      // Add new calendar event for the candidate interview
+      const eventDate = selectedDate || new Date();
+      
+      // Create calendar event
+      const newEvent = await calendarService.createEvent({
+        title: `New ${candidateData.type === 'cv' ? 'Candidate Interview' : 'Bulk Candidates'}`,
+        description: `${candidateData.type === 'cv' ? 'Interview with candidate' : 'Process multiple candidates'} from ${candidateData.file.name}`,
+        startDate: eventDate,
+        endDate: eventDate,
+        type: 'Interview',
+      });
+      
+      if (newEvent) {
+        setEvents([...events, newEvent]);
+        toast.success(`Candidate ${candidateData.type === 'cv' ? 'interview' : 'processing'} scheduled for ${format(eventDate, 'MMMM d, yyyy')}`);
+      }
+      
+      // Process the candidate files (in a real app, this would involve parsing the CV)
+      if (candidateData.type === 'cv' && candidateData.file) {
+        // Upload the resume
+        const resumeUrl = await candidatesService.uploadResume(candidateData.file);
+        
+        if (resumeUrl) {
+          // Get the first job for demo purposes (in a real app, you'd select a specific job)
+          const jobs = await jobsService.getJobs();
+          if (jobs.length > 0) {
+            const newCandidate = await candidatesService.createCandidate({
+              jobId: jobs[0].id,
+              name: candidateData.file.name.replace(/\.[^/.]+$/, ""), // Remove file extension
+              email: `candidate${Date.now()}@example.com`,
+              phone: '000-000-0000',
+              resumeUrl: resumeUrl,
+              appliedDate: new Date().toISOString().split('T')[0],
+              status: 'Interview',
+              notes: `Uploaded via calendar on ${format(eventDate, 'MMMM d, yyyy')}`,
+              rating: 3
+            });
+            
+            if (newCandidate) {
+              toast.success('Candidate record created');
+            }
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Error processing candidate:', error);
+      toast.error('Failed to process candidate');
+    }
   };
   
   const getEventsForDate = (date: Date) => {
@@ -129,6 +212,20 @@ const Calendar: React.FC = () => {
       default: return 'bg-gray-500 border-gray-600';
     }
   };
+  
+  if (isLoading) {
+    return (
+      <div>
+        <Header 
+          title="Calendar" 
+          subtitle="Loading calendar data..."
+        />
+        <div className="flex justify-center items-center h-64">
+          <div className="animate-spin h-8 w-8 border-4 border-primary-100 border-t-transparent rounded-full"></div>
+        </div>
+      </div>
+    );
+  }
   
   return (
     <div>
@@ -241,6 +338,12 @@ const Calendar: React.FC = () => {
                 </div>
               </div>
             ))}
+            
+          {events.length === 0 && (
+            <div className="text-center py-8 text-text-200">
+              <p>No upcoming events</p>
+            </div>
+          )}
         </div>
       </div>
       
