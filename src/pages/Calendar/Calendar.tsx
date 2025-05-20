@@ -94,17 +94,16 @@ const Calendar: React.FC = () => {
   const handleSaveNewJob = async (jobData: NewJobData) => {
     try {
       // First create the job
-      const formData = jobData.formData;
-      const newJobData = {  // Changed variable name to avoid conflict
-        title: formData.title,
-        description: formData.description,
-        location: formData.location,
-        type: formData.type,
+      const newJobData = {  
+        title: jobData.title,
+        description: jobData.description,
+        location: jobData.location,
+        type: jobData.type,
         status: 'Active',
         posted_date: new Date().toISOString().split('T')[0],
-        technologies: formData.technologies || [],
-        workplace_type: formData.workplaceType || 'Remote',
-        active_days: parseInt(formData.activeDays) || 30,
+        technologies: jobData.technologies || [],
+        workplace_type: jobData.workplaceType || 'Remote',
+        active_days: parseInt(String(jobData.activeDays)) || 30,
         applicants: 0
       };
       
