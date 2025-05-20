@@ -5,8 +5,8 @@ import { toast } from 'sonner';
 export type LinkedInPost = {
   id: string;
   content: string;
-  scheduledDate: Date | string | null;
-  scheduledTime: string | null;
+  scheduled_date: Date | string | null;
+  scheduled_time: string | null;
   posted: boolean;
   niche: string;
 };
@@ -31,8 +31,8 @@ export const linkedinService = {
       return data.map(post => ({
         id: post.id,
         content: post.content,
-        scheduledDate: post.scheduled_date,
-        scheduledTime: post.scheduled_time,
+        scheduled_date: post.scheduled_date,
+        scheduled_time: post.scheduled_time,
         posted: post.posted,
         niche: post.niche
       }));
@@ -46,7 +46,7 @@ export const linkedinService = {
   // Create a new LinkedIn post
   createPost: async (post: LinkedInPostInput): Promise<LinkedInPost | null> => {
     try {
-      const { user } = await supabase.auth.getUser();
+      const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
         toast.error('You must be logged in to create a post');
         return null;
@@ -54,12 +54,13 @@ export const linkedinService = {
       
       const postData = {
         content: post.content,
-        scheduled_date: post.scheduledDate ? 
-          (typeof post.scheduledDate === 'string' ? post.scheduledDate : post.scheduledDate.toISOString().split('T')[0]) : 
+        scheduled_date: post.scheduled_date ? 
+          (typeof post.scheduled_date === 'string' ? post.scheduled_date : post.scheduled_date.toISOString().split('T')[0]) : 
           null,
-        scheduled_time: post.scheduledTime,
+        scheduled_time: post.scheduled_time,
         niche: post.niche,
-        user_id: user.id
+        user_id: user.id,
+        posted: false
       };
       
       const { data, error } = await supabase
@@ -78,8 +79,8 @@ export const linkedinService = {
       return {
         id: data.id,
         content: data.content,
-        scheduledDate: data.scheduled_date,
-        scheduledTime: data.scheduled_time,
+        scheduled_date: data.scheduled_date,
+        scheduled_time: data.scheduled_time,
         posted: data.posted,
         niche: data.niche
       };

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Header } from '@/components/Layout/MainLayout';
 import { Calendar as CalendarIcon, PlusCircle, ChevronLeft, ChevronRight } from 'lucide-react';
@@ -101,18 +100,17 @@ const Calendar: React.FC = () => {
         location: jobData.location,
         type: jobData.type,
         status: 'Active',
-        applicants: 0,
-        postedDate: new Date().toISOString().split('T')[0],
+        posted_date: new Date().toISOString().split('T')[0],
         technologies: jobData.technologies,
-        workplaceType: jobData.workplaceType,
+        workplace_type: jobData.workplaceType,
         complexity: jobData.complexity,
         qualification: jobData.qualification || 'None',
-        activeDays: jobData.activeDays
+        active_days: jobData.activeDays
       });
       
       if (!newJob) {
         toast.error('Failed to create job');
-        setShowAddJobModal(false);
+        setShowAddModal(false);
         return;
       }
       
@@ -131,7 +129,7 @@ const Calendar: React.FC = () => {
         setEvents([...events, newEvent]);
       }
       
-      setShowAddJobModal(false);
+      setShowAddModal(false);
       toast.success(`Job posting scheduled for ${format(eventDate, 'MMMM d, yyyy')}`);
     } catch (error) {
       console.error('Error creating job and event:', error);
@@ -170,12 +168,12 @@ const Calendar: React.FC = () => {
           const jobs = await jobsService.getJobs();
           if (jobs.length > 0) {
             const newCandidate = await candidatesService.createCandidate({
-              jobId: jobs[0].id,
+              job_id: jobs[0].id,
               name: candidateData.file.name.replace(/\.[^/.]+$/, ""), // Remove file extension
               email: `candidate${Date.now()}@example.com`,
               phone: '000-000-0000',
-              resumeUrl: resumeUrl,
-              appliedDate: new Date().toISOString().split('T')[0],
+              resume_url: resumeUrl,
+              applied_date: new Date().toISOString().split('T')[0],
               status: 'Interview',
               notes: `Uploaded via calendar on ${format(eventDate, 'MMMM d, yyyy')}`,
               rating: 3

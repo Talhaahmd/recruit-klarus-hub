@@ -1,17 +1,27 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Header } from '@/components/Layout/MainLayout';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { Save } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 
 const Settings: React.FC = () => {
   const { user } = useAuth();
-  const [name, setName] = useState(user?.name || '');
-  const [email, setEmail] = useState(user?.email || '');
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
   const [companyName, setCompanyName] = useState('Klarus HR');
   const [emailNotifications, setEmailNotifications] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
+  
+  useEffect(() => {
+    if (user) {
+      // Use metadata to get the name if available
+      const userName = user.user_metadata?.full_name || user.user_metadata?.name || '';
+      setName(userName);
+      setEmail(user.email || '');
+    }
+  }, [user]);
   
   const handleSaveSettings = () => {
     setIsLoading(true);

@@ -46,12 +46,12 @@ const JobDetailsModal: React.FC<JobDetailsModalProps> = ({ job, isOpen, onClose 
             
             <div className="flex items-center gap-2 text-sm">
               <Building size={16} className="text-primary-100" />
-              <span className="font-medium">Workplace Type:</span> {job.workplaceType}
+              <span className="font-medium">Workplace Type:</span> {job.workplace_type}
             </div>
             
             <div className="flex items-center gap-2 text-sm">
               <Calendar size={16} className="text-primary-100" />
-              <span className="font-medium">Posted Date:</span> {job.postedDate}
+              <span className="font-medium">Posted Date:</span> {job.posted_date}
             </div>
             
             <div className="flex items-center gap-2 text-sm">
@@ -99,7 +99,7 @@ const JobDetailsModal: React.FC<JobDetailsModalProps> = ({ job, isOpen, onClose 
 
           <div className="flex items-center gap-2 text-sm">
             <Calendar size={16} className="text-primary-100" />
-            <span className="font-medium">Active for:</span> {job.activeDays} days
+            <span className="font-medium">Active for:</span> {job.active_days} days
           </div>
         </div>
       </DialogContent>

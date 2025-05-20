@@ -8,17 +8,17 @@ export type Candidate = {
   name: string;
   email: string;
   phone: string;
-  resume_url: string | null;
+  resume_url?: string;
   applied_date: string;
   status: string;
-  notes: string | null;
+  notes?: string;
   rating: number;
 };
 
-type CandidateInput = Omit<Candidate, 'id'>;
+export type CandidateInput = Omit<Candidate, 'id'>;
 
 export const candidatesService = {
-  // Get all candidates for current user
+  // Get all candidates for the current user
   getCandidates: async (): Promise<Candidate[]> => {
     try {
       const { data, error } = await supabase
@@ -59,7 +59,7 @@ export const candidatesService = {
     }
   },
   
-  // Get candidates for a specific job
+  // Get candidates by job ID
   getCandidatesByJobId: async (jobId: string): Promise<Candidate[]> => {
     try {
       const { data, error } = await supabase
@@ -74,7 +74,7 @@ export const candidatesService = {
       
       return data || [];
     } catch (err: any) {
-      console.error('Error fetching candidates by job ID:', err.message);
+      console.error('Error fetching candidates for job:', err.message);
       toast.error('Failed to load candidates');
       return [];
     }
@@ -83,7 +83,7 @@ export const candidatesService = {
   // Create a new candidate
   createCandidate: async (candidate: CandidateInput): Promise<Candidate | null> => {
     try {
-      const { user } = await supabase.auth.getUser();
+      const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
         toast.error('You must be logged in to add a candidate');
         return null;
@@ -94,7 +94,6 @@ export const candidatesService = {
         user_id: user.id
       };
       
-      // First, insert the candidate
       const { data, error } = await supabase
         .from('candidates')
         .insert(candidateData)
@@ -105,15 +104,8 @@ export const candidatesService = {
         throw error;
       }
       
-      // Then, increment the job applicants count
-      const { error: incrementError } = await supabase.rpc(
-        'increment_job_applicants',
-        { job_id: candidate.job_id }
-      );
-      
-      if (incrementError) {
-        console.error('Error incrementing applicants count:', incrementError);
-      }
+      // Increment the job's applicant count
+      await supabase.rpc('increment_job_applicants', { job_id: candidate.job_id });
       
       toast.success('Candidate added successfully');
       return data;
@@ -150,7 +142,6 @@ export const candidatesService = {
   // Delete a candidate
   deleteCandidate: async (id: string, jobId: string): Promise<boolean> => {
     try {
-      // First, delete the candidate
       const { error } = await supabase
         .from('candidates')
         .delete()
@@ -160,15 +151,8 @@ export const candidatesService = {
         throw error;
       }
       
-      // Then, decrement the job applicants count
-      const { error: decrementError } = await supabase.rpc(
-        'decrement_job_applicants',
-        { job_id: jobId }
-      );
-      
-      if (decrementError) {
-        console.error('Error decrementing applicants count:', decrementError);
-      }
+      // Decrement the job's applicant count
+      await supabase.rpc('decrement_job_applicants', { job_id: jobId });
       
       toast.success('Candidate deleted successfully');
       return true;
@@ -178,4 +162,30 @@ export const candidatesService = {
       return false;
     }
   },
+  
+  // Upload resume and return URL
+  uploadResume: async (file: File): Promise<string | null> => {
+    try {
+      const fileExt = file.name.split('.').pop();
+      const filePath = `${Date.now()}-${Math.random().toString(36).substring(2, 15)}.${fileExt}`;
+      
+      const { error: uploadError, data } = await supabase.storage
+        .from('candidate-files')
+        .upload(filePath, file);
+        
+      if (uploadError) {
+        throw uploadError;
+      }
+      
+      const { data: { publicUrl } } = supabase.storage
+        .from('candidate-files')
+        .getPublicUrl(filePath);
+        
+      return publicUrl;
+    } catch (err: any) {
+      console.error('Error uploading resume:', err.message);
+      toast.error('Failed to upload resume');
+      return null;
+    }
+  }
 };

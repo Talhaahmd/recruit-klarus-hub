@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Header } from '@/components/Layout/MainLayout';
 import { PlusCircle, Search, List, LayoutGrid, Filter } from 'lucide-react';
@@ -91,13 +90,12 @@ const Jobs: React.FC = () => {
         location: jobData.location,
         type: jobData.type,
         status: 'Active',
-        applicants: 0,
-        postedDate: new Date().toISOString().split('T')[0],
+        posted_date: new Date().toISOString().split('T')[0],
         technologies: jobData.technologies,
-        workplaceType: jobData.workplaceType,
+        workplace_type: jobData.workplaceType,
         complexity: jobData.complexity,
         qualification: jobData.qualification || 'None',
-        activeDays: jobData.activeDays
+        active_days: jobData.activeDays
       });
       
       if (newJob) {
@@ -124,7 +122,7 @@ const Jobs: React.FC = () => {
       job.location.toLowerCase().includes(filters.location.toLowerCase()) : true;
     
     const matchesTime = filters.time ? 
-      job.postedDate.toLowerCase().includes(filters.time.toLowerCase()) : true;
+      job.posted_date.toLowerCase().includes(filters.time.toLowerCase()) : true;
     
     return matchesSearch && matchesPosition && matchesLocation && matchesTime;
   });

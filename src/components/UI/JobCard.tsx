@@ -72,7 +72,7 @@ const JobCard: React.FC<JobCardProps> = ({ job, onEdit, onDelete, onView }) => {
       
       <div className="mt-4 pt-4 border-t border-gray-200">
         <div className="text-sm text-primary-200">
-          Posted: {job.postedDate}
+          Posted: {job.posted_date}
         </div>
       </div>
     </div>

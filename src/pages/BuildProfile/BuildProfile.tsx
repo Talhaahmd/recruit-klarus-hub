@@ -1,339 +1,438 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Header } from '@/components/Layout/MainLayout';
-import { Calendar as CalendarIcon, Send, Copy, Wand2, Clock } from 'lucide-react';
+import { Calendar, Clock, Send, Plus, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
-import { Calendar } from '@/components/ui/calendar';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/utils';
-import { linkedinService } from '@/services/linkedinService';
-import { calendarService } from '@/services/calendarService';
-
-type NicheType = 'tech' | 'hr' | 'marketing' | 'finance' | 'healthcare';
-
-interface TrendingTopic {
-  id: string;
-  title: string;
-}
+import { Textarea } from '@/components/ui/textarea';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from '@/components/ui/dialog';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
+import { Calendar as CalendarComponent } from '@/components/ui/calendar';
+import { Input } from '@/components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { linkedinService, LinkedInPost } from '@/services/linkedinService';
 
 const BuildProfile: React.FC = () => {
-  const [prompt, setPrompt] = useState('');
-  const [generatedContent, setGeneratedContent] = useState('');
-  const [isGenerating, setIsGenerating] = useState(false);
-  const [selectedNiche, setSelectedNiche] = useState<NicheType>('tech');
-  const [date, setDate] = useState<Date | undefined>(undefined);
-  const [time, setTime] = useState<string>('12:00 PM');
-  const [showSchedule, setShowSchedule] = useState(false);
-  const [showSuccessDialog, setShowSuccessDialog] = useState(false);
+  const [posts, setPosts] = useState<LinkedInPost[]>([]);
+  const [postContent, setPostContent] = useState('');
+  const [selectedNiche, setSelectedNiche] = useState<string>('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [openScheduleDialog, setOpenScheduleDialog] = useState(false);
+  const [scheduledContent, setScheduledContent] = useState('');
+  const [scheduledDate, setScheduledDate] = useState<Date | null>(null);
+  const [scheduledTime, setScheduledTime] = useState<string | null>(null);
+  const [scheduledNiche, setScheduledNiche] = useState<string>('');
+  const [isScheduleSubmitting, setIsScheduleSubmitting] = useState(false);
   
-  const niches = [
-    { id: 'tech', label: 'Technology' },
-    { id: 'hr', label: 'Human Resources' },
-    { id: 'marketing', label: 'Marketing' },
-    { id: 'finance', label: 'Finance' },
-    { id: 'healthcare', label: 'Healthcare' }
-  ];
-  
-  const trendingTopics: Record<NicheType, TrendingTopic[]> = {
-    tech: [
-      { id: 'ai', title: 'AI and Machine Learning Trends' },
-      { id: 'remote', title: 'Remote Work Tools for Tech Teams' },
-      { id: 'cloud', title: 'Cloud Computing Innovations' }
-    ],
-    hr: [
-      { id: 'hiring', title: 'Innovative Hiring Practices' },
-      { id: 'retention', title: 'Employee Retention Strategies' },
-      { id: 'dei', title: 'Diversity and Inclusion Initiatives' }
-    ],
-    marketing: [
-      { id: 'social', title: 'Social Media Marketing Strategies' },
-      { id: 'content', title: 'Content Marketing Tips' },
-      { id: 'seo', title: 'SEO Best Practices' }
-    ],
-    finance: [
-      { id: 'crypto', title: 'Cryptocurrency Trends' },
-      { id: 'investing', title: 'Investment Strategies' },
-      { id: 'fintech', title: 'Fintech Innovations' }
-    ],
-    healthcare: [
-      { id: 'telehealth', title: 'Telehealth Solutions' },
-      { id: 'wellness', title: 'Workplace Wellness Programs' },
-      { id: 'tech', title: 'Healthcare Technology Advancements' }
-    ]
-  };
-  
-  const handleGenerate = async () => {
-    if (!prompt) {
-      toast.error('Please enter a prompt');
-      return;
-    }
+  useEffect(() => {
+    const fetchPosts = async () => {
+      try {
+        const data = await linkedinService.getPosts();
+        setPosts(data);
+      } catch (error) {
+        console.error('Error fetching LinkedIn posts:', error);
+      }
+    };
     
-    setIsGenerating(true);
+    fetchPosts();
+  }, []);
+  
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
     
     try {
-      // Simulate AI generation (in a real app, this would call an API)
-      setTimeout(async () => {
-        let content = `# Exciting Opportunity at Klarus HR!\n\nWe're revolutionizing the hiring process with our AI-powered platform that reduces screening times by 80% while eliminating unconscious bias.\n\n🚀 We're currently looking for talented individuals to join our growing team!\n\nAt Klarus HR, we believe in:\n- Innovation-driven solutions\n- Inclusive hiring practices\n- Work-life balance\n- Continuous learning\n\nCheck out our open positions and be part of our journey to transform recruitment: [Link]\n\n#KlarusHR #AIRecruitment #Hiring #TechJobs #CareerOpportunities`;
-        
-        setGeneratedContent(content);
-        
-        // Save to database based on schedule settings
-        if (showSchedule && date && time) {
-          const linkedInPost = await linkedinService.createPost({
-            content: content,
-            scheduledDate: date,
-            scheduledTime: time,
-            posted: false,
-            niche: selectedNiche
-          });
-          
-          // Create a calendar event for the scheduled post
-          if (linkedInPost) {
-            await calendarService.createEvent({
-              title: 'LinkedIn Post: ' + prompt.substring(0, 30) + (prompt.length > 30 ? '...' : ''),
-              description: 'Scheduled LinkedIn post about: ' + prompt,
-              startDate: date,
-              endDate: date,
-              type: 'LinkedIn Post'
-            });
-            
-            toast.success(`Content scheduled for ${format(date, 'PPP')} at ${time}`);
-          }
-          
-          setShowSchedule(false);
-        } else {
-          // Immediate post (just save to database)
-          await linkedinService.createPost({
-            content: content,
-            scheduledDate: null,
-            scheduledTime: null,
-            posted: true,
-            niche: selectedNiche
-          });
-          
-          setShowSuccessDialog(true);
-        }
-        
-        setIsGenerating(false);
-      }, 2000);
+      if (postContent.trim().length < 50) {
+        toast.error('Post content should be at least 50 characters long');
+        return;
+      }
+      
+      // Create the LinkedIn post
+      const newPost = await linkedinService.createPost({
+        content: postContent,
+        scheduled_date: null,
+        scheduled_time: null,
+        niche: selectedNiche || 'General'
+      });
+      
+      if (newPost) {
+        // Add the new post to the posts list
+        setPosts([newPost, ...posts]);
+        setPostContent('');
+        toast.success('LinkedIn post created successfully');
+      }
     } catch (error) {
-      console.error('Error generating content:', error);
-      toast.error('Failed to generate content');
-      setIsGenerating(false);
+      console.error('Error creating post:', error);
+      toast.error('Failed to create LinkedIn post');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleScheduleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsScheduleSubmitting(true);
+    
+    try {
+      if (scheduledContent.trim().length < 50) {
+        toast.error('Post content should be at least 50 characters long');
+        return;
+      }
+      
+      // Create the scheduled LinkedIn post
+      const newPost = await linkedinService.createPost({
+        content: scheduledContent,
+        scheduled_date: scheduledDate,
+        scheduled_time: scheduledTime,
+        niche: scheduledNiche || 'General'
+      });
+      
+      if (newPost) {
+        // Add the new scheduled post to the posts list
+        setPosts([newPost, ...posts]);
+        setScheduledContent('');
+        setScheduledDate(null);
+        setScheduledTime(null);
+        setOpenScheduleDialog(false);
+        toast.success('LinkedIn post scheduled successfully');
+      }
+    } catch (error) {
+      console.error('Error scheduling post:', error);
+      toast.error('Failed to schedule LinkedIn post');
+    } finally {
+      setIsScheduleSubmitting(false);
     }
   };
   
-  const handleCopyContent = () => {
-    navigator.clipboard.writeText(generatedContent);
-    toast.success('Content copied to clipboard');
+  const handleMarkAsPosted = async (id: string) => {
+    try {
+      const success = await linkedinService.markAsPosted(id);
+      if (success) {
+        // Update the post in the local state
+        setPosts(posts.map(post => 
+          post.id === id ? { ...post, posted: true } : post
+        ));
+      }
+    } catch (error) {
+      console.error('Error marking post as posted:', error);
+    }
   };
   
-  const handleSelectTopic = (title: string) => {
-    setPrompt(title);
+  const handleDeletePost = async (id: string) => {
+    // In a real app, you would call an API to delete the post
+    // For now, we'll just remove it from the local state
+    setPosts(posts.filter(post => post.id !== id));
+    toast.success('Post deleted successfully');
   };
   
-  const selectTime = (timeString: string) => {
-    setTime(timeString);
-  };
+  const niches = [
+    'Career Advice',
+    'Industry Trends',
+    'Company Culture',
+    'Leadership',
+    'Technology',
+    'Recruitment',
+    'Professional Development',
+    'General'
+  ];
   
   return (
     <div>
       <Header 
-        title="Build Profile" 
-        subtitle="Create professional content for LinkedIn."
+        title="Build Your Profile" 
+        subtitle="Create and schedule LinkedIn posts to build your professional brand."
       />
       
-      <div className="glass-card p-6 mb-8">
-        <div className="mb-6">
-          <label className="block text-sm font-medium text-text-100 mb-2">
-            LinkedIn Post
-          </label>
-          <p className="text-sm text-text-200 mb-4">
-            Create engaging LinkedIn content to showcase your recruitment expertise, company culture, and job opportunities.
-          </p>
-        </div>
+      <Tabs defaultValue="create" className="w-full">
+        <TabsList className="grid w-full max-w-md grid-cols-2">
+          <TabsTrigger value="create">Create Post</TabsTrigger>
+          <TabsTrigger value="scheduled">Scheduled Posts</TabsTrigger>
+        </TabsList>
         
-        <div className="mb-6">
-          <label className="block text-sm font-medium text-text-100 mb-2">
-            Select Your Niche
-          </label>
-          <div className="flex flex-wrap gap-3">
-            {niches.map((niche) => (
-              <button
-                key={niche.id}
-                className={`px-4 py-2 rounded-lg transition-all ${
-                  selectedNiche === niche.id as NicheType
-                    ? 'bg-primary-100 text-white'
-                    : 'bg-white border border-gray-200 hover:border-primary-100'
-                }`}
-                onClick={() => setSelectedNiche(niche.id as NicheType)}
-              >
-                {niche.label}
-              </button>
-            ))}
+        <TabsContent value="create" className="mt-6">
+          <div className="glass-card p-6">
+            <form onSubmit={handleSubmit}>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium mb-1">
+                    Select Niche
+                  </label>
+                  <Select value={selectedNiche} onValueChange={setSelectedNiche}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select a niche" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {niches.map((niche) => (
+                        <SelectItem key={niche} value={niche}>
+                          {niche}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium mb-1">
+                    Post Content
+                  </label>
+                  <Textarea
+                    placeholder="Write your LinkedIn post here..."
+                    className="min-h-[200px]"
+                    value={postContent}
+                    onChange={(e) => setPostContent(e.target.value)}
+                  />
+                  <div className="text-xs text-text-200 mt-1">
+                    {postContent.length} characters (minimum 50)
+                  </div>
+                </div>
+                
+                <div className="flex justify-between">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setOpenScheduleDialog(true)}
+                  >
+                    <Calendar className="mr-2 h-4 w-4" />
+                    Schedule for Later
+                  </Button>
+                  
+                  <Button type="submit" disabled={isSubmitting}>
+                    {isSubmitting ? (
+                      <>
+                        <div className="animate-spin mr-2 h-4 w-4 border-2 border-white border-t-transparent rounded-full" />
+                        Posting...
+                      </>
+                    ) : (
+                      <>
+                        <Send className="mr-2 h-4 w-4" />
+                        Post Now
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </div>
+            </form>
           </div>
-        </div>
+        </TabsContent>
         
-        <div className="mb-6">
-          <label className="block text-sm font-medium text-text-100 mb-2">
-            AI Suggestions Based on Your Niche
-          </label>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-            {trendingTopics[selectedNiche].map((topic) => (
-              <button
-                key={topic.id}
-                className="px-4 py-3 bg-white border border-gray-200 rounded-lg hover:border-primary-100 text-left transition-all"
-                onClick={() => handleSelectTopic(topic.title)}
-              >
-                <p className="text-sm font-medium">{topic.title}</p>
-                <p className="text-xs text-text-200 mt-1">Trending in {niches.find(n => n.id === selectedNiche)?.label}</p>
-              </button>
-            ))}
-          </div>
-        </div>
-        
-        <div className="mb-6">
-          <label className="block text-sm font-medium text-text-100 mb-2">
-            Your Prompt
-          </label>
-          <textarea
-            value={prompt}
-            onChange={(e) => setPrompt(e.target.value)}
-            placeholder="Describe what you want to post about (e.g., company culture, open positions, industry insights)"
-            rows={4}
-            className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary-100"
-          />
-        </div>
-        
-        <div className="flex justify-end gap-3">
-          <button
-            onClick={() => setShowSchedule(!showSchedule)}
-            className={`px-4 py-2 rounded-lg flex items-center gap-2 border transition-colors ${
-              showSchedule 
-                ? 'bg-accent-100 text-white border-accent-100' 
-                : 'bg-white border-gray-200 hover:border-accent-100'
-            }`}
-          >
-            <Clock size={18} />
-            <span>Schedule Post</span>
-          </button>
-          
-          <button
-            disabled={isGenerating || !prompt}
-            onClick={handleGenerate}
-            className="px-4 py-2 bg-primary-100 text-white rounded-lg flex items-center gap-2 hover:bg-primary-100/90 transition-colors shadow-md shadow-primary-100/20 disabled:opacity-50"
-          >
-            {isGenerating ? (
-              <>
-                <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full" />
-                <span>Generating...</span>
-              </>
+        <TabsContent value="scheduled" className="mt-6">
+          <div className="space-y-4">
+            {posts.length > 0 ? (
+              posts.map((post) => (
+                <div key={post.id} className="glass-card p-6">
+                  <div className="flex justify-between items-start">
+                    <div className="text-sm font-medium text-primary-100">
+                      {post.niche}
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {post.posted ? (
+                        <span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">
+                          Posted
+                        </span>
+                      ) : post.scheduled_date ? (
+                        <span className="px-2 py-1 bg-amber-100 text-amber-800 text-xs rounded-full">
+                          Scheduled
+                        </span>
+                      ) : (
+                        <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
+                          Draft
+                        </span>
+                      )}
+                      <button
+                        onClick={() => handleDeletePost(post.id)}
+                        className="p-1 hover:bg-gray-100 rounded-full"
+                      >
+                        <Trash2 size={16} className="text-gray-500" />
+                      </button>
+                    </div>
+                  </div>
+                  
+                  <div className="mt-3 whitespace-pre-line">
+                    {post.content}
+                  </div>
+                  
+                  {post.scheduled_date && (
+                    <div className="mt-4 flex items-center text-sm text-text-200">
+                      <Calendar size={14} className="mr-1" />
+                      Scheduled for: {format(
+                        new Date(post.scheduled_date), 
+                        'MMMM d, yyyy'
+                      )}
+                      {post.scheduled_time && (
+                        <>
+                          <Clock size={14} className="ml-3 mr-1" />
+                          {post.scheduled_time}
+                        </>
+                      )}
+                    </div>
+                  )}
+                  
+                  {!post.posted && (
+                    <div className="mt-4 pt-4 border-t border-gray-200">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleMarkAsPosted(post.id)}
+                      >
+                        Mark as Posted
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              ))
             ) : (
-              <>
-                <Wand2 size={18} />
-                <span>{showSchedule ? 'Schedule Content' : 'Generate Content'}</span>
-              </>
+              <div className="text-center py-12">
+                <p className="text-text-200">No posts yet. Create your first LinkedIn post!</p>
+                <Button
+                  variant="outline"
+                  className="mt-4"
+                  onClick={() => setOpenScheduleDialog(true)}
+                >
+                  <Plus className="mr-2 h-4 w-4" />
+                  Schedule a Post
+                </Button>
+              </div>
             )}
-          </button>
-        </div>
-        
-        {showSchedule && (
-          <div className="mt-6 p-4 bg-bg-200 rounded-lg">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          </div>
+        </TabsContent>
+      </Tabs>
+      
+      {/* Schedule Post Dialog */}
+      <Dialog open={openScheduleDialog} onOpenChange={setOpenScheduleDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Schedule LinkedIn Post</DialogTitle>
+          </DialogHeader>
+          
+          <form onSubmit={handleScheduleSubmit}>
+            <div className="space-y-4 py-4">
               <div>
-                <label className="block text-sm font-medium text-text-100 mb-2">
-                  Select Date
+                <label className="block text-sm font-medium mb-1">
+                  Select Niche
                 </label>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <button
-                      className="w-full flex items-center justify-between px-4 py-2 rounded-lg border border-gray-200 bg-white"
-                    >
-                      <span>{date ? format(date, 'PPP') : 'Select a date'}</span>
-                      <CalendarIcon size={18} />
-                    </button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0">
-                    <Calendar
-                      mode="single"
-                      selected={date}
-                      onSelect={setDate}
-                      initialFocus
-                      className={cn("p-3 pointer-events-auto")}
-                      disabled={(date) => date < new Date()}
-                    />
-                  </PopoverContent>
-                </Popover>
+                <Select value={scheduledNiche} onValueChange={setScheduledNiche}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a niche" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {niches.map((niche) => (
+                      <SelectItem key={niche} value={niche}>
+                        {niche}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-text-100 mb-2">
-                  Select Time
+                <label className="block text-sm font-medium mb-1">
+                  Post Content
                 </label>
-                <select 
-                  value={time}
-                  onChange={(e) => selectTime(e.target.value)}
-                  className="w-full px-4 py-2 rounded-lg border border-gray-200 bg-white focus:outline-none focus:ring-2 focus:ring-primary-100"
-                >
-                  {Array.from({ length: 24 }).map((_, hour) => {
-                    const h = hour % 12 === 0 ? 12 : hour % 12;
-                    const ampm = hour < 12 ? 'AM' : 'PM';
-                    return [
-                      <option key={`${hour}:00`} value={`${h}:00 ${ampm}`}>{`${h}:00 ${ampm}`}</option>,
-                      <option key={`${hour}:30`} value={`${h}:30 ${ampm}`}>{`${h}:30 ${ampm}`}</option>
-                    ];
-                  }).flat()}
-                </select>
+                <Textarea
+                  placeholder="Write your LinkedIn post here..."
+                  className="min-h-[150px]"
+                  value={scheduledContent}
+                  onChange={(e) => setScheduledContent(e.target.value)}
+                />
+                <div className="text-xs text-text-200 mt-1">
+                  {scheduledContent.length} characters (minimum 50)
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium mb-1">
+                    Schedule Date
+                  </label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className="w-full justify-start text-left font-normal"
+                      >
+                        <Calendar className="mr-2 h-4 w-4" />
+                        {scheduledDate ? (
+                          format(scheduledDate, 'PPP')
+                        ) : (
+                          <span>Pick a date</span>
+                        )}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0">
+                      <CalendarComponent
+                        mode="single"
+                        selected={scheduledDate}
+                        onSelect={setScheduledDate}
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium mb-1">
+                    Schedule Time
+                  </label>
+                  <Select value={scheduledTime || ''} onValueChange={setScheduledTime}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select time" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {Array.from({ length: 24 }).map((_, hour) => (
+                        <React.Fragment key={hour}>
+                          <SelectItem value={`${hour}:00`}>
+                            {hour === 0 ? '12:00 AM' : 
+                             hour < 12 ? `${hour}:00 AM` : 
+                             hour === 12 ? '12:00 PM' : 
+                             `${hour - 12}:00 PM`}
+                          </SelectItem>
+                          <SelectItem value={`${hour}:30`}>
+                            {hour === 0 ? '12:30 AM' : 
+                             hour < 12 ? `${hour}:30 AM` : 
+                             hour === 12 ? '12:30 PM' : 
+                             `${hour - 12}:30 PM`}
+                          </SelectItem>
+                        </React.Fragment>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
             </div>
-          </div>
-        )}
-      </div>
-      
-      {generatedContent && !showSuccessDialog && (
-        <div className="glass-card p-6">
-          <div className="flex justify-between items-center mb-4">
-            <h3 className="font-medium">Generated Content</h3>
-            <button
-              onClick={handleCopyContent}
-              className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-              title="Copy to clipboard"
-            >
-              <Copy size={18} />
-            </button>
-          </div>
-          
-          <div className="w-full p-4 bg-white rounded-lg border border-gray-200 whitespace-pre-wrap">
-            {generatedContent}
-          </div>
-        </div>
-      )}
-      
-      <Dialog open={showSuccessDialog} onOpenChange={setShowSuccessDialog}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Content Generated Successfully</DialogTitle>
-          </DialogHeader>
-          <div className="py-4">
-            <p>Your LinkedIn post has been generated and is ready to be shared.</p>
-          </div>
-          <DialogFooter>
-            <Button onClick={() => setShowSuccessDialog(false)}>Close</Button>
-            <Button 
-              variant="default" 
-              className="bg-primary-100 hover:bg-primary-100/90"
-              onClick={() => {
-                window.open('https://linkedin.com/feed', '_blank');
-                setShowSuccessDialog(false);
-              }}
-            >
-              <Send className="mr-2 h-4 w-4" />
-              View on LinkedIn
-            </Button>
-          </DialogFooter>
+            
+            <DialogFooter>
+              <Button type="submit" disabled={isScheduleSubmitting}>
+                {isScheduleSubmitting ? (
+                  <>
+                    <div className="animate-spin mr-2 h-4 w-4 border-2 border-white border-t-transparent rounded-full" />
+                    Scheduling...
+                  </>
+                ) : (
+                  <>
+                    <Calendar className="mr-2 h-4 w-4" />
+                    Schedule Post
+                  </>
+                )}
+              </Button>
+            </DialogFooter>
+          </form>
         </DialogContent>
       </Dialog>
     </div>

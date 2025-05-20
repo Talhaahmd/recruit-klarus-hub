@@ -65,7 +65,7 @@ export const jobsService = {
   // Create a new job
   createJob: async (job: JobInput): Promise<Job | null> => {
     try {
-      const { user } = await supabase.auth.getUser();
+      const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
         toast.error('You must be logged in to create a job');
         return null;

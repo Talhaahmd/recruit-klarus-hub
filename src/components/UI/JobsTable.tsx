@@ -40,7 +40,7 @@ const JobsTable: React.FC<JobsTableProps> = ({ jobs, onEdit, onDelete, onView })
                 <TableCell className="font-medium">{job.title}</TableCell>
                 <TableCell>{job.location}</TableCell>
                 <TableCell>{job.type}</TableCell>
-                <TableCell>{job.postedDate}</TableCell>
+                <TableCell>{job.posted_date}</TableCell>
                 <TableCell>{job.applicants}</TableCell>
                 <TableCell className="text-right">
                   <div className="flex justify-end gap-2">
