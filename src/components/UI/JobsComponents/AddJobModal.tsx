@@ -1,10 +1,9 @@
 
 import React, { useState } from 'react';
-import { useForm, Controller } from 'react-hook-form';
+import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { X } from 'lucide-react';
-import { toast } from 'sonner';
 import { 
   Dialog, 
   DialogContent, 
@@ -308,42 +307,4 @@ const AddJobModal: React.FC<AddJobModalProps> = ({ isOpen, onClose, onSave }) =>
   );
 };
 
-// The Jobs component that uses the AddJobModal
-const Jobs = () => {
-  const [isAddJobModalOpen, setIsAddJobModalOpen] = useState(false);
-
-  const handleAddJobClick = () => {
-    setIsAddJobModalOpen(true);
-  };
-
-  const handleCloseModal = () => {
-    setIsAddJobModalOpen(false);
-  };
-
-  const handleSaveJob = (data: NewJobData) => {
-    console.log('Job saved:', data);
-    toast.success('Job created successfully');
-    setIsAddJobModalOpen(false);
-  };
-
-  return (
-    <div className="container mx-auto p-4">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">Jobs Management</h1>
-        <Button onClick={handleAddJobClick}>Add New Job</Button>
-      </div>
-      
-      <div className="bg-white rounded-lg shadow p-6">
-        <p>Your jobs will appear here.</p>
-      </div>
-
-      <AddJobModal 
-        isOpen={isAddJobModalOpen} 
-        onClose={handleCloseModal} 
-        onSave={handleSaveJob} 
-      />
-    </div>
-  );
-};
-
-export default Jobs;
+export default AddJobModal;
