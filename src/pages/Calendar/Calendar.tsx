@@ -94,17 +94,21 @@ const Calendar: React.FC = () => {
   const handleSaveNewJob = async (jobData: NewJobData) => {
     try {
       // First create the job
-      const newJob = await jobsService.createJob({
-        title: jobData.title,
-        description: jobData.description,
-        location: jobData.location,
-        type: jobData.type,
+      const formData = jobData.formData;
+      const jobData = {
+        title: formData.title,
+        description: formData.description,
+        location: formData.location,
+        type: formData.type,
         status: 'Active',
         posted_date: new Date().toISOString().split('T')[0],
-        technologies: jobData.technologies,
-        workplace_type: jobData.workplaceType,
-        active_days: jobData.activeDays
-      });
+        technologies: formData.technologies || [],
+        workplace_type: formData.workplaceType || 'Remote',
+        active_days: parseInt(formData.activeDays) || 30,
+        applicants: 0 // Add this missing field
+      };
+      
+      const newJob = await jobsService.createJob(jobData);
       
       if (!newJob) {
         toast.error('Failed to create job');

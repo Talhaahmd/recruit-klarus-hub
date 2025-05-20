@@ -1,10 +1,11 @@
+
 import React, { useState, useEffect } from 'react';
 import { Header } from '@/components/Layout/MainLayout';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import JobsTable from '@/components/UI/JobsTable';
 import AddJobModal, { NewJobData } from '@/components/UI/JobsComponents/AddJobModal';
-import JobDetailsModal from '@/components/UI/JobsComponents/JobDetailsModal';
+import JobDetailsModal from '@/components/UI/JobDetailsModal';
 import { Job, jobsService } from '@/services/jobsService';
 import { PlusCircle, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
