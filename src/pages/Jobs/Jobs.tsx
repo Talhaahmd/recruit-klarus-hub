@@ -81,6 +81,7 @@ const Jobs: React.FC = () => {
     setShowAddModal(true);
   };
 
+  // ✅ UPDATED FUNCTION TO INCLUDE `user_id`
   const handleSaveNewJob = async (jobData: NewJobData) => {
     try {
       console.log("Job data being submitted:", jobData);
@@ -94,7 +95,6 @@ const Jobs: React.FC = () => {
         return;
       }
 
-      // Ensure correct data mapping to match database fields
       const newJob = await jobsService.createJob({
         title: jobData.title,
         description: jobData.description,
@@ -105,6 +105,7 @@ const Jobs: React.FC = () => {
         technologies: jobData.technologies,
         workplace_type: jobData.workplaceType,
         active_days: jobData.activeDays,
+        user_id: user.id, // ✅ REQUIRED for foreign key to `profiles.id`
       });
 
       if (newJob) {
