@@ -44,7 +44,13 @@ const Candidates: React.FC = () => {
   const [selectedLocations, setSelectedLocations] = useState<string[]>([]);
   const [selectedExperiences, setSelectedExperiences] = useState<string[]>([]);
   const [selectedExpertise, setSelectedExpertise] = useState<string[]>([]);
-  const [ratingFilter, setRatingFilter] = useState<number | null>(null);
+  const [analysisFilter, setAnalysisFilter] = useState<number | null>(null);
+  
+  const getAnalysisColor = (score: number) => {
+    if (score >= 8) return 'bg-green-100 text-green-800';
+    if (score >= 5) return 'bg-yellow-100 text-yellow-800';
+    return 'bg-red-100 text-red-800';
+  };
   
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(e.target.value);
@@ -143,8 +149,11 @@ const Candidates: React.FC = () => {
       
     const matchesJob = selectedJob === 'all' || candidate.jobId === selectedJob;
     
+    // Convert 5-scale rating to 10-scale analysis score
+    const analysisScore = candidate.rating * 2;
+    
     // Apply additional filters if they are set
-    const matchesRating = ratingFilter === null || candidate.rating >= ratingFilter;
+    const matchesAnalysis = analysisFilter === null || analysisScore >= analysisFilter;
     
     // In a real app, these would be real properties on the candidate
     // For now, we'll just pass everything since we don't have this data
@@ -152,7 +161,7 @@ const Candidates: React.FC = () => {
     const matchesExperience = selectedExperiences.length === 0;
     const matchesExpertise = selectedExpertise.length === 0;
     
-    return matchesSearch && matchesJob && matchesRating && 
+    return matchesSearch && matchesJob && matchesAnalysis && 
            matchesLocation && matchesExperience && matchesExpertise;
   });
   
@@ -204,17 +213,23 @@ const Candidates: React.FC = () => {
             <CollapsibleContent className="mt-4 p-4 rounded-lg glass absolute z-10 right-0 w-72">
               <div className="space-y-4">
                 <div>
-                  <h3 className="font-medium text-sm mb-2">AI Rating</h3>
+                  <h3 className="font-medium text-sm mb-2">AI Analysis Score</h3>
                   <div className="flex justify-between">
-                    {[1, 2, 3, 4, 5].map(rating => (
+                    {[2, 4, 6, 8, 10].map(score => (
                       <button
-                        key={rating}
-                        onClick={() => setRatingFilter(rating === ratingFilter ? null : rating)}
+                        key={score}
+                        onClick={() => setAnalysisFilter(score === analysisFilter ? null : score)}
                         className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                          rating === ratingFilter ? 'bg-primary-100 text-white' : 'bg-gray-100'
+                          score === analysisFilter 
+                            ? (score >= 8 
+                                ? 'bg-green-500 text-white' 
+                                : score >= 5 
+                                  ? 'bg-yellow-500 text-white' 
+                                  : 'bg-red-500 text-white')
+                            : 'bg-gray-100'
                         }`}
                       >
-                        {rating}
+                        {score}
                       </button>
                     ))}
                   </div>
@@ -287,7 +302,7 @@ const Candidates: React.FC = () => {
                     setSelectedLocations([]);
                     setSelectedExperiences([]);
                     setSelectedExpertise([]);
-                    setRatingFilter(null);
+                    setAnalysisFilter(null);
                     setSelectedJob('all');
                   }}
                   className="w-full px-4 py-2 text-sm bg-gray-100 hover:bg-gray-200 rounded-lg"
@@ -362,63 +377,66 @@ const Candidates: React.FC = () => {
                 <TableHead>Job</TableHead>
                 <TableHead>Email</TableHead>
                 <TableHead>Phone</TableHead>
-                <TableHead>AI Rating</TableHead>
+                <TableHead>AI Analysis</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {filteredCandidates.length > 0 ? (
-                filteredCandidates.map((candidate) => (
-                  <TableRow 
-                    key={candidate.id}
-                    className="cursor-pointer hover:bg-gray-50"
-                    onClick={() => handleView(candidate.id)}
-                  >
-                    <TableCell className="font-medium">{candidate.name}</TableCell>
-                    <TableCell>{getJobTitle(candidate.jobId)}</TableCell>
-                    <TableCell>{candidate.email}</TableCell>
-                    <TableCell>{candidate.phone}</TableCell>
-                    <TableCell>
-                      <span className="inline-block px-2 py-1 text-xs rounded-full bg-primary-100/10 text-primary-100">
-                        {candidate.rating}/5
-                      </span>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex justify-end gap-2" onClick={e => e.stopPropagation()}>
-                        <button 
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleEmail(candidate.email);
-                          }}
-                          className="p-1.5 rounded-full hover:bg-gray-100"
-                          title="Email"
-                        >
-                          <Mail size={16} className="text-gray-500" />
-                        </button>
-                        <button 
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleEdit(candidate.id);
-                          }}
-                          className="p-1.5 rounded-full hover:bg-gray-100"
-                          title="Edit"
-                        >
-                          <Edit size={16} className="text-gray-500" />
-                        </button>
-                        <button 
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleDelete(candidate.id);
-                          }}
-                          className="p-1.5 rounded-full hover:bg-gray-100"
-                          title="Delete"
-                        >
-                          <Trash2 size={16} className="text-gray-500" />
-                        </button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))
+                filteredCandidates.map((candidate) => {
+                  const analysisScore = candidate.rating * 2;
+                  return (
+                    <TableRow 
+                      key={candidate.id}
+                      className="cursor-pointer hover:bg-gray-50"
+                      onClick={() => handleView(candidate.id)}
+                    >
+                      <TableCell className="font-medium">{candidate.name}</TableCell>
+                      <TableCell>{getJobTitle(candidate.jobId)}</TableCell>
+                      <TableCell>{candidate.email}</TableCell>
+                      <TableCell>{candidate.phone}</TableCell>
+                      <TableCell>
+                        <span className={`inline-block px-2 py-1 text-xs rounded-full ${getAnalysisColor(analysisScore)}`}>
+                          {analysisScore}/10
+                        </span>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex justify-end gap-2" onClick={e => e.stopPropagation()}>
+                          <button 
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleEmail(candidate.email);
+                            }}
+                            className="p-1.5 rounded-full hover:bg-gray-100"
+                            title="Email"
+                          >
+                            <Mail size={16} className="text-gray-500" />
+                          </button>
+                          <button 
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleEdit(candidate.id);
+                            }}
+                            className="p-1.5 rounded-full hover:bg-gray-100"
+                            title="Edit"
+                          >
+                            <Edit size={16} className="text-gray-500" />
+                          </button>
+                          <button 
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDelete(candidate.id);
+                            }}
+                            className="p-1.5 rounded-full hover:bg-gray-100"
+                            title="Delete"
+                          >
+                            <Trash2 size={16} className="text-gray-500" />
+                          </button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })
               ) : (
                 <TableRow>
                   <TableCell colSpan={6} className="text-center py-8">

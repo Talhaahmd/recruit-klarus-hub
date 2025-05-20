@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { 
   User, Mail, Phone, MapPin, Briefcase, FileText, Linkedin, 
-  Tag, Award, Star, ArrowLeft 
+  Tag, Award, ArrowLeft 
 } from 'lucide-react';
 import { mockCandidates, CandidateType } from '@/data/mockData';
 import { Header } from '@/components/Layout/MainLayout';
@@ -64,7 +64,7 @@ const CandidateProfile: React.FC = () => {
       'Google Cloud Professional Developer'
     ],
     linkedinUrl: 'https://linkedin.com/in/johndoe',
-    aiScore: 8.5,
+    aiScore: candidate.rating * 2, // Convert 5-scale to 10-scale
     aiSummary: 'This candidate demonstrates strong technical expertise in modern web development technologies, particularly in the React ecosystem. Their experience spans both frontend and backend development, with a solid foundation in cloud services. The candidate\'s educational background in computer science and software engineering provides a strong theoretical base that complements their practical skills. Their achievements indicate leadership potential and a focus on performance optimization. Overall, this candidate appears to be a well-rounded full stack developer with the potential to contribute significantly to technical teams.'
   };
   
@@ -80,11 +80,17 @@ const CandidateProfile: React.FC = () => {
     ));
   };
 
+  const getAnalysisColor = (score: number) => {
+    if (score >= 8) return 'bg-green-100 text-green-800';
+    if (score >= 5) return 'bg-yellow-100 text-yellow-800';
+    return 'bg-red-100 text-red-800';
+  };
+
   return (
     <div className="overflow-auto">
       <div className="sticky top-0 z-10 bg-background pb-4">
         <Header 
-          title="Candidate Profile"
+          title="Candidate Profile" 
           subtitle="View detailed candidate information"
         />
         <div className="ml-4 mt-2">
@@ -109,15 +115,8 @@ const CandidateProfile: React.FC = () => {
                     <h2 className="text-2xl font-bold">{extendedData.firstName} {extendedData.lastName}</h2>
                     <p className="text-gray-500">{extendedData.jobHistory[0]?.title || 'Job Seeker'}</p>
                   </div>
-                  <div className="flex items-center space-x-1">
-                    {Array.from({ length: 5 }).map((_, i) => (
-                      <Star 
-                        key={i} 
-                        size={18} 
-                        className={i < Math.floor(candidate.rating) ? "text-yellow-500 fill-yellow-500" : "text-gray-300"} 
-                      />
-                    ))}
-                    <span className="ml-1 text-sm font-medium">{candidate.rating}/5</span>
+                  <div className={`px-3 py-1 rounded-full text-sm font-medium ${getAnalysisColor(extendedData.aiScore)}`}>
+                    {extendedData.aiScore}/10
                   </div>
                 </div>
                 
@@ -179,15 +178,23 @@ const CandidateProfile: React.FC = () => {
             
             <Card>
               <CardContent className="p-6">
-                <h3 className="text-lg font-semibold mb-4">AI Evaluation</h3>
+                <h3 className="text-lg font-semibold mb-4">AI Analysis</h3>
                 <div className="flex items-center mb-4">
                   <div className="w-full bg-gray-200 rounded-full h-2.5">
                     <div 
-                      className="bg-primary-100 h-2.5 rounded-full" 
+                      className={`h-2.5 rounded-full ${
+                        extendedData.aiScore >= 8 ? 'bg-green-500' :
+                        extendedData.aiScore >= 5 ? 'bg-yellow-500' : 'bg-red-500'
+                      }`}
                       style={{ width: `${(extendedData.aiScore / 10) * 100}%` }}
                     ></div>
                   </div>
-                  <span className="ml-3 font-medium">{extendedData.aiScore}/10</span>
+                  <span className={`ml-3 font-medium ${
+                    extendedData.aiScore >= 8 ? 'text-green-700' :
+                    extendedData.aiScore >= 5 ? 'text-yellow-700' : 'text-red-700'
+                  }`}>
+                    {extendedData.aiScore}/10
+                  </span>
                 </div>
                 <button
                   onClick={() => setActiveTab('ai')}
@@ -299,16 +306,16 @@ const CandidateProfile: React.FC = () => {
                       <h3 className="text-lg font-semibold">AI Analysis</h3>
                       <HoverCard>
                         <HoverCardTrigger asChild>
-                          <div className="flex items-center cursor-help">
-                            <span className="text-2xl font-bold text-primary-100">{extendedData.aiScore}</span>
-                            <span className="text-sm text-gray-500 ml-1">/10</span>
+                          <div className={`flex items-center cursor-help px-3 py-1 rounded-full ${getAnalysisColor(extendedData.aiScore)}`}>
+                            <span className="text-lg font-bold">{extendedData.aiScore}</span>
+                            <span className="text-sm ml-1">/10</span>
                           </div>
                         </HoverCardTrigger>
                         <HoverCardContent className="w-80">
                           <div className="space-y-2">
-                            <h4 className="font-medium">AI Score Explained</h4>
+                            <h4 className="font-medium">AI Analysis Score Explained</h4>
                             <p className="text-sm text-gray-500">
-                              The AI Score is calculated based on the candidate's skills, experience, 
+                              The AI Analysis score evaluates the candidate's fit based on skills, experience, 
                               education, and overall match to the job requirements. A score above 7 
                               indicates a strong candidate.
                             </p>
@@ -352,4 +359,3 @@ const CandidateProfile: React.FC = () => {
 };
 
 export default CandidateProfile;
-

@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { CandidateType } from '@/data/mockData';
-import { Mail, Phone, Edit, Trash2, FileText } from 'lucide-react';
+import { Mail, Phone, Edit, Trash2 } from 'lucide-react';
 
 interface CandidateCardProps {
   candidate: CandidateType;
@@ -25,6 +25,15 @@ const CandidateCard: React.FC<CandidateCardProps> = ({
     if ((e.target as Element).closest('button')) return;
     onView(candidate.id);
   };
+
+  const getAnalysisColor = (score: number) => {
+    if (score >= 8) return 'bg-green-100 text-green-800';
+    if (score >= 5) return 'bg-yellow-100 text-yellow-800';
+    return 'bg-red-100 text-red-800';
+  };
+
+  // Convert the 5-scale rating to a 10-scale analysis score
+  const analysisScore = candidate.rating * 2;
 
   return (
     <div 
@@ -82,8 +91,8 @@ const CandidateCard: React.FC<CandidateCardProps> = ({
           <span>{candidate.phone}</span>
         </div>
         <div className="flex items-center gap-1.5 text-sm text-text-200 mt-2">
-          <div className="bg-primary-100/10 text-primary-100 px-2 py-0.5 rounded-full text-xs font-medium">
-            AI Rating: {candidate.rating}/5
+          <div className={`${getAnalysisColor(analysisScore)} px-2 py-0.5 rounded-full text-xs font-medium`}>
+            AI Analysis: {analysisScore}/10
           </div>
         </div>
       </div>
