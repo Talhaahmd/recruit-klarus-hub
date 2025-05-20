@@ -134,68 +134,72 @@ const AddJobModal: React.FC<AddJobModalProps> = ({ isOpen, onClose, onSave }) =>
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
       {step === 1 ? (
-        <DialogContent className="sm:max-w-lg">
+        <DialogContent className="sm:max-w-2xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Add New Job - Basic Details</DialogTitle>
           </DialogHeader>
           
           <Form {...jobForm}>
             <form onSubmit={jobForm.handleSubmit(onSubmitFirstStep)} className="space-y-4">
-              <FormField
-                control={jobForm.control}
-                name="title"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Job Title</FormLabel>
-                    <FormControl>
-                      <Input placeholder="e.g. Software Engineer" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormField
+                  control={jobForm.control}
+                  name="title"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Job Title</FormLabel>
+                      <FormControl>
+                        <Input placeholder="e.g. Software Engineer" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={jobForm.control}
+                  name="workplaceType"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Workplace Type</FormLabel>
+                      <FormControl>
+                        <Input placeholder="e.g. Remote, Hybrid, On-site" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
               
-              <FormField
-                control={jobForm.control}
-                name="workplaceType"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Workplace Type</FormLabel>
-                    <FormControl>
-                      <Input placeholder="e.g. Remote, Hybrid, On-site" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              
-              <FormField
-                control={jobForm.control}
-                name="location"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Job Location</FormLabel>
-                    <FormControl>
-                      <Input placeholder="e.g. New York, NY" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              
-              <FormField
-                control={jobForm.control}
-                name="type"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Job Type</FormLabel>
-                    <FormControl>
-                      <Input placeholder="e.g. Full-time, Contract, Part-time" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormField
+                  control={jobForm.control}
+                  name="location"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Job Location</FormLabel>
+                      <FormControl>
+                        <Input placeholder="e.g. New York, NY" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={jobForm.control}
+                  name="type"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Job Type</FormLabel>
+                      <FormControl>
+                        <Input placeholder="e.g. Full-time, Contract, Part-time" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
               
               <FormField
                 control={jobForm.control}
@@ -206,7 +210,7 @@ const AddJobModal: React.FC<AddJobModalProps> = ({ isOpen, onClose, onSave }) =>
                     <FormControl>
                       <Textarea 
                         placeholder="Describe the role, responsibilities, and any special requirements or screening questions." 
-                        className="min-h-[120px]" 
+                        className="min-h-[100px]" 
                         {...field} 
                       />
                     </FormControl>
@@ -224,7 +228,7 @@ const AddJobModal: React.FC<AddJobModalProps> = ({ isOpen, onClose, onSave }) =>
                     <FormControl>
                       <Textarea 
                         placeholder="Any specific screening questions or requirements." 
-                        className="min-h-[80px]" 
+                        className="min-h-[60px]" 
                         {...field} 
                       />
                     </FormControl>
@@ -255,40 +259,42 @@ const AddJobModal: React.FC<AddJobModalProps> = ({ isOpen, onClose, onSave }) =>
           </Form>
         </DialogContent>
       ) : (
-        <DialogContent className="sm:max-w-lg">
+        <DialogContent className="sm:max-w-2xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Add New Job - Qualifications</DialogTitle>
           </DialogHeader>
           
           <Form {...qualificationForm}>
             <form onSubmit={qualificationForm.handleSubmit(onSubmitSecondStep)} className="space-y-4">
-              <FormField
-                control={qualificationForm.control}
-                name="qualification"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Position Qualification (Optional)</FormLabel>
-                    <FormControl>
-                      <Input placeholder="e.g. Bachelor's degree, 3+ years experience" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              
-              <FormField
-                control={qualificationForm.control}
-                name="complexity"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Role Complexity</FormLabel>
-                    <FormControl>
-                      <Input placeholder="e.g. Entry-level, Mid-level, Senior" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormField
+                  control={qualificationForm.control}
+                  name="qualification"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Position Qualification (Optional)</FormLabel>
+                      <FormControl>
+                        <Input placeholder="e.g. Bachelor's degree, 3+ years experience" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={qualificationForm.control}
+                  name="complexity"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Role Complexity</FormLabel>
+                      <FormControl>
+                        <Input placeholder="e.g. Entry-level, Mid-level, Senior" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
               
               <FormField
                 control={qualificationForm.control}

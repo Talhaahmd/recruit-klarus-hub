@@ -5,6 +5,7 @@ import { mockCandidates, mockJobs, CandidateType } from '@/data/mockData';
 import { PlusCircle, Search, Filter } from 'lucide-react';
 import CandidateCard from '@/components/UI/CandidateCard';
 import { toast } from 'sonner';
+import AddCandidateModal from '@/components/UI/AddCandidateModal';
 
 const Candidates: React.FC = () => {
   const [candidates, setCandidates] = useState<CandidateType[]>(mockCandidates);
@@ -39,6 +40,43 @@ const Candidates: React.FC = () => {
   
   const handleJobFilterChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setSelectedJob(e.target.value);
+  };
+  
+  const handleSaveCandidate = (candidateData: any) => {
+    // In a real app, this would add the candidate to the database
+    if (candidateData.type === 'cv') {
+      // Process CV file
+      const newCandidate: CandidateType = {
+        id: `${Date.now()}`,
+        jobId: selectedJob === 'all' ? mockJobs[0].id : selectedJob,
+        name: 'New Candidate',
+        email: 'candidate@example.com',
+        phone: '555-000-0000',
+        resumeUrl: `/resumes/${candidateData.file.name}`,
+        appliedDate: new Date().toISOString().split('T')[0],
+        status: 'New',
+        notes: `Uploaded via CV on ${new Date().toLocaleDateString()}`,
+        rating: 3
+      };
+      
+      setCandidates([newCandidate, ...candidates]);
+    } else if (candidateData.type === 'bulk') {
+      // Process CSV bulk upload (simulation)
+      const bulkCandidates: CandidateType[] = Array(3).fill(null).map((_, i) => ({
+        id: `${Date.now() + i}`,
+        jobId: selectedJob === 'all' ? mockJobs[0].id : selectedJob,
+        name: `Bulk Candidate ${i + 1}`,
+        email: `bulk${i + 1}@example.com`,
+        phone: `555-000-${i + 1000}`,
+        resumeUrl: '/resumes/bulk-upload.pdf',
+        appliedDate: new Date().toISOString().split('T')[0],
+        status: 'New',
+        notes: `Added via bulk upload on ${new Date().toLocaleDateString()}`,
+        rating: 3
+      }));
+      
+      setCandidates([...bulkCandidates, ...candidates]);
+    }
   };
   
   const filteredCandidates = candidates.filter(candidate => {
@@ -126,6 +164,12 @@ const Candidates: React.FC = () => {
           </div>
         )}
       </div>
+
+      <AddCandidateModal 
+        isOpen={showAddModal}
+        onClose={() => setShowAddModal(false)}
+        onSave={handleSaveCandidate}
+      />
     </div>
   );
 };
