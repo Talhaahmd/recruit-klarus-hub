@@ -21,17 +21,9 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { VALID_COMPLEXITIES } from '@/services/jobsService';
 
 // Validation schemas
 const jobFormSchema = z.object({
@@ -43,18 +35,13 @@ const jobFormSchema = z.object({
   activeDays: z.coerce.number().min(1, { message: "Active days must be at least 1" })
 });
 
-const qualificationFormSchema = z.object({
-  qualification: z.string().optional(),
-  complexity: z.string().min(1, { message: "Role complexity is required" })
-    .refine(val => VALID_COMPLEXITIES.includes(val), {
-      message: `Complexity must be one of: ${VALID_COMPLEXITIES.join(', ')}`
-    }),
+const technologiesSchema = z.object({
   technologies: z.array(z.string()).min(1, { message: "At least one technology is required" })
 });
 
 type JobFormValues = z.infer<typeof jobFormSchema>;
-type QualificationFormValues = z.infer<typeof qualificationFormSchema>;
-export type NewJobData = JobFormValues & QualificationFormValues;
+type TechnologiesFormValues = z.infer<typeof technologiesSchema>;
+export type NewJobData = JobFormValues & TechnologiesFormValues;
 
 interface AddJobModalProps {
   isOpen: boolean;
@@ -80,11 +67,9 @@ const AddJobModal: React.FC<AddJobModalProps> = ({ isOpen, onClose, onSave }) =>
     }
   });
 
-  const qualificationForm = useForm<QualificationFormValues>({
-    resolver: zodResolver(qualificationFormSchema),
+  const technologiesForm = useForm<TechnologiesFormValues>({
+    resolver: zodResolver(technologiesSchema),
     defaultValues: {
-      qualification: '',
-      complexity: 'Mid Level', // Set a default value that we know is valid
       technologies: [],
     }
   });
@@ -93,7 +78,7 @@ const AddJobModal: React.FC<AddJobModalProps> = ({ isOpen, onClose, onSave }) =>
     if (tagInput.trim() !== '' && !tags.includes(tagInput.trim())) {
       const newTags = [...tags, tagInput.trim()];
       setTags(newTags);
-      qualificationForm.setValue('technologies', newTags);
+      technologiesForm.setValue('technologies', newTags);
       setTagInput('');
     }
   };
@@ -101,7 +86,7 @@ const AddJobModal: React.FC<AddJobModalProps> = ({ isOpen, onClose, onSave }) =>
   const handleRemoveTag = (tagToRemove: string) => {
     const newTags = tags.filter(tag => tag !== tagToRemove);
     setTags(newTags);
-    qualificationForm.setValue('technologies', newTags);
+    technologiesForm.setValue('technologies', newTags);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -116,14 +101,14 @@ const AddJobModal: React.FC<AddJobModalProps> = ({ isOpen, onClose, onSave }) =>
     setStep(2);
   };
 
-  const onSubmitSecondStep = (data: QualificationFormValues) => {
+  const onSubmitSecondStep = (data: TechnologiesFormValues) => {
     if (jobData) {
       onSave({ ...jobData, ...data });
       setStep(1);
       setJobData(null);
       setTags([]);
       jobForm.reset();
-      qualificationForm.reset();
+      technologiesForm.reset();
     }
   };
 
@@ -132,7 +117,7 @@ const AddJobModal: React.FC<AddJobModalProps> = ({ isOpen, onClose, onSave }) =>
     setJobData(null);
     setTags([]);
     jobForm.reset();
-    qualificationForm.reset();
+    technologiesForm.reset();
     onClose();
   };
 
@@ -251,57 +236,16 @@ const AddJobModal: React.FC<AddJobModalProps> = ({ isOpen, onClose, onSave }) =>
       ) : (
         <DialogContent className="sm:max-w-2xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Add New Job - Qualifications</DialogTitle>
+            <DialogTitle>Add New Job - Technologies</DialogTitle>
             <DialogDescription>
-              Specify the required qualifications and skills for this position.
+              Specify the required technologies for this position.
             </DialogDescription>
           </DialogHeader>
 
-          <Form {...qualificationForm}>
-            <form onSubmit={qualificationForm.handleSubmit(onSubmitSecondStep)} className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <FormField
-                  control={qualificationForm.control}
-                  name="qualification"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Position Qualification (Optional)</FormLabel>
-                      <FormControl>
-                        <Input placeholder="e.g. Bachelor's degree, 3+ years experience" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={qualificationForm.control}
-                  name="complexity"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Role Complexity</FormLabel>
-                      <Select value={field.value} onValueChange={field.onChange}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select role complexity" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {VALID_COMPLEXITIES.map((option) => (
-                            <SelectItem key={option} value={option}>
-                              {option}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-
+          <Form {...technologiesForm}>
+            <form onSubmit={technologiesForm.handleSubmit(onSubmitSecondStep)} className="space-y-4">
               <FormField
-                control={qualificationForm.control}
+                control={technologiesForm.control}
                 name="technologies"
                 render={() => (
                   <FormItem>

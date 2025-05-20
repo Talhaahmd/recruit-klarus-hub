@@ -99,13 +99,11 @@ export type Database = {
         Row: {
           active_days: number
           applicants: number | null
-          complexity: string
           created_at: string | null
           description: string
           id: string
           location: string
           posted_date: string
-          qualification: string | null
           status: string
           technologies: string[]
           title: string
@@ -116,13 +114,11 @@ export type Database = {
         Insert: {
           active_days: number
           applicants?: number | null
-          complexity: string
           created_at?: string | null
           description: string
           id?: string
           location: string
           posted_date: string
-          qualification?: string | null
           status: string
           technologies: string[]
           title: string
@@ -133,13 +129,11 @@ export type Database = {
         Update: {
           active_days?: number
           applicants?: number | null
-          complexity?: string
           created_at?: string | null
           description?: string
           id?: string
           location?: string
           posted_date?: string
-          qualification?: string | null
           status?: string
           technologies?: string[]
           title?: string

@@ -14,8 +14,7 @@ import {
   Calendar, 
   Briefcase, 
   Tag, 
-  Building, 
-  GraduationCap 
+  Building
 } from 'lucide-react';
 
 interface JobDetailsModalProps {
@@ -61,7 +60,7 @@ const JobDetailsModal: React.FC<JobDetailsModalProps> = ({ job, isOpen, onClose 
             
             <div className="flex items-center gap-2 text-sm">
               <Briefcase size={16} className="text-primary-100" />
-              <span className="font-medium">Complexity:</span> {job.complexity}
+              <span className="font-medium">Status:</span> {job.status}
             </div>
           </div>
 
@@ -69,16 +68,6 @@ const JobDetailsModal: React.FC<JobDetailsModalProps> = ({ job, isOpen, onClose 
             <h3 className="text-base font-semibold">Job Description</h3>
             <p className="text-sm text-text-200 whitespace-pre-line">{job.description}</p>
           </div>
-          
-          {job.qualification && (
-            <div className="space-y-2">
-              <div className="flex items-center gap-2">
-                <GraduationCap size={16} className="text-primary-100" />
-                <h3 className="text-base font-semibold">Qualification</h3>
-              </div>
-              <p className="text-sm text-text-200">{job.qualification}</p>
-            </div>
-          )}
           
           <div className="space-y-2">
             <div className="flex items-center gap-2">

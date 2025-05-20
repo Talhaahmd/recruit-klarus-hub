@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Header } from '@/components/Layout/MainLayout';
 import { PlusCircle, Search, List, LayoutGrid, Filter } from 'lucide-react';
@@ -105,8 +104,6 @@ const Jobs: React.FC = () => {
         posted_date: new Date().toISOString().split('T')[0],
         technologies: jobData.technologies,
         workplace_type: jobData.workplaceType,
-        complexity: jobData.complexity, // This now uses the validated value
-        qualification: jobData.qualification || 'None',
         active_days: jobData.activeDays,
       });
 

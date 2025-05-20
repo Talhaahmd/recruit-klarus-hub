@@ -12,17 +12,12 @@ export type Job = {
   posted_date: string;
   active_days: number;
   applicants: number;
-  qualification?: string;
   technologies: string[];
   workplace_type: string;
-  complexity: string;
 };
 
 // The JobInput type should match what's expected by the database
 export type JobInput = Omit<Job, 'id' | 'applicants'>;
-
-// Define the valid complexity values - these must match exactly what's allowed in the database
-export const VALID_COMPLEXITIES = ["Intern", "Junior", "Mid Level", "Senior", "Lead"];
 
 export const jobsService = {
   // Get all jobs for current user
@@ -75,14 +70,6 @@ export const jobsService = {
         return null;
       }
       
-      // Ensure complexity is one of the allowed values
-      if (!VALID_COMPLEXITIES.includes(job.complexity)) {
-        console.error('Invalid complexity value:', job.complexity);
-        console.error('Valid values are:', VALID_COMPLEXITIES.join(', '));
-        toast.error(`Invalid complexity value. Must be one of: ${VALID_COMPLEXITIES.join(', ')}`);
-        return null;
-      }
-
       const jobData = {
         ...job,
         user_id: user.id
@@ -113,12 +100,6 @@ export const jobsService = {
   // Update a job
   updateJob: async (id: string, updates: Partial<Job>): Promise<Job | null> => {
     try {
-      // Validate complexity if it's being updated
-      if (updates.complexity && !VALID_COMPLEXITIES.includes(updates.complexity)) {
-        toast.error(`Invalid complexity value. Must be one of: ${VALID_COMPLEXITIES.join(', ')}`);
-        return null;
-      }
-      
       const { data, error } = await supabase
         .from('jobs')
         .update(updates)
