@@ -1,0 +1,144 @@
+
+import React, { useState } from 'react';
+import { Header } from '@/components/Layout/MainLayout';
+import { mockCalendarEvents, CalendarEventType } from '@/data/mockData';
+import { Calendar as CalendarIcon, PlusCircle, ChevronLeft, ChevronRight } from 'lucide-react';
+import { format, addMonths, subMonths, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay } from 'date-fns';
+import { toast } from 'sonner';
+
+const Calendar: React.FC = () => {
+  const [currentDate, setCurrentDate] = useState(new Date());
+  const [events, setEvents] = useState<CalendarEventType[]>(mockCalendarEvents);
+  
+  const nextMonth = () => {
+    setCurrentDate(addMonths(currentDate, 1));
+  };
+  
+  const prevMonth = () => {
+    setCurrentDate(subMonths(currentDate, 1));
+  };
+  
+  const monthStart = startOfMonth(currentDate);
+  const monthEnd = endOfMonth(currentDate);
+  const daysInMonth = eachDayOfInterval({ start: monthStart, end: monthEnd });
+  
+  const handleAddEvent = () => {
+    toast.info('Add new calendar event');
+  };
+  
+  const getEventsForDate = (date: Date) => {
+    return events.filter(event => isSameDay(new Date(event.startDate), date));
+  };
+  
+  const getEventColor = (type: string) => {
+    switch (type) {
+      case 'Interview': return 'bg-amber-500 border-amber-600';
+      case 'Job Posting': return 'bg-green-500 border-green-600';
+      case 'LinkedIn Post': return 'bg-blue-500 border-blue-600';
+      case 'Meeting': return 'bg-purple-500 border-purple-600';
+      default: return 'bg-gray-500 border-gray-600';
+    }
+  };
+  
+  return (
+    <div>
+      <Header 
+        title="Calendar" 
+        subtitle="Schedule interviews, job postings, and LinkedIn updates."
+      />
+      
+      <div className="mb-6 flex justify-between items-center">
+        <div className="flex items-center gap-4">
+          <button onClick={prevMonth} className="p-2 rounded-full hover:bg-gray-100">
+            <ChevronLeft size={20} />
+          </button>
+          
+          <h2 className="text-xl font-medium">
+            {format(currentDate, 'MMMM yyyy')}
+          </h2>
+          
+          <button onClick={nextMonth} className="p-2 rounded-full hover:bg-gray-100">
+            <ChevronRight size={20} />
+          </button>
+        </div>
+        
+        <button
+          onClick={handleAddEvent}
+          className="px-4 py-2 bg-primary-100 text-white rounded-lg flex items-center gap-2 hover:bg-primary-100/90 transition-colors shadow-md shadow-primary-100/20"
+        >
+          <PlusCircle size={18} />
+          <span>Add Event</span>
+        </button>
+      </div>
+      
+      <div className="glass-card p-6">
+        <div className="grid grid-cols-7 gap-4 mb-2 text-center">
+          {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) => (
+            <div key={day} className="font-medium text-text-100">
+              {day}
+            </div>
+          ))}
+        </div>
+        
+        <div className="grid grid-cols-7 gap-2">
+          {daysInMonth.map((day, i) => {
+            const dayEvents = getEventsForDate(day);
+            const isToday = isSameDay(day, new Date());
+            
+            return (
+              <div
+                key={i}
+                className={`min-h-[100px] p-2 border rounded-lg ${isToday ? 'border-primary-100 bg-primary-100/5' : 'border-gray-200'}`}
+              >
+                <div className="text-right mb-1">
+                  <span className={`text-sm ${isToday ? 'font-bold text-primary-100' : 'text-text-200'}`}>
+                    {format(day, 'd')}
+                  </span>
+                </div>
+                
+                <div className="space-y-1">
+                  {dayEvents.map((event) => (
+                    <div 
+                      key={event.id}
+                      className={`px-2 py-1 text-xs text-white rounded truncate ${getEventColor(event.type)}`}
+                      title={event.title}
+                    >
+                      {format(new Date(event.startDate), 'h:mm a')} - {event.title}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+      
+      <div className="mt-8">
+        <h3 className="font-medium mb-4">Upcoming Events</h3>
+        <div className="space-y-3">
+          {events
+            .filter(event => new Date(event.startDate) >= new Date())
+            .sort((a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime())
+            .slice(0, 5)
+            .map((event) => (
+              <div key={event.id} className="glass-card p-4 flex items-start gap-4">
+                <div className={`p-2.5 rounded-lg ${getEventColor(event.type)} text-white`}>
+                  <CalendarIcon size={20} />
+                </div>
+                
+                <div>
+                  <h4 className="font-medium">{event.title}</h4>
+                  <div className="text-sm text-text-200 mt-1">
+                    {format(new Date(event.startDate), 'MMM d, yyyy - h:mm a')}
+                  </div>
+                  <div className="text-sm mt-1">{event.description}</div>
+                </div>
+              </div>
+            ))}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default Calendar;
