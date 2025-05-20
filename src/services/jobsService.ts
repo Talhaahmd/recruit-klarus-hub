@@ -14,7 +14,7 @@ export type Job = {
   applicants: number;
   technologies: string[];
   workplace_type: string;
-  user_id?: string; // Added user_id field
+  user_id?: string;
 };
 
 // The JobInput type should match what's expected by the database

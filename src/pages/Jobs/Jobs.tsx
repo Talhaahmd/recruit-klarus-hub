@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Header } from '@/components/Layout/MainLayout';
 import { toast } from 'sonner';
@@ -7,14 +8,24 @@ import AddJobModal, { NewJobData } from '@/components/UI/JobsComponents/AddJobMo
 import { Job, jobsService } from '@/services/jobsService';
 import { PlusCircle, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { useUser } from '@supabase/auth-helpers-react'; // ⬅️ Supabase user hook
+import { supabase } from '@/integrations/supabase/client'; // Replace auth-helpers with direct Supabase client
 
 const Jobs = () => {
-  const user = useUser(); // ⬅️ Required to pass user_id
+  const [user, setUser] = useState(null);
   const [isAddJobModalOpen, setIsAddJobModalOpen] = useState(false);
   const [jobs, setJobs] = useState<Job[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
+
+  // Get current user on mount
+  useEffect(() => {
+    const getUser = async () => {
+      const { data } = await supabase.auth.getUser();
+      setUser(data.user);
+    };
+    
+    getUser();
+  }, []);
 
   // Fetch jobs on mount
   useEffect(() => {
@@ -60,7 +71,7 @@ const Jobs = () => {
         technologies: data.technologies,
         workplace_type: data.workplaceType,
         applicants: 0,
-        user_id: user.id, // ✅ Required for Supabase RLS
+        user_id: user.id // ✅ Required for Supabase RLS
       };
 
       console.log('Creating job with data:', jobData);

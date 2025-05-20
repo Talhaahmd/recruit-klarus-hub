@@ -85,20 +85,12 @@ export type Database = {
           status?: string
           user_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "candidates_job_id_fkey"
-            columns: ["job_id"]
-            isOneToOne: false
-            referencedRelation: "jobs"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       jobs: {
         Row: {
           active_days: number
-          applicants: number | null
+          applicants: number
           created_at: string | null
           description: string
           id: string
@@ -108,27 +100,27 @@ export type Database = {
           technologies: string[]
           title: string
           type: string
-          user_id: string
+          user_id: string | null
           workplace_type: string
         }
         Insert: {
-          active_days: number
-          applicants?: number | null
+          active_days?: number
+          applicants?: number
           created_at?: string | null
           description: string
           id?: string
           location: string
-          posted_date: string
-          status: string
-          technologies: string[]
+          posted_date?: string
+          status?: string
+          technologies?: string[]
           title: string
           type: string
-          user_id: string
+          user_id?: string | null
           workplace_type: string
         }
         Update: {
           active_days?: number
-          applicants?: number | null
+          applicants?: number
           created_at?: string | null
           description?: string
           id?: string
@@ -138,7 +130,7 @@ export type Database = {
           technologies?: string[]
           title?: string
           type?: string
-          user_id?: string
+          user_id?: string | null
           workplace_type?: string
         }
         Relationships: []
