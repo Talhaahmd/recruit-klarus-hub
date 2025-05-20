@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Header } from '@/components/Layout/MainLayout';
 import { mockCalendarEvents, CalendarEventType } from '@/data/mockData';
@@ -19,12 +20,18 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import AddJobModal, { NewJobData } from '@/components/UI/AddJobModal';
+import AddCandidateModal from '@/components/UI/AddCandidateModal';
+import { useNavigate } from 'react-router-dom';
 
 const Calendar: React.FC = () => {
+  const navigate = useNavigate();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [events, setEvents] = useState<CalendarEventType[]>(mockCalendarEvents);
   const [isEventTypeDialogOpen, setIsEventTypeDialogOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [showAddJobModal, setShowAddJobModal] = useState(false);
+  const [showAddCandidateModal, setShowAddCandidateModal] = useState(false);
   
   const nextMonth = () => {
     setCurrentDate(addMonths(currentDate, 1));
@@ -52,32 +59,55 @@ const Calendar: React.FC = () => {
     
     switch(type) {
       case 'job':
-        toast.info('Add new job posting scheduled for ' + (selectedDate ? format(selectedDate, 'MMMM d, yyyy') : 'today'));
+        setShowAddJobModal(true);
         break;
       case 'candidate':
-        toast.info('Add new candidate interview scheduled for ' + (selectedDate ? format(selectedDate, 'MMMM d, yyyy') : 'today'));
+        setShowAddCandidateModal(true);
         break;
       case 'linkedin':
-        toast.info('Add new LinkedIn post scheduled for ' + (selectedDate ? format(selectedDate, 'MMMM d, yyyy') : 'today'));
+        navigate('/build-profile');
         break;
       default:
         break;
     }
+  };
+
+  const handleSaveNewJob = (jobData: NewJobData) => {
+    setShowAddJobModal(false);
     
-    // Add mock event to demonstrate functionality
+    // Add new calendar event for the job posting
     const eventDate = selectedDate || new Date();
     
-    // Create new event with proper Date objects
     const newEvent: CalendarEventType = {
       id: `event-${events.length + 1}`,
-      title: `New ${type.charAt(0).toUpperCase() + type.slice(1)}`,
-      description: `This is a new ${type} event.`,
-      startDate: eventDate, // Use the Date object directly
-      endDate: eventDate, // Use the Date object directly
-      type: type === 'job' ? 'Job Posting' : type === 'candidate' ? 'Interview' : 'LinkedIn Post',
+      title: jobData.title,
+      description: jobData.description,
+      startDate: eventDate,
+      endDate: eventDate,
+      type: 'Job Posting',
     };
     
     setEvents([...events, newEvent]);
+    toast.success(`Job posting scheduled for ${format(eventDate, 'MMMM d, yyyy')}`);
+  };
+  
+  const handleSaveCandidate = (candidateData: any) => {
+    setShowAddCandidateModal(false);
+    
+    // Add new calendar event for the candidate interview
+    const eventDate = selectedDate || new Date();
+    
+    const newEvent: CalendarEventType = {
+      id: `event-${events.length + 1}`,
+      title: `New ${candidateData.type === 'cv' ? 'Candidate Interview' : 'Bulk Candidates'}`,
+      description: `${candidateData.type === 'cv' ? 'Interview with candidate' : 'Process multiple candidates'} from ${candidateData.file.name}`,
+      startDate: eventDate,
+      endDate: eventDate,
+      type: 'Interview',
+    };
+    
+    setEvents([...events, newEvent]);
+    toast.success(`Candidate ${candidateData.type === 'cv' ? 'interview' : 'processing'} scheduled for ${format(eventDate, 'MMMM d, yyyy')}`);
   };
   
   const getEventsForDate = (date: Date) => {
@@ -164,7 +194,10 @@ const Calendar: React.FC = () => {
                       className={`px-2 py-1 text-xs text-white rounded truncate ${getEventColor(event.type)}`}
                       title={event.title}
                     >
-                      {format(new Date(event.startDate), 'h:mm a')} - {event.title}
+                      {format(
+                        typeof event.startDate === 'string' ? parseISO(event.startDate) : event.startDate, 
+                        'h:mm a'
+                      )} - {event.title}
                     </div>
                   ))}
                 </div>
@@ -251,6 +284,20 @@ const Calendar: React.FC = () => {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Add Job Modal */}
+      <AddJobModal
+        isOpen={showAddJobModal}
+        onClose={() => setShowAddJobModal(false)}
+        onSave={handleSaveNewJob}
+      />
+
+      {/* Add Candidate Modal */}
+      <AddCandidateModal
+        isOpen={showAddCandidateModal}
+        onClose={() => setShowAddCandidateModal(false)}
+        onSave={handleSaveCandidate}
+      />
     </div>
   );
 };
