@@ -19,6 +19,13 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -50,6 +57,8 @@ interface AddJobModalProps {
   onClose: () => void;
   onSave: (data: NewJobData) => void;
 }
+
+const COMPLEXITY_OPTIONS = ["Intern", "Junior", "Mid Level", "Senior", "Lead"];
 
 const AddJobModal: React.FC<AddJobModalProps> = ({ isOpen, onClose, onSave }) => {
   const [step, setStep] = React.useState(1);
@@ -267,9 +276,23 @@ const AddJobModal: React.FC<AddJobModalProps> = ({ isOpen, onClose, onSave }) =>
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Role Complexity</FormLabel>
-                      <FormControl>
-                        <Input placeholder="e.g. Entry-level, Mid-level, Senior" {...field} />
-                      </FormControl>
+                      <Select 
+                        onValueChange={field.onChange} 
+                        defaultValue={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select role complexity" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {COMPLEXITY_OPTIONS.map((option) => (
+                            <SelectItem key={option} value={option}>
+                              {option}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                       <FormMessage />
                     </FormItem>
                   )}
