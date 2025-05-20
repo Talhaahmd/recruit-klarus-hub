@@ -46,13 +46,20 @@ export const linkedinService = {
   // Create a new LinkedIn post
   createPost: async (post: LinkedInPostInput): Promise<LinkedInPost | null> => {
     try {
+      const { user } = await supabase.auth.getUser();
+      if (!user) {
+        toast.error('You must be logged in to create a post');
+        return null;
+      }
+      
       const postData = {
         content: post.content,
         scheduled_date: post.scheduledDate ? 
           (typeof post.scheduledDate === 'string' ? post.scheduledDate : post.scheduledDate.toISOString().split('T')[0]) : 
           null,
         scheduled_time: post.scheduledTime,
-        niche: post.niche
+        niche: post.niche,
+        user_id: user.id
       };
       
       const { data, error } = await supabase

@@ -47,6 +47,12 @@ export const calendarService = {
   // Create a new calendar event
   createEvent: async (event: CalendarEventInput): Promise<CalendarEvent | null> => {
     try {
+      const { user } = await supabase.auth.getUser();
+      if (!user) {
+        toast.error('You must be logged in to create an event');
+        return null;
+      }
+      
       const eventData = {
         title: event.title,
         description: event.description,
@@ -56,12 +62,13 @@ export const calendarService = {
         end_date: typeof event.endDate === 'string' 
           ? event.endDate 
           : format(event.endDate, 'yyyy-MM-dd\'T\'HH:mm:ss'),
-        type: event.type
+        type: event.type,
+        user_id: user.id
       };
       
       const { data, error } = await supabase
         .from('calendar_events')
-        .insert([eventData])
+        .insert(eventData)
         .select()
         .single();
         
