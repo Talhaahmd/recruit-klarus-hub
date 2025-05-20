@@ -5,10 +5,27 @@ import { mockCalendarEvents, CalendarEventType } from '@/data/mockData';
 import { Calendar as CalendarIcon, PlusCircle, ChevronLeft, ChevronRight } from 'lucide-react';
 import { format, addMonths, subMonths, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay } from 'date-fns';
 import { toast } from 'sonner';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 
 const Calendar: React.FC = () => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [events, setEvents] = useState<CalendarEventType[]>(mockCalendarEvents);
+  const [isEventTypeDialogOpen, setIsEventTypeDialogOpen] = useState(false);
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   
   const nextMonth = () => {
     setCurrentDate(addMonths(currentDate, 1));
@@ -22,8 +39,43 @@ const Calendar: React.FC = () => {
   const monthEnd = endOfMonth(currentDate);
   const daysInMonth = eachDayOfInterval({ start: monthStart, end: monthEnd });
   
-  const handleAddEvent = () => {
-    toast.info('Add new calendar event');
+  const handleAddEvent = (date?: Date) => {
+    if (date) {
+      setSelectedDate(date);
+    } else {
+      setSelectedDate(new Date());
+    }
+    setIsEventTypeDialogOpen(true);
+  };
+  
+  const handleEventTypeSelection = (type: string) => {
+    setIsEventTypeDialogOpen(false);
+    
+    switch(type) {
+      case 'job':
+        toast.info('Add new job posting scheduled for ' + (selectedDate ? format(selectedDate, 'MMMM d, yyyy') : 'today'));
+        break;
+      case 'candidate':
+        toast.info('Add new candidate interview scheduled for ' + (selectedDate ? format(selectedDate, 'MMMM d, yyyy') : 'today'));
+        break;
+      case 'linkedin':
+        toast.info('Add new LinkedIn post scheduled for ' + (selectedDate ? format(selectedDate, 'MMMM d, yyyy') : 'today'));
+        break;
+      default:
+        break;
+    }
+    
+    // Add mock event to demonstrate functionality
+    const newEvent: CalendarEventType = {
+      id: `event-${events.length + 1}`,
+      title: `New ${type.charAt(0).toUpperCase() + type.slice(1)}`,
+      description: `This is a new ${type} event.`,
+      startDate: selectedDate ? selectedDate.toISOString() : new Date().toISOString(),
+      endDate: selectedDate ? selectedDate.toISOString() : new Date().toISOString(),
+      type: type === 'job' ? 'Job Posting' : type === 'candidate' ? 'Interview' : 'LinkedIn Post',
+    };
+    
+    setEvents([...events, newEvent]);
   };
   
   const getEventsForDate = (date: Date) => {
@@ -63,7 +115,7 @@ const Calendar: React.FC = () => {
         </div>
         
         <button
-          onClick={handleAddEvent}
+          onClick={() => handleAddEvent()}
           className="px-4 py-2 bg-primary-100 text-white rounded-lg flex items-center gap-2 hover:bg-primary-100/90 transition-colors shadow-md shadow-primary-100/20"
         >
           <PlusCircle size={18} />
@@ -88,7 +140,8 @@ const Calendar: React.FC = () => {
             return (
               <div
                 key={i}
-                className={`min-h-[100px] p-2 border rounded-lg ${isToday ? 'border-primary-100 bg-primary-100/5' : 'border-gray-200'}`}
+                className={`min-h-[100px] p-2 border rounded-lg cursor-pointer hover:bg-gray-50 transition-colors ${isToday ? 'border-primary-100 bg-primary-100/5' : 'border-gray-200'}`}
+                onClick={() => handleAddEvent(day)}
               >
                 <div className="text-right mb-1">
                   <span className={`text-sm ${isToday ? 'font-bold text-primary-100' : 'text-text-200'}`}>
@@ -137,6 +190,47 @@ const Calendar: React.FC = () => {
             ))}
         </div>
       </div>
+      
+      {/* Event Type Selection Dialog */}
+      <Dialog open={isEventTypeDialogOpen} onOpenChange={setIsEventTypeDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Add New Event</DialogTitle>
+          </DialogHeader>
+          
+          <div className="grid grid-cols-1 gap-4 py-4">
+            <Card 
+              className="cursor-pointer hover:border-primary-100 transition-colors"
+              onClick={() => handleEventTypeSelection('job')}
+            >
+              <CardHeader className="p-4">
+                <CardTitle className="text-lg">Add Job Posting</CardTitle>
+                <CardDescription>Create a new job posting for your career page</CardDescription>
+              </CardHeader>
+            </Card>
+            
+            <Card 
+              className="cursor-pointer hover:border-primary-100 transition-colors"
+              onClick={() => handleEventTypeSelection('candidate')}
+            >
+              <CardHeader className="p-4">
+                <CardTitle className="text-lg">Add Candidate Interview</CardTitle>
+                <CardDescription>Schedule an interview with a candidate</CardDescription>
+              </CardHeader>
+            </Card>
+            
+            <Card 
+              className="cursor-pointer hover:border-primary-100 transition-colors"
+              onClick={() => handleEventTypeSelection('linkedin')}
+            >
+              <CardHeader className="p-4">
+                <CardTitle className="text-lg">Add LinkedIn Post</CardTitle>
+                <CardDescription>Schedule a LinkedIn post to promote your brand</CardDescription>
+              </CardHeader>
+            </Card>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
