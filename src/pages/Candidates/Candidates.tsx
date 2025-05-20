@@ -1,8 +1,9 @@
+
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Header } from '@/components/Layout/MainLayout';
 import { mockCandidates, mockJobs, CandidateType } from '@/data/mockData';
-import { PlusCircle, Search, Filter, List, Grid, Eye, Mail, Edit, Trash2 } from 'lucide-react';
+import { PlusCircle, Search, Filter, List, Grid, Mail, Edit, Trash2 } from 'lucide-react';
 import CandidateCard from '@/components/UI/CandidateCard';
 import { toast } from 'sonner';
 import AddCandidateModal from '@/components/UI/AddCandidateModal';
@@ -14,6 +15,21 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+
+// Sample locations and expertise for filters
+const locations = ["San Francisco, CA", "New York, NY", "Austin, TX", "Seattle, WA", "Remote"];
+const experiences = ["0-1 years", "1-3 years", "3-5 years", "5-10 years", "10+ years"];
+const expertise = ["React", "TypeScript", "Node.js", "GraphQL", "AWS", "Docker", "CI/CD", "Agile"];
 
 const Candidates: React.FC = () => {
   const navigate = useNavigate();
@@ -22,6 +38,13 @@ const Candidates: React.FC = () => {
   const [selectedJob, setSelectedJob] = useState<string | 'all'>('all');
   const [showAddModal, setShowAddModal] = useState(false);
   const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid');
+  const [showFilters, setShowFilters] = useState(false);
+  
+  // New filters
+  const [selectedLocations, setSelectedLocations] = useState<string[]>([]);
+  const [selectedExperiences, setSelectedExperiences] = useState<string[]>([]);
+  const [selectedExpertise, setSelectedExpertise] = useState<string[]>([]);
+  const [ratingFilter, setRatingFilter] = useState<number | null>(null);
   
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(e.target.value);
@@ -50,6 +73,30 @@ const Candidates: React.FC = () => {
   
   const handleJobFilterChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setSelectedJob(e.target.value);
+  };
+  
+  const handleLocationChange = (location: string) => {
+    setSelectedLocations(prev => 
+      prev.includes(location) 
+        ? prev.filter(loc => loc !== location)
+        : [...prev, location]
+    );
+  };
+  
+  const handleExperienceChange = (exp: string) => {
+    setSelectedExperiences(prev => 
+      prev.includes(exp) 
+        ? prev.filter(e => e !== exp)
+        : [...prev, exp]
+    );
+  };
+  
+  const handleExpertiseChange = (exp: string) => {
+    setSelectedExpertise(prev => 
+      prev.includes(exp) 
+        ? prev.filter(e => e !== exp)
+        : [...prev, exp]
+    );
   };
   
   const handleSaveCandidate = (candidateData: any) => {
@@ -96,7 +143,17 @@ const Candidates: React.FC = () => {
       
     const matchesJob = selectedJob === 'all' || candidate.jobId === selectedJob;
     
-    return matchesSearch && matchesJob;
+    // Apply additional filters if they are set
+    const matchesRating = ratingFilter === null || candidate.rating >= ratingFilter;
+    
+    // In a real app, these would be real properties on the candidate
+    // For now, we'll just pass everything since we don't have this data
+    const matchesLocation = selectedLocations.length === 0 || selectedLocations.includes("San Francisco, CA");
+    const matchesExperience = selectedExperiences.length === 0;
+    const matchesExpertise = selectedExpertise.length === 0;
+    
+    return matchesSearch && matchesJob && matchesRating && 
+           matchesLocation && matchesExperience && matchesExpertise;
   });
   
   const getJobTitle = (jobId: string) => {
@@ -137,19 +194,109 @@ const Candidates: React.FC = () => {
         </div>
         
         <div className="flex gap-4">
-          <div className="relative">
-            <select
-              value={selectedJob}
-              onChange={handleJobFilterChange}
-              className="pl-10 pr-4 py-2 rounded-lg glass border-none focus:outline-none focus:ring-2 focus:ring-primary-100 appearance-none bg-transparent"
-            >
-              <option value="all">All Jobs</option>
-              {mockJobs.map((job) => (
-                <option key={job.id} value={job.id}>{job.title}</option>
-              ))}
-            </select>
-            <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
-          </div>
+          <Collapsible open={showFilters} onOpenChange={setShowFilters}>
+            <CollapsibleTrigger asChild>
+              <button className="px-4 py-2 rounded-lg glass border-none flex items-center gap-2">
+                <Filter size={18} />
+                <span>Filters</span>
+              </button>
+            </CollapsibleTrigger>
+            <CollapsibleContent className="mt-4 p-4 rounded-lg glass absolute z-10 right-0 w-72">
+              <div className="space-y-4">
+                <div>
+                  <h3 className="font-medium text-sm mb-2">AI Rating</h3>
+                  <div className="flex justify-between">
+                    {[1, 2, 3, 4, 5].map(rating => (
+                      <button
+                        key={rating}
+                        onClick={() => setRatingFilter(rating === ratingFilter ? null : rating)}
+                        className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                          rating === ratingFilter ? 'bg-primary-100 text-white' : 'bg-gray-100'
+                        }`}
+                      >
+                        {rating}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                
+                <div>
+                  <h3 className="font-medium text-sm mb-2">Job</h3>
+                  <select
+                    value={selectedJob}
+                    onChange={handleJobFilterChange}
+                    className="w-full p-2 rounded-lg glass border-none"
+                  >
+                    <option value="all">All Jobs</option>
+                    {mockJobs.map((job) => (
+                      <option key={job.id} value={job.id}>{job.title}</option>
+                    ))}
+                  </select>
+                </div>
+                
+                <div>
+                  <h3 className="font-medium text-sm mb-2">Location</h3>
+                  <div className="space-y-2 max-h-32 overflow-y-auto">
+                    {locations.map(location => (
+                      <div key={location} className="flex items-center space-x-2">
+                        <Checkbox 
+                          id={`location-${location}`}
+                          checked={selectedLocations.includes(location)}
+                          onCheckedChange={() => handleLocationChange(location)}
+                        />
+                        <label htmlFor={`location-${location}`} className="text-sm">{location}</label>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                
+                <div>
+                  <h3 className="font-medium text-sm mb-2">Experience</h3>
+                  <div className="space-y-2 max-h-32 overflow-y-auto">
+                    {experiences.map(exp => (
+                      <div key={exp} className="flex items-center space-x-2">
+                        <Checkbox 
+                          id={`exp-${exp}`}
+                          checked={selectedExperiences.includes(exp)}
+                          onCheckedChange={() => handleExperienceChange(exp)}
+                        />
+                        <label htmlFor={`exp-${exp}`} className="text-sm">{exp}</label>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                
+                <div>
+                  <h3 className="font-medium text-sm mb-2">Expertise</h3>
+                  <div className="space-y-2 max-h-32 overflow-y-auto">
+                    {expertise.map(exp => (
+                      <div key={exp} className="flex items-center space-x-2">
+                        <Checkbox 
+                          id={`expertise-${exp}`}
+                          checked={selectedExpertise.includes(exp)}
+                          onCheckedChange={() => handleExpertiseChange(exp)}
+                        />
+                        <label htmlFor={`expertise-${exp}`} className="text-sm">{exp}</label>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                
+                <button
+                  onClick={() => {
+                    setSelectedLocations([]);
+                    setSelectedExperiences([]);
+                    setSelectedExpertise([]);
+                    setRatingFilter(null);
+                    setSelectedJob('all');
+                  }}
+                  className="w-full px-4 py-2 text-sm bg-gray-100 hover:bg-gray-200 rounded-lg"
+                >
+                  Clear All Filters
+                </button>
+              </div>
+            </CollapsibleContent>
+          </Collapsible>
           
           <div className="flex gap-2 border rounded-lg overflow-hidden">
             <button
@@ -196,6 +343,7 @@ const Candidates: React.FC = () => {
               onDelete={handleDelete}
               onView={handleView}
               onEmail={handleEmail}
+              jobTitle={getJobTitle(candidate.jobId)}
             />
           ))}
           
@@ -211,53 +359,57 @@ const Candidates: React.FC = () => {
             <TableHeader>
               <TableRow>
                 <TableHead>Name</TableHead>
-                <TableHead>Status</TableHead>
                 <TableHead>Job</TableHead>
                 <TableHead>Email</TableHead>
                 <TableHead>Phone</TableHead>
-                <TableHead>Applied Date</TableHead>
+                <TableHead>AI Rating</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {filteredCandidates.length > 0 ? (
                 filteredCandidates.map((candidate) => (
-                  <TableRow key={candidate.id}>
+                  <TableRow 
+                    key={candidate.id}
+                    className="cursor-pointer hover:bg-gray-50"
+                    onClick={() => handleView(candidate.id)}
+                  >
                     <TableCell className="font-medium">{candidate.name}</TableCell>
-                    <TableCell>
-                      <span className={`inline-block px-2 py-1 text-xs rounded-full ${getStatusColor(candidate.status)}`}>
-                        {candidate.status}
-                      </span>
-                    </TableCell>
                     <TableCell>{getJobTitle(candidate.jobId)}</TableCell>
                     <TableCell>{candidate.email}</TableCell>
                     <TableCell>{candidate.phone}</TableCell>
-                    <TableCell>{candidate.appliedDate}</TableCell>
+                    <TableCell>
+                      <span className="inline-block px-2 py-1 text-xs rounded-full bg-primary-100/10 text-primary-100">
+                        {candidate.rating}/5
+                      </span>
+                    </TableCell>
                     <TableCell className="text-right">
-                      <div className="flex justify-end gap-2">
+                      <div className="flex justify-end gap-2" onClick={e => e.stopPropagation()}>
                         <button 
-                          onClick={() => handleView(candidate.id)}
-                          className="p-1.5 rounded-full hover:bg-gray-100"
-                          title="View Profile"
-                        >
-                          <Eye size={16} className="text-primary-100" />
-                        </button>
-                        <button 
-                          onClick={() => handleEmail(candidate.email)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleEmail(candidate.email);
+                          }}
                           className="p-1.5 rounded-full hover:bg-gray-100"
                           title="Email"
                         >
                           <Mail size={16} className="text-gray-500" />
                         </button>
                         <button 
-                          onClick={() => handleEdit(candidate.id)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleEdit(candidate.id);
+                          }}
                           className="p-1.5 rounded-full hover:bg-gray-100"
                           title="Edit"
                         >
                           <Edit size={16} className="text-gray-500" />
                         </button>
                         <button 
-                          onClick={() => handleDelete(candidate.id)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDelete(candidate.id);
+                          }}
                           className="p-1.5 rounded-full hover:bg-gray-100"
                           title="Delete"
                         >
@@ -269,7 +421,7 @@ const Candidates: React.FC = () => {
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center py-8">
+                  <TableCell colSpan={6} className="text-center py-8">
                     No candidates found matching your search.
                   </TableCell>
                 </TableRow>
