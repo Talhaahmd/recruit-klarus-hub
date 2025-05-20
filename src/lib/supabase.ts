@@ -1,18 +1,20 @@
 
 import { createClient } from '@supabase/supabase-js';
 
-// These environment variables must be set in your deployment platform
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+// Check for environment variables
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
 
+// Provide default values for development
+const SUPABASE_URL = supabaseUrl || 'https://your-project-url.supabase.co';
+const SUPABASE_ANON_KEY = supabaseAnonKey || 'your-anon-key';
+
+// Log warning if environment variables are not set
 if (!supabaseUrl || !supabaseAnonKey) {
-  console.error('Missing Supabase environment variables. Please set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY.');
+  console.warn('⚠️ Missing Supabase environment variables. Using fallback values. Set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY for proper functionality.');
 }
 
-export const supabase = createClient(
-  supabaseUrl || '',
-  supabaseAnonKey || ''
-);
+export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 // Database schema types based on our Supabase setup
 export type Tables = {
