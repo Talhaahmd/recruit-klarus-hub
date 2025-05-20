@@ -1,22 +1,22 @@
-
 import React, { useState, useEffect } from 'react';
 import { Header } from '@/components/Layout/MainLayout';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import JobsTable from '@/components/UI/JobsTable';
-import AddJobModal from '@/components/UI/JobsComponents/AddJobModal';
+import AddJobModal, { NewJobData } from '@/components/UI/JobsComponents/AddJobModal';
 import { Job, jobsService } from '@/services/jobsService';
 import { PlusCircle, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { NewJobData } from '@/components/UI/JobsComponents/AddJobModal';
+import { useUser } from '@supabase/auth-helpers-react'; // ⬅️ Supabase user hook
 
 const Jobs = () => {
+  const user = useUser(); // ⬅️ Required to pass user_id
   const [isAddJobModalOpen, setIsAddJobModalOpen] = useState(false);
   const [jobs, setJobs] = useState<Job[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
 
-  // Fetch jobs when component mounts
+  // Fetch jobs on mount
   useEffect(() => {
     fetchJobs();
   }, []);
@@ -43,27 +43,33 @@ const Jobs = () => {
   };
 
   const handleSaveJob = async (data: NewJobData) => {
+    if (!user?.id) {
+      toast.error("User not authenticated");
+      return;
+    }
+
     try {
-      // Transform the form data to match JobInput type
       const jobData = {
         title: data.title,
         description: data.description,
         location: data.location,
         type: data.type,
-        status: 'Active', // Default status for new jobs
-        posted_date: new Date().toISOString().split('T')[0], // Today's date in YYYY-MM-DD format
+        status: 'Active',
+        posted_date: new Date().toISOString().split('T')[0],
         active_days: data.activeDays,
         technologies: data.technologies,
         workplace_type: data.workplaceType,
-        applicants: 0 // Default value for new jobs
+        applicants: 0,
+        user_id: user.id, // ✅ Required for Supabase RLS
       };
 
-      console.log('Saving job with data:', jobData);
+      console.log('Creating job with data:', jobData);
+
       const savedJob = await jobsService.createJob(jobData);
-      
+
       if (savedJob) {
         toast.success('Job created successfully');
-        fetchJobs(); // Refresh the jobs list after saving
+        fetchJobs();
       } else {
         toast.error('Failed to create job');
       }
@@ -76,8 +82,8 @@ const Jobs = () => {
   };
 
   const handleEditJob = (id: string) => {
-    // Implementation for editing a job
     console.log('Edit job:', id);
+    // To be implemented
   };
 
   const handleDeleteJob = async (id: string) => {
@@ -96,8 +102,8 @@ const Jobs = () => {
   };
 
   const handleViewJob = (job: Job) => {
-    // Navigate to job details or show a modal with job details
     console.log('View job:', job);
+    // To be implemented: modal or route
   };
 
   return (
@@ -106,7 +112,7 @@ const Jobs = () => {
         title="Jobs Management" 
         subtitle="Create and manage job postings"
       />
-      
+
       <div className="mb-6 flex justify-between items-center">
         <div>
           <h2 className="text-lg font-medium">All Jobs ({jobs.length})</h2>
@@ -117,7 +123,7 @@ const Jobs = () => {
           Post New Job
         </Button>
       </div>
-      
+
       {isLoading ? (
         <div className="flex justify-center items-center h-64">
           <Loader2 className="h-8 w-8 animate-spin text-primary-100" />
