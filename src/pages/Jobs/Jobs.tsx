@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Header } from '@/components/Layout/MainLayout';
 import { PlusCircle, Search, List, LayoutGrid, Filter } from 'lucide-react';
@@ -103,7 +104,7 @@ const Jobs: React.FC = () => {
         technologies: jobData.technologies,
         workplace_type: jobData.workplaceType,
         active_days: jobData.activeDays,
-        user_id: user.id, // ✅ Required by Supabase
+        // The user_id will be added in the jobsService.createJob method
       });
 
       if (newJob) {
