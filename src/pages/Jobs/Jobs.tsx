@@ -2,18 +2,41 @@
 import React, { useState } from 'react';
 import { Header } from '@/components/Layout/MainLayout';
 import { mockJobs, JobType } from '@/data/mockData';
-import { PlusCircle, Search } from 'lucide-react';
+import { PlusCircle, Search, List, LayoutGrid, Filter } from 'lucide-react';
 import JobCard from '@/components/UI/JobCard';
 import { toast } from 'sonner';
 import AddJobModal, { NewJobData } from '@/components/UI/AddJobModal';
+import JobDetailsModal from '@/components/UI/JobDetailsModal';
+import JobsTable from '@/components/UI/JobsTable';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 
 const Jobs: React.FC = () => {
   const [jobs, setJobs] = useState<JobType[]>(mockJobs);
   const [searchTerm, setSearchTerm] = useState('');
   const [showAddModal, setShowAddModal] = useState(false);
+  const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid');
+  const [selectedJob, setSelectedJob] = useState<JobType | null>(null);
+  const [filters, setFilters] = useState({
+    position: '',
+    location: '',
+    time: ''
+  });
   
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(e.target.value);
+  };
+  
+  const handleFilterChange = (key: string, value: string) => {
+    setFilters(prev => ({
+      ...prev,
+      [key]: value
+    }));
   };
   
   const handleEdit = (id: string) => {
@@ -27,9 +50,8 @@ const Jobs: React.FC = () => {
     setJobs(jobs.filter(job => job.id !== id));
   };
   
-  const handleView = (id: string) => {
-    // In a real app, this would navigate to a detailed view
-    toast.info(`View job with ID: ${id}`);
+  const handleView = (job: JobType) => {
+    setSelectedJob(job);
   };
   
   const handleAddJob = () => {
@@ -58,10 +80,24 @@ const Jobs: React.FC = () => {
     toast.success('New job added successfully');
   };
   
-  const filteredJobs = jobs.filter(job => 
-    job.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    job.description.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredJobs = jobs.filter(job => {
+    // Search term filter
+    const matchesSearch = 
+      job.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      job.description.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    // Additional filters
+    const matchesPosition = filters.position ? 
+      job.title.toLowerCase().includes(filters.position.toLowerCase()) : true;
+    
+    const matchesLocation = filters.location ? 
+      job.location.toLowerCase().includes(filters.location.toLowerCase()) : true;
+    
+    const matchesTime = filters.time ? 
+      job.postedDate.toLowerCase().includes(filters.time.toLowerCase()) : true;
+    
+    return matchesSearch && matchesPosition && matchesLocation && matchesTime;
+  });
 
   return (
     <div>
@@ -82,38 +118,125 @@ const Jobs: React.FC = () => {
           />
         </div>
         
-        <button
-          onClick={handleAddJob}
-          className="px-4 py-2 bg-primary-100 text-white rounded-lg flex items-center gap-2 hover:bg-primary-100/90 transition-colors shadow-md shadow-primary-100/20"
-        >
-          <PlusCircle size={18} />
-          <span>Add New Job</span>
-        </button>
+        <div className="flex gap-2">
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="outline" className="flex items-center gap-2">
+                <Filter size={16} />
+                <span>Filters</span>
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-80">
+              <div className="space-y-4">
+                <h4 className="font-medium">Filter Jobs</h4>
+                
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Position</label>
+                  <Input 
+                    placeholder="Filter by position" 
+                    value={filters.position}
+                    onChange={(e) => handleFilterChange('position', e.target.value)}
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Location</label>
+                  <Input 
+                    placeholder="Filter by location" 
+                    value={filters.location}
+                    onChange={(e) => handleFilterChange('location', e.target.value)}
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Time Posted</label>
+                  <Input 
+                    placeholder="Filter by date posted" 
+                    value={filters.time}
+                    onChange={(e) => handleFilterChange('time', e.target.value)}
+                  />
+                </div>
+                
+                <div className="flex justify-end">
+                  <Button 
+                    variant="ghost" 
+                    size="sm"
+                    onClick={() => setFilters({ position: '', location: '', time: '' })}
+                  >
+                    Clear Filters
+                  </Button>
+                </div>
+              </div>
+            </PopoverContent>
+          </Popover>
+          
+          <div className="flex border rounded-md overflow-hidden">
+            <button
+              onClick={() => setViewMode('grid')}
+              className={`p-2 ${viewMode === 'grid' ? 'bg-primary-100 text-white' : 'bg-white'}`}
+              title="Grid View"
+            >
+              <LayoutGrid size={18} />
+            </button>
+            <button
+              onClick={() => setViewMode('table')}
+              className={`p-2 ${viewMode === 'table' ? 'bg-primary-100 text-white' : 'bg-white'}`}
+              title="Table View"
+            >
+              <List size={18} />
+            </button>
+          </div>
+          
+          <button
+            onClick={handleAddJob}
+            className="px-4 py-2 bg-primary-100 text-white rounded-lg flex items-center gap-2 hover:bg-primary-100/90 transition-colors shadow-md shadow-primary-100/20"
+          >
+            <PlusCircle size={18} />
+            <span>Add New Job</span>
+          </button>
+        </div>
       </div>
       
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredJobs.map((job) => (
-          <JobCard
-            key={job.id}
-            job={job}
-            onEdit={handleEdit}
-            onDelete={handleDelete}
-            onView={handleView}
-          />
-        ))}
-        
-        {filteredJobs.length === 0 && (
-          <div className="col-span-3 py-12 text-center">
-            <p className="text-text-200">No jobs found matching your search.</p>
-          </div>
-        )}
-      </div>
+      {viewMode === 'grid' ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredJobs.map((job) => (
+            <JobCard
+              key={job.id}
+              job={job}
+              onEdit={handleEdit}
+              onDelete={handleDelete}
+              onView={() => handleView(job)}
+            />
+          ))}
+          
+          {filteredJobs.length === 0 && (
+            <div className="col-span-3 py-12 text-center">
+              <p className="text-text-200">No jobs found matching your search.</p>
+            </div>
+          )}
+        </div>
+      ) : (
+        <JobsTable 
+          jobs={filteredJobs}
+          onEdit={handleEdit}
+          onDelete={handleDelete}
+          onView={handleView}
+        />
+      )}
 
       <AddJobModal 
         isOpen={showAddModal}
         onClose={() => setShowAddModal(false)}
         onSave={handleSaveNewJob}
       />
+      
+      {selectedJob && (
+        <JobDetailsModal
+          job={selectedJob}
+          isOpen={!!selectedJob}
+          onClose={() => setSelectedJob(null)}
+        />
+      )}
     </div>
   );
 };

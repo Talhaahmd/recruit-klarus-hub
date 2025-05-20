@@ -14,14 +14,14 @@ interface JobCardProps {
   job: JobType;
   onEdit: (id: string) => void;
   onDelete: (id: string) => void;
-  onView: (id: string) => void;
+  onView: () => void;
 }
 
 const JobCard: React.FC<JobCardProps> = ({ job, onEdit, onDelete, onView }) => {
   return (
     <div 
       className="glass-card p-6 cursor-pointer hover:translate-y-[-2px]"
-      onClick={() => onView(job.id)}
+      onClick={onView}
     >
       <div className="flex justify-between items-start">
         <h3 className="text-lg font-semibold text-primary-100">{job.title}</h3>

@@ -30,7 +30,6 @@ const jobFormSchema = z.object({
   location: z.string().min(1, { message: "Job location is required" }),
   type: z.string().min(1, { message: "Job type is required" }),
   description: z.string().min(10, { message: "Description must be at least 10 characters" }),
-  requirements: z.string().optional(),
   activeDays: z.coerce.number().min(1, { message: "Active days must be at least 1" })
 });
 
@@ -67,7 +66,6 @@ const AddJobModal: React.FC<AddJobModalProps> = ({ isOpen, onClose, onSave }) =>
       location: '',
       type: '',
       description: '',
-      requirements: '',
       activeDays: 30,
     }
   });
@@ -206,29 +204,11 @@ const AddJobModal: React.FC<AddJobModalProps> = ({ isOpen, onClose, onSave }) =>
                 name="description"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Job Description</FormLabel>
+                    <FormLabel>Job Description Prompt</FormLabel>
                     <FormControl>
                       <Textarea 
-                        placeholder="Describe the role, responsibilities, and any special requirements or screening questions." 
-                        className="min-h-[100px]" 
-                        {...field} 
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              
-              <FormField
-                control={jobForm.control}
-                name="requirements"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Special Requirements (Optional)</FormLabel>
-                    <FormControl>
-                      <Textarea 
-                        placeholder="Any specific screening questions or requirements." 
-                        className="min-h-[60px]" 
+                        placeholder="Describe the role, responsibilities, requirements, and any screening questions." 
+                        className="min-h-[150px]" 
                         {...field} 
                       />
                     </FormControl>
