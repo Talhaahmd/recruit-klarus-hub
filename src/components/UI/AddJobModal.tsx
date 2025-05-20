@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -137,6 +136,15 @@ const AddJobModal: React.FC<AddJobModalProps> = ({ isOpen, onClose, onSave }) =>
     qualificationForm.reset();
     onClose();
   };
+
+  // Log form state to help with debugging
+  React.useEffect(() => {
+    const subscription = qualificationForm.watch((value) => {
+      console.log("Form values changed:", value);
+    });
+    
+    return () => subscription.unsubscribe();
+  }, [qualificationForm]);
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
@@ -277,7 +285,11 @@ const AddJobModal: React.FC<AddJobModalProps> = ({ isOpen, onClose, onSave }) =>
                     <FormItem>
                       <FormLabel>Role Complexity</FormLabel>
                       <Select 
-                        onValueChange={field.onChange} 
+                        onValueChange={(value) => {
+                          console.log("Selected complexity:", value);
+                          field.onChange(value);
+                        }}
+                        value={field.value}
                         defaultValue={field.value}
                       >
                         <FormControl>
