@@ -1,8 +1,7 @@
 
-import { supabase, LinkedInPostRow } from '@/lib/supabase';
-import { toast } from "sonner";
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
-// Type definition for frontend usage
 export type LinkedInPost = {
   id: string;
   content: string;
@@ -12,30 +11,7 @@ export type LinkedInPost = {
   niche: string;
 };
 
-// Convert database row to frontend format
-const toLinkedInPost = (row: LinkedInPostRow): LinkedInPost => ({
-  id: row.id,
-  content: row.content,
-  scheduledDate: row.scheduled_date,
-  scheduledTime: row.scheduled_time,
-  posted: row.posted,
-  niche: row.niche,
-});
-
-// Convert frontend data to database format
-const toLinkedInPostRow = (
-  post: Omit<LinkedInPost, 'id'>, 
-  userId: string
-): Omit<LinkedInPostRow, 'id' | 'created_at'> => ({
-  content: post.content,
-  scheduled_date: post.scheduledDate ? 
-    (typeof post.scheduledDate === 'string' ? post.scheduledDate : post.scheduledDate.toISOString().split('T')[0]) : 
-    null,
-  scheduled_time: post.scheduledTime,
-  posted: post.posted || false,
-  niche: post.niche,
-  user_id: userId,
-});
+type LinkedInPostInput = Omit<LinkedInPost, 'id' | 'posted'>;
 
 export const linkedinService = {
   // Get all LinkedIn posts for the current user
@@ -52,7 +28,14 @@ export const linkedinService = {
         return [];
       }
       
-      return data.map(toLinkedInPost);
+      return data.map(post => ({
+        id: post.id,
+        content: post.content,
+        scheduledDate: post.scheduled_date,
+        scheduledTime: post.scheduled_time,
+        posted: post.posted,
+        niche: post.niche
+      }));
     } catch (err) {
       console.error('Unexpected error fetching LinkedIn posts:', err);
       toast.error('Failed to load LinkedIn posts');
@@ -61,16 +44,16 @@ export const linkedinService = {
   },
   
   // Create a new LinkedIn post
-  createPost: async (post: Omit<LinkedInPost, 'id'>): Promise<LinkedInPost | null> => {
+  createPost: async (post: LinkedInPostInput): Promise<LinkedInPost | null> => {
     try {
-      // Get the current user
-      const { data: userData } = await supabase.auth.getUser();
-      if (!userData.user) {
-        toast.error('You must be logged in to create a LinkedIn post');
-        return null;
-      }
-      
-      const postData = toLinkedInPostRow(post, userData.user.id);
+      const postData = {
+        content: post.content,
+        scheduled_date: post.scheduledDate ? 
+          (typeof post.scheduledDate === 'string' ? post.scheduledDate : post.scheduledDate.toISOString().split('T')[0]) : 
+          null,
+        scheduled_time: post.scheduledTime,
+        niche: post.niche
+      };
       
       const { data, error } = await supabase
         .from('linkedin_posts')
@@ -85,7 +68,14 @@ export const linkedinService = {
       }
       
       toast.success('LinkedIn post created successfully');
-      return toLinkedInPost(data);
+      return {
+        id: data.id,
+        content: data.content,
+        scheduledDate: data.scheduled_date,
+        scheduledTime: data.scheduled_time,
+        posted: data.posted,
+        niche: data.niche
+      };
     } catch (err) {
       console.error('Unexpected error creating LinkedIn post:', err);
       toast.error('Failed to create LinkedIn post');
@@ -114,5 +104,5 @@ export const linkedinService = {
       toast.error('Failed to update LinkedIn post');
       return false;
     }
-  },
+  }
 };

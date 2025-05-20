@@ -1,9 +1,8 @@
 
-import { supabase, CalendarEventRow } from '@/lib/supabase';
-import { toast } from "sonner";
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 import { format, parseISO } from 'date-fns';
 
-// Type definition for frontend usage
 export type CalendarEvent = {
   id: string;
   title: string;
@@ -13,32 +12,7 @@ export type CalendarEvent = {
   type: string;
 };
 
-// Convert database row to frontend format
-const toCalendarEvent = (row: CalendarEventRow): CalendarEvent => ({
-  id: row.id,
-  title: row.title,
-  description: row.description,
-  startDate: row.start_date,
-  endDate: row.end_date,
-  type: row.type,
-});
-
-// Convert frontend data to database format
-const toCalendarEventRow = (
-  event: Omit<CalendarEvent, 'id'>, 
-  userId: string
-): Omit<CalendarEventRow, 'id' | 'created_at'> => ({
-  title: event.title,
-  description: event.description,
-  start_date: typeof event.startDate === 'string' 
-    ? event.startDate 
-    : format(event.startDate, 'yyyy-MM-dd\'T\'HH:mm:ss'),
-  end_date: typeof event.endDate === 'string' 
-    ? event.endDate 
-    : format(event.endDate, 'yyyy-MM-dd\'T\'HH:mm:ss'),
-  type: event.type,
-  user_id: userId,
-});
+type CalendarEventInput = Omit<CalendarEvent, 'id'>;
 
 export const calendarService = {
   // Get all calendar events for the current user
@@ -55,7 +29,14 @@ export const calendarService = {
         return [];
       }
       
-      return data.map(toCalendarEvent);
+      return data.map(event => ({
+        id: event.id,
+        title: event.title,
+        description: event.description,
+        startDate: event.start_date,
+        endDate: event.end_date,
+        type: event.type
+      }));
     } catch (err) {
       console.error('Unexpected error fetching calendar events:', err);
       toast.error('Failed to load calendar events');
@@ -64,16 +45,19 @@ export const calendarService = {
   },
   
   // Create a new calendar event
-  createEvent: async (event: Omit<CalendarEvent, 'id'>): Promise<CalendarEvent | null> => {
+  createEvent: async (event: CalendarEventInput): Promise<CalendarEvent | null> => {
     try {
-      // Get the current user
-      const { data: userData } = await supabase.auth.getUser();
-      if (!userData.user) {
-        toast.error('You must be logged in to create an event');
-        return null;
-      }
-      
-      const eventData = toCalendarEventRow(event, userData.user.id);
+      const eventData = {
+        title: event.title,
+        description: event.description,
+        start_date: typeof event.startDate === 'string' 
+          ? event.startDate 
+          : format(event.startDate, 'yyyy-MM-dd\'T\'HH:mm:ss'),
+        end_date: typeof event.endDate === 'string' 
+          ? event.endDate 
+          : format(event.endDate, 'yyyy-MM-dd\'T\'HH:mm:ss'),
+        type: event.type
+      };
       
       const { data, error } = await supabase
         .from('calendar_events')
@@ -88,7 +72,14 @@ export const calendarService = {
       }
       
       toast.success('Event created successfully');
-      return toCalendarEvent(data);
+      return {
+        id: data.id,
+        title: data.title,
+        description: data.description,
+        startDate: data.start_date,
+        endDate: data.end_date,
+        type: data.type
+      };
     } catch (err) {
       console.error('Unexpected error creating calendar event:', err);
       toast.error('Failed to create event');

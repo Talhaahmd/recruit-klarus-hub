@@ -9,13 +9,216 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      calendar_events: {
+        Row: {
+          created_at: string | null
+          description: string
+          end_date: string
+          id: string
+          start_date: string
+          title: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          description: string
+          end_date: string
+          id?: string
+          start_date: string
+          title: string
+          type: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          description?: string
+          end_date?: string
+          id?: string
+          start_date?: string
+          title?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      candidates: {
+        Row: {
+          applied_date: string
+          created_at: string | null
+          email: string
+          id: string
+          job_id: string
+          name: string
+          notes: string | null
+          phone: string
+          rating: number
+          resume_url: string | null
+          status: string
+          user_id: string
+        }
+        Insert: {
+          applied_date: string
+          created_at?: string | null
+          email: string
+          id?: string
+          job_id: string
+          name: string
+          notes?: string | null
+          phone: string
+          rating: number
+          resume_url?: string | null
+          status: string
+          user_id: string
+        }
+        Update: {
+          applied_date?: string
+          created_at?: string | null
+          email?: string
+          id?: string
+          job_id?: string
+          name?: string
+          notes?: string | null
+          phone?: string
+          rating?: number
+          resume_url?: string | null
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "candidates_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      jobs: {
+        Row: {
+          active_days: number
+          applicants: number | null
+          complexity: string
+          created_at: string | null
+          description: string
+          id: string
+          location: string
+          posted_date: string
+          qualification: string | null
+          status: string
+          technologies: string[]
+          title: string
+          type: string
+          user_id: string
+          workplace_type: string
+        }
+        Insert: {
+          active_days: number
+          applicants?: number | null
+          complexity: string
+          created_at?: string | null
+          description: string
+          id?: string
+          location: string
+          posted_date: string
+          qualification?: string | null
+          status: string
+          technologies: string[]
+          title: string
+          type: string
+          user_id: string
+          workplace_type: string
+        }
+        Update: {
+          active_days?: number
+          applicants?: number | null
+          complexity?: string
+          created_at?: string | null
+          description?: string
+          id?: string
+          location?: string
+          posted_date?: string
+          qualification?: string | null
+          status?: string
+          technologies?: string[]
+          title?: string
+          type?: string
+          user_id?: string
+          workplace_type?: string
+        }
+        Relationships: []
+      }
+      linkedin_posts: {
+        Row: {
+          content: string
+          created_at: string | null
+          id: string
+          niche: string
+          posted: boolean | null
+          scheduled_date: string | null
+          scheduled_time: string | null
+          user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string | null
+          id?: string
+          niche: string
+          posted?: boolean | null
+          scheduled_date?: string | null
+          scheduled_time?: string | null
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string | null
+          id?: string
+          niche?: string
+          posted?: boolean | null
+          scheduled_date?: string | null
+          scheduled_time?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          company: string | null
+          full_name: string | null
+          id: string
+          updated_at: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          company?: string | null
+          full_name?: string | null
+          id: string
+          updated_at?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          company?: string | null
+          full_name?: string | null
+          id?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      decrement_job_applicants: {
+        Args: { job_id: string }
+        Returns: undefined
+      }
+      increment_job_applicants: {
+        Args: { job_id: string }
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never

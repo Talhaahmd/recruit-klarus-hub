@@ -1,206 +1,218 @@
 
-import { supabase, CandidateRow } from '@/lib/supabase';
-import { toast } from "sonner";
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
-// Type definition for frontend usage
 export type Candidate = {
   id: string;
   jobId: string;
   name: string;
   email: string;
   phone: string;
-  resumeUrl: string;
+  resumeUrl: string | null;
   appliedDate: string;
   status: string;
-  notes: string;
+  notes: string | null;
   rating: number;
 };
 
-// Convert database row to frontend format
-const toCandidate = (row: CandidateRow): Candidate => ({
-  id: row.id,
-  jobId: row.job_id,
-  name: row.name,
-  email: row.email,
-  phone: row.phone,
-  resumeUrl: row.resume_url,
-  appliedDate: row.applied_date,
-  status: row.status,
-  notes: row.notes,
-  rating: row.rating,
-});
-
-// Convert frontend data to database format
-const toCandidateRow = (candidate: Omit<Candidate, 'id'>, userId: string): Omit<CandidateRow, 'id' | 'created_at'> => ({
-  job_id: candidate.jobId,
-  name: candidate.name,
-  email: candidate.email,
-  phone: candidate.phone,
-  resume_url: candidate.resumeUrl,
-  applied_date: candidate.appliedDate || new Date().toISOString().split('T')[0],
-  status: candidate.status || 'New',
-  notes: candidate.notes || '',
-  rating: candidate.rating || 3,
-  user_id: userId,
-});
+type CandidateInput = Omit<Candidate, 'id'>;
 
 export const candidatesService = {
-  // Get all candidates for the current user
   getCandidates: async (): Promise<Candidate[]> => {
     try {
       const { data, error } = await supabase
         .from('candidates')
         .select('*')
-        .order('created_at', { ascending: false });
-        
+        .order('applied_date', { ascending: false });
+
       if (error) {
         console.error('Error fetching candidates:', error);
         toast.error('Failed to load candidates');
         return [];
       }
-      
-      return data.map(toCandidate);
+
+      return data.map(candidate => ({
+        id: candidate.id,
+        jobId: candidate.job_id,
+        name: candidate.name,
+        email: candidate.email,
+        phone: candidate.phone,
+        resumeUrl: candidate.resume_url,
+        appliedDate: candidate.applied_date,
+        status: candidate.status,
+        notes: candidate.notes,
+        rating: candidate.rating
+      }));
     } catch (err) {
       console.error('Unexpected error fetching candidates:', err);
       toast.error('Failed to load candidates');
       return [];
     }
   },
-  
-  // Get candidates for a specific job
-  getCandidatesForJob: async (jobId: string): Promise<Candidate[]> => {
+
+  getCandidatesByJobId: async (jobId: string): Promise<Candidate[]> => {
     try {
       const { data, error } = await supabase
         .from('candidates')
         .select('*')
         .eq('job_id', jobId)
-        .order('created_at', { ascending: false });
-        
+        .order('applied_date', { ascending: false });
+
       if (error) {
-        console.error('Error fetching candidates for job:', error);
-        toast.error('Failed to load candidates');
+        console.error('Error fetching candidates by job id:', error);
+        toast.error('Failed to load candidates for this job');
         return [];
       }
-      
-      return data.map(toCandidate);
+
+      return data.map(candidate => ({
+        id: candidate.id,
+        jobId: candidate.job_id,
+        name: candidate.name,
+        email: candidate.email,
+        phone: candidate.phone,
+        resumeUrl: candidate.resume_url,
+        appliedDate: candidate.applied_date,
+        status: candidate.status,
+        notes: candidate.notes,
+        rating: candidate.rating
+      }));
     } catch (err) {
-      console.error('Unexpected error fetching candidates for job:', err);
-      toast.error('Failed to load candidates');
+      console.error('Unexpected error fetching candidates by job id:', err);
+      toast.error('Failed to load candidates for this job');
       return [];
     }
   },
-  
-  // Get a specific candidate by ID
-  getCandidate: async (id: string): Promise<Candidate | null> => {
+
+  getCandidateById: async (id: string): Promise<Candidate | null> => {
     try {
       const { data, error } = await supabase
         .from('candidates')
         .select('*')
         .eq('id', id)
         .single();
-        
+
       if (error) {
         console.error('Error fetching candidate:', error);
         toast.error('Failed to load candidate details');
         return null;
       }
-      
-      return toCandidate(data);
+
+      return {
+        id: data.id,
+        jobId: data.job_id,
+        name: data.name,
+        email: data.email,
+        phone: data.phone,
+        resumeUrl: data.resume_url,
+        appliedDate: data.applied_date,
+        status: data.status,
+        notes: data.notes,
+        rating: data.rating
+      };
     } catch (err) {
-      console.error('Unexpected error fetching candidate:', err);
+      console.error('Unexpected error fetching candidate by id:', err);
       toast.error('Failed to load candidate details');
       return null;
     }
   },
-  
-  // Create a new candidate
-  createCandidate: async (candidate: Omit<Candidate, 'id'>): Promise<Candidate | null> => {
+
+  createCandidate: async (candidate: CandidateInput): Promise<Candidate | null> => {
     try {
-      // Get the current user
-      const { data: userData } = await supabase.auth.getUser();
-      if (!userData.user) {
-        toast.error('You must be logged in to add a candidate');
-        return null;
-      }
-      
-      const candidateData = toCandidateRow(candidate, userData.user.id);
-      
       const { data, error } = await supabase
         .from('candidates')
-        .insert([candidateData])
+        .insert([{
+          job_id: candidate.jobId,
+          name: candidate.name,
+          email: candidate.email,
+          phone: candidate.phone,
+          resume_url: candidate.resumeUrl,
+          applied_date: candidate.appliedDate,
+          status: candidate.status,
+          notes: candidate.notes,
+          rating: candidate.rating
+        }])
         .select()
         .single();
-        
+
       if (error) {
         console.error('Error creating candidate:', error);
-        toast.error('Failed to add candidate');
+        toast.error('Failed to create candidate');
         return null;
       }
-      
-      // Update job applicant count
+
+      // Call the function to increment job applicants
       await supabase.rpc('increment_job_applicants', { job_id: candidate.jobId });
-      
-      toast.success('Candidate added successfully');
-      return toCandidate(data);
+
+      toast.success('Candidate created successfully');
+      return {
+        id: data.id,
+        jobId: data.job_id,
+        name: data.name,
+        email: data.email,
+        phone: data.phone,
+        resumeUrl: data.resume_url,
+        appliedDate: data.applied_date,
+        status: data.status,
+        notes: data.notes,
+        rating: data.rating
+      };
     } catch (err) {
       console.error('Unexpected error creating candidate:', err);
-      toast.error('Failed to add candidate');
+      toast.error('Failed to create candidate');
       return null;
     }
   },
-  
-  // Update an existing candidate
-  updateCandidate: async (id: string, candidate: Partial<Candidate>): Promise<Candidate | null> => {
+
+  updateCandidate: async (id: string, candidate: Partial<CandidateInput>): Promise<boolean> => {
     try {
-      const updates: Partial<CandidateRow> = {};
-      
-      if (candidate.name) updates.name = candidate.name;
-      if (candidate.email) updates.email = candidate.email;
-      if (candidate.phone) updates.phone = candidate.phone;
-      if (candidate.status) updates.status = candidate.status;
-      if (candidate.notes) updates.notes = candidate.notes;
-      if (candidate.rating !== undefined) updates.rating = candidate.rating;
-      if (candidate.resumeUrl) updates.resume_url = candidate.resumeUrl;
-      
-      const { data, error } = await supabase
+      // Convert from frontend to database field names
+      const dbCandidate: any = {};
+      if (candidate.jobId !== undefined) dbCandidate.job_id = candidate.jobId;
+      if (candidate.name !== undefined) dbCandidate.name = candidate.name;
+      if (candidate.email !== undefined) dbCandidate.email = candidate.email;
+      if (candidate.phone !== undefined) dbCandidate.phone = candidate.phone;
+      if (candidate.resumeUrl !== undefined) dbCandidate.resume_url = candidate.resumeUrl;
+      if (candidate.appliedDate !== undefined) dbCandidate.applied_date = candidate.appliedDate;
+      if (candidate.status !== undefined) dbCandidate.status = candidate.status;
+      if (candidate.notes !== undefined) dbCandidate.notes = candidate.notes;
+      if (candidate.rating !== undefined) dbCandidate.rating = candidate.rating;
+
+      const { error } = await supabase
         .from('candidates')
-        .update(updates)
-        .eq('id', id)
-        .select()
-        .single();
-        
+        .update(dbCandidate)
+        .eq('id', id);
+
       if (error) {
         console.error('Error updating candidate:', error);
         toast.error('Failed to update candidate');
-        return null;
+        return false;
       }
-      
+
       toast.success('Candidate updated successfully');
-      return toCandidate(data);
+      return true;
     } catch (err) {
       console.error('Unexpected error updating candidate:', err);
       toast.error('Failed to update candidate');
-      return null;
+      return false;
     }
   },
-  
-  // Delete a candidate
+
   deleteCandidate: async (id: string, jobId: string): Promise<boolean> => {
     try {
       const { error } = await supabase
         .from('candidates')
         .delete()
         .eq('id', id);
-        
+
       if (error) {
         console.error('Error deleting candidate:', error);
         toast.error('Failed to delete candidate');
         return false;
       }
-      
-      // Decrement job applicant count
+
+      // Call the function to decrement job applicants
       await supabase.rpc('decrement_job_applicants', { job_id: jobId });
-      
+
       toast.success('Candidate deleted successfully');
       return true;
     } catch (err) {
@@ -209,33 +221,32 @@ export const candidatesService = {
       return false;
     }
   },
-  
-  // Upload resume for a candidate
+
   uploadResume: async (file: File): Promise<string | null> => {
     try {
-      const fileName = `${Date.now()}-${file.name}`;
-      const filePath = `resumes/${fileName}`;
-      
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Math.random().toString(36).substring(2)}.${fileExt}`;
+      const filePath = `${fileName}`;
+
       const { error: uploadError } = await supabase.storage
         .from('candidate-files')
         .upload(filePath, file);
-        
+
       if (uploadError) {
         console.error('Error uploading resume:', uploadError);
         toast.error('Failed to upload resume');
         return null;
       }
-      
-      // Get public URL for the file
+
       const { data } = supabase.storage
         .from('candidate-files')
         .getPublicUrl(filePath);
-        
+
       return data.publicUrl;
     } catch (err) {
       console.error('Unexpected error uploading resume:', err);
       toast.error('Failed to upload resume');
       return null;
     }
-  },
+  }
 };
