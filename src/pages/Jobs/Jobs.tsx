@@ -81,10 +81,8 @@ const Jobs: React.FC = () => {
     setShowAddModal(true);
   };
 
-  // ✅ UPDATED FUNCTION TO INCLUDE `user_id`
   const handleSaveNewJob = async (jobData: NewJobData) => {
     try {
-      console.log("Job data being submitted:", jobData);
       const {
         data: { user },
         error: userError,
@@ -105,7 +103,7 @@ const Jobs: React.FC = () => {
         technologies: jobData.technologies,
         workplace_type: jobData.workplaceType,
         active_days: jobData.activeDays,
-        user_id: user.id, // ✅ REQUIRED for foreign key to `profiles.id`
+        user_id: user.id, // ✅ Required by Supabase
       });
 
       if (newJob) {
@@ -113,7 +111,7 @@ const Jobs: React.FC = () => {
         toast.success('Job created successfully!');
         setShowAddModal(false);
       } else {
-        toast.error('Job creation failed. Please check the console for more details.');
+        toast.error('Job creation failed. Please check console.');
       }
     } catch (error: any) {
       console.error('Error creating job:', error);
