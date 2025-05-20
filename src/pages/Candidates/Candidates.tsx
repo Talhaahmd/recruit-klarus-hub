@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Header } from '@/components/Layout/MainLayout';
@@ -153,12 +152,12 @@ const Candidates: React.FC = () => {
           }
           
           const newCandidate = await candidatesService.createCandidate({
-            jobId: jobId,
+            job_id: jobId, // Fixed: Changed jobId to job_id
             name: candidateData.file.name.replace(/\.[^/.]+$/, ""), // Remove file extension
             email: `candidate${Date.now()}@example.com`,
             phone: '000-000-0000',
-            resumeUrl: resumeUrl,
-            appliedDate: new Date().toISOString().split('T')[0],
+            resume_url: resumeUrl,
+            applied_date: new Date().toISOString().split('T')[0],
             status: 'New',
             notes: `Uploaded on ${new Date().toLocaleDateString()}`,
             rating: 3
@@ -180,12 +179,12 @@ const Candidates: React.FC = () => {
         // For demo purposes, simulate adding 3 candidates
         for (let i = 0; i < 3; i++) {
           const newCandidate = await candidatesService.createCandidate({
-            jobId: jobId,
+            job_id: jobId, // Fixed: Changed jobId to job_id
             name: `Bulk Candidate ${i + 1}`,
             email: `bulk${i + 1}@example.com`,
             phone: `555-000-${i + 1000}`,
-            resumeUrl: '/resumes/bulk-upload.pdf',
-            appliedDate: new Date().toISOString().split('T')[0],
+            resume_url: '/resumes/bulk-upload.pdf',
+            applied_date: new Date().toISOString().split('T')[0],
             status: 'New',
             notes: `Added via bulk upload on ${new Date().toLocaleDateString()}`,
             rating: 3
@@ -209,7 +208,7 @@ const Candidates: React.FC = () => {
       candidate.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       candidate.email.toLowerCase().includes(searchTerm.toLowerCase());
       
-    const matchesJob = selectedJob === 'all' || candidate.jobId === selectedJob;
+    const matchesJob = selectedJob === 'all' || candidate.job_id === selectedJob; // Fixed: Changed jobId to job_id
     
     // Convert 5-scale rating to 10-scale analysis score
     const analysisScore = candidate.rating * 2;
@@ -431,10 +430,10 @@ const Candidates: React.FC = () => {
               key={candidate.id}
               candidate={candidate}
               onEdit={handleEdit}
-              onDelete={() => handleDelete(candidate.id, candidate.jobId)}
+              onDelete={() => handleDelete(candidate.id, candidate.job_id)} // Fixed: Changed jobId to job_id
               onView={handleView}
               onEmail={handleEmail}
-              jobTitle={getJobTitle(candidate.jobId)}
+              jobTitle={getJobTitle(candidate.job_id)} // Fixed: Changed jobId to job_id
             />
           ))}
           
@@ -468,7 +467,7 @@ const Candidates: React.FC = () => {
                       onClick={() => handleView(candidate.id)}
                     >
                       <TableCell className="font-medium">{candidate.name}</TableCell>
-                      <TableCell>{getJobTitle(candidate.jobId)}</TableCell>
+                      <TableCell>{getJobTitle(candidate.job_id)}</TableCell> {/* Fixed: Changed jobId to job_id */}
                       <TableCell>{candidate.email}</TableCell>
                       <TableCell>{candidate.phone}</TableCell>
                       <TableCell>
@@ -501,7 +500,7 @@ const Candidates: React.FC = () => {
                           <button 
                             onClick={(e) => {
                               e.stopPropagation();
-                              handleDelete(candidate.id, candidate.jobId);
+                              handleDelete(candidate.id, candidate.job_id); // Fixed: Changed jobId to job_id
                             }}
                             className="p-1.5 rounded-full hover:bg-gray-100"
                             title="Delete"

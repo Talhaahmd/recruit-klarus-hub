@@ -15,7 +15,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { jobsService, Job } from '@/services/jobsService';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from '@/integrations/supabase/client'; // ✅ Make sure this import is correct
+import { supabase } from '@/integrations/supabase/client';
 
 const Jobs: React.FC = () => {
   const navigate = useNavigate();
@@ -81,7 +81,6 @@ const Jobs: React.FC = () => {
     setShowAddModal(true);
   };
 
-  // ✅ UPDATED FUNCTION
   const handleSaveNewJob = async (jobData: NewJobData) => {
     try {
       const {
@@ -106,7 +105,8 @@ const Jobs: React.FC = () => {
         complexity: jobData.complexity,
         qualification: jobData.qualification || 'None',
         active_days: jobData.activeDays,
-        user_id: user.id, // ✅ Required by your DB
+        // Note: We're removing user_id as it's not in the JobInput type
+        // The jobsService.createJob function will handle adding the user_id
       });
 
       if (newJob) {

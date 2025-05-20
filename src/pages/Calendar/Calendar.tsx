@@ -110,7 +110,7 @@ const Calendar: React.FC = () => {
       
       if (!newJob) {
         toast.error('Failed to create job');
-        setShowAddModal(false);
+        setShowAddJobModal(false);
         return;
       }
       
@@ -129,7 +129,7 @@ const Calendar: React.FC = () => {
         setEvents([...events, newEvent]);
       }
       
-      setShowAddModal(false);
+      setShowAddJobModal(false);
       toast.success(`Job posting scheduled for ${format(eventDate, 'MMMM d, yyyy')}`);
     } catch (error) {
       console.error('Error creating job and event:', error);

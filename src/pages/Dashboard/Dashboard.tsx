@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { Header } from '@/components/Layout/MainLayout';
 import { 
@@ -91,7 +90,7 @@ const Dashboard: React.FC = () => {
   
   // Get recent jobs
   const recentJobs = [...jobs]
-    .sort((a, b) => new Date(b.postedDate).getTime() - new Date(a.postedDate).getTime())
+    .sort((a, b) => new Date(b.posted_date).getTime() - new Date(a.posted_date).getTime())
     .slice(0, 3);
   
   if (isLoading) {
@@ -220,7 +219,7 @@ const Dashboard: React.FC = () => {
                   
                   <div className="mt-2 flex items-center text-sm text-text-200">
                     <Clock size={14} className="mr-1" />
-                    <span>Posted {job.postedDate}</span>
+                    <span>Posted {job.posted_date}</span>
                     <span className="mx-2">•</span>
                     <span>{job.applicants} applicants</span>
                   </div>
