@@ -103,8 +103,6 @@ const Calendar: React.FC = () => {
         posted_date: new Date().toISOString().split('T')[0],
         technologies: jobData.technologies,
         workplace_type: jobData.workplaceType,
-        complexity: jobData.complexity,
-        qualification: jobData.qualification || 'None',
         active_days: jobData.activeDays
       });
       
