@@ -5,6 +5,7 @@ import { mockJobs, JobType } from '@/data/mockData';
 import { PlusCircle, Search } from 'lucide-react';
 import JobCard from '@/components/UI/JobCard';
 import { toast } from 'sonner';
+import AddJobModal, { NewJobData } from '@/components/UI/AddJobModal';
 
 const Jobs: React.FC = () => {
   const [jobs, setJobs] = useState<JobType[]>(mockJobs);
@@ -33,6 +34,28 @@ const Jobs: React.FC = () => {
   
   const handleAddJob = () => {
     setShowAddModal(true);
+  };
+  
+  const handleSaveNewJob = (jobData: NewJobData) => {
+    const newJob: JobType = {
+      id: `job-${Date.now()}`,
+      title: jobData.title,
+      description: jobData.description,
+      location: jobData.location,
+      type: jobData.type,
+      status: 'Active',
+      applicants: 0,
+      postedDate: new Date().toLocaleDateString(),
+      technologies: jobData.technologies,
+      workplaceType: jobData.workplaceType,
+      complexity: jobData.complexity,
+      qualification: jobData.qualification || 'None',
+      activeDays: jobData.activeDays
+    };
+    
+    setJobs([newJob, ...jobs]);
+    setShowAddModal(false);
+    toast.success('New job added successfully');
   };
   
   const filteredJobs = jobs.filter(job => 
@@ -85,6 +108,12 @@ const Jobs: React.FC = () => {
           </div>
         )}
       </div>
+
+      <AddJobModal 
+        isOpen={showAddModal}
+        onClose={() => setShowAddModal(false)}
+        onSave={handleSaveNewJob}
+      />
     </div>
   );
 };

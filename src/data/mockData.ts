@@ -1,17 +1,20 @@
-
 // Job Types
-export type JobType = {
+export interface JobType {
   id: string;
   title: string;
   description: string;
-  requirements: string[];
   location: string;
-  type: 'Full-Time' | 'Part-Time' | 'Contract' | 'Remote';
-  salary: string;
-  postedDate: string;
-  status: 'Active' | 'Paused' | 'Closed';
+  type: string;
+  status: string;
   applicants: number;
-};
+  postedDate: string;
+  // New fields
+  workplaceType: string;
+  technologies: string[];
+  complexity: string;
+  qualification: string;
+  activeDays?: number;
+}
 
 // Candidate Types
 export type CandidateType = {
@@ -41,52 +44,60 @@ export type CalendarEventType = {
 // Mock Jobs Data
 export const mockJobs: JobType[] = [
   {
-    id: '1',
+    id: 'job-1',
     title: 'Senior Frontend Developer',
-    description: 'We are looking for an experienced frontend developer to join our team.',
-    requirements: ['5+ years of experience with React', 'TypeScript proficiency', 'UI/UX understanding'],
-    location: 'New York, NY',
-    type: 'Full-Time',
-    salary: '$120,000 - $150,000',
-    postedDate: '2025-04-15',
-    status: 'Active',
-    applicants: 12
-  },
-  {
-    id: '2',
-    title: 'Product Manager',
-    description: 'Lead product development from conception to launch.',
-    requirements: ['3+ years in product management', 'Agile methodologies', 'User research experience'],
-    location: 'Remote',
-    type: 'Full-Time',
-    salary: '$130,000 - $160,000',
-    postedDate: '2025-04-18',
-    status: 'Active',
-    applicants: 8
-  },
-  {
-    id: '3',
-    title: 'DevOps Engineer',
-    description: 'Implement and manage cloud infrastructure and CI/CD pipelines.',
-    requirements: ['AWS or Azure experience', 'Docker, Kubernetes', 'Infrastructure as Code'],
+    description: 'We are looking for a talented Frontend Developer to join our team. You will be responsible for building user interfaces using React and TypeScript.',
     location: 'San Francisco, CA',
-    type: 'Full-Time',
-    salary: '$140,000 - $170,000',
-    postedDate: '2025-04-10',
+    type: 'Full-time',
     status: 'Active',
-    applicants: 5
+    applicants: 12,
+    postedDate: '2023-10-12',
+    workplaceType: 'Remote',
+    technologies: ['React', 'TypeScript', 'Tailwind CSS'],
+    complexity: 'Senior',
+    qualification: 'Bachelor\'s degree in Computer Science',
   },
   {
-    id: '4',
-    title: 'UX Researcher',
-    description: 'Conduct user research and usability testing.',
-    requirements: ['2+ years in UX research', 'Interview facilitation', 'Data analysis'],
-    location: 'Boston, MA',
-    type: 'Part-Time',
-    salary: '$90,000 - $110,000',
-    postedDate: '2025-04-20',
+    id: 'job-2',
+    title: 'UX Designer',
+    description: 'Join our design team to create beautiful and intuitive user experiences for our web and mobile applications.',
+    location: 'New York, NY',
+    type: 'Contract',
     status: 'Active',
-    applicants: 3
+    applicants: 8,
+    postedDate: '2023-10-15',
+    workplaceType: 'Hybrid',
+    technologies: ['Figma', 'Adobe XD', 'Sketch'],
+    complexity: 'Mid-level',
+    qualification: '3+ years of experience in UX/UI design',
+  },
+  {
+    id: 'job-3',
+    title: 'Backend Engineer',
+    description: 'We need an experienced Backend Engineer to maintain and develop new API features for our growing platform.',
+    location: 'Austin, TX',
+    type: 'Full-time',
+    status: 'Active',
+    applicants: 5,
+    postedDate: '2023-10-17',
+    workplaceType: 'On-site',
+    technologies: ['Node.js', 'Express', 'MongoDB'],
+    complexity: 'Senior',
+    qualification: 'Bachelor\'s degree in Computer Science',
+  },
+  {
+    id: 'job-4',
+    title: 'DevOps Engineer',
+    description: 'Looking for a DevOps Engineer to help us build and maintain our cloud infrastructure and CI/CD pipelines.',
+    location: 'Seattle, WA',
+    type: 'Full-time',
+    status: 'Active',
+    applicants: 3,
+    postedDate: '2023-10-18',
+    workplaceType: 'Remote',
+    technologies: ['AWS', 'Docker', 'Kubernetes', 'Terraform'],
+    complexity: 'Senior',
+    qualification: '5+ years of experience with cloud platforms',
   }
 ];
 
