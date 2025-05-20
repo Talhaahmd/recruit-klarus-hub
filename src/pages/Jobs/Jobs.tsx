@@ -1,293 +1,310 @@
-
-import React, { useState, useEffect } from 'react';
-import { Header } from '@/components/Layout/MainLayout';
-import { PlusCircle, Search, List, LayoutGrid, Filter } from 'lucide-react';
-import JobCard from '@/components/UI/JobCard';
+import React from 'react';
+import { useForm, Controller } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { X } from 'lucide-react';
 import { toast } from 'sonner';
-import AddJobModal, { NewJobData } from '@/components/UI/AddJobModal';
-import JobDetailsModal from '@/components/UI/JobDetailsModal';
-import JobsTable from '@/components/UI/JobsTable';
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogFooter, 
+  DialogHeader, 
+  DialogTitle,
+  DialogDescription
+} from '@/components/ui/dialog';
 import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { jobsService, Job } from '@/services/jobsService';
-import { useNavigate } from 'react-router-dom';
-import { supabase } from '@/integrations/supabase/client';
+import { Textarea } from '@/components/ui/textarea';
 
-const Jobs: React.FC = () => {
-  const navigate = useNavigate();
-  const [jobs, setJobs] = useState<Job[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [showAddModal, setShowAddModal] = useState(false);
-  const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid');
-  const [selectedJob, setSelectedJob] = useState<Job | null>(null);
-  const [filters, setFilters] = useState({
-    position: '',
-    location: '',
-    time: ''
+const JOB_TYPE_OPTIONS = ['Full-time', 'Part-time', 'Contract'];
+
+const jobFormSchema = z.object({
+  title: z.string().min(1, { message: "Job title is required" }),
+  workplaceType: z.string().min(1, { message: "Workplace type is required" }),
+  location: z.string().min(1, { message: "Job location is required" }),
+  type: z.enum(['Full-time', 'Part-time', 'Contract'], { message: "Invalid job type" }),
+  description: z.string().min(10, { message: "Description must be at least 10 characters" }),
+  activeDays: z.coerce.number().min(1, { message: "Active days must be at least 1" })
+});
+
+const technologiesSchema = z.object({
+  technologies: z.array(z.string()).min(1, { message: "At least one technology is required" })
+});
+
+type JobFormValues = z.infer<typeof jobFormSchema>;
+type TechnologiesFormValues = z.infer<typeof technologiesSchema>;
+export type NewJobData = JobFormValues & TechnologiesFormValues;
+
+interface AddJobModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onSave: (data: NewJobData) => void;
+}
+
+const AddJobModal: React.FC<AddJobModalProps> = ({ isOpen, onClose, onSave }) => {
+  const [step, setStep] = React.useState(1);
+  const [jobData, setJobData] = React.useState<JobFormValues | null>(null);
+  const [tags, setTags] = React.useState<string[]>([]);
+  const [tagInput, setTagInput] = React.useState('');
+
+  const jobForm = useForm<JobFormValues>({
+    resolver: zodResolver(jobFormSchema),
+    defaultValues: {
+      title: '',
+      workplaceType: '',
+      location: '',
+      type: 'Full-time',
+      description: '',
+      activeDays: 30,
+    }
   });
 
-  useEffect(() => {
-    const fetchJobs = async () => {
-      setIsLoading(true);
-      try {
-        const data = await jobsService.getJobs();
-        setJobs(data);
-      } catch (error) {
-        console.error('Error fetching jobs:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
+  const technologiesForm = useForm<TechnologiesFormValues>({
+    resolver: zodResolver(technologiesSchema),
+    defaultValues: {
+      technologies: [],
+    }
+  });
 
-    fetchJobs();
-  }, []);
-
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchTerm(e.target.value);
-  };
-
-  const handleFilterChange = (key: string, value: string) => {
-    setFilters(prev => ({
-      ...prev,
-      [key]: value
-    }));
-  };
-
-  const handleEdit = (id: string) => {
-    toast.info(`Edit job with ID: ${id}`);
-  };
-
-  const handleDelete = async (id: string) => {
-    try {
-      const success = await jobsService.deleteJob(id);
-      if (success) {
-        setJobs(jobs.filter(job => job.id !== id));
-      }
-    } catch (error) {
-      console.error('Error deleting job:', error);
+  const handleAddTag = () => {
+    const trimmed = tagInput.trim();
+    if (trimmed !== '' && !tags.includes(trimmed)) {
+      const newTags = [...tags, trimmed];
+      setTags(newTags);
+      technologiesForm.setValue('technologies', newTags);
+      setTagInput('');
     }
   };
 
-  const handleView = (job: Job) => {
-    setSelectedJob(job);
+  const handleRemoveTag = (tagToRemove: string) => {
+    const newTags = tags.filter(tag => tag !== tagToRemove);
+    setTags(newTags);
+    technologiesForm.setValue('technologies', newTags);
   };
 
-  const handleAddJob = () => {
-    setShowAddModal(true);
-  };
-
-  const handleSaveNewJob = async (jobData: NewJobData) => {
-    try {
-      const {
-        data: { user },
-        error: userError,
-      } = await supabase.auth.getUser();
-
-      if (userError || !user) {
-        toast.error('You must be logged in to create a job.');
-        return;
-      }
-
-      const newJob = await jobsService.createJob({
-        title: jobData.title,
-        description: jobData.description,
-        location: jobData.location,
-        type: jobData.type,
-        status: 'Active',
-        posted_date: new Date().toISOString().split('T')[0],
-        technologies: jobData.technologies,
-        workplace_type: jobData.workplaceType,
-        active_days: jobData.activeDays,
-        // The user_id will be added in the jobsService.createJob method
-      });
-
-      if (newJob) {
-        setJobs([newJob, ...jobs]);
-        toast.success('Job created successfully!');
-        setShowAddModal(false);
-      } else {
-        toast.error('Job creation failed. Please check console.');
-      }
-    } catch (error: any) {
-      console.error('Error creating job:', error);
-      toast.error(`Failed to create job: ${error.message || 'Unknown error'}`);
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' || e.key === ',') {
+      e.preventDefault();
+      handleAddTag();
     }
   };
 
-  const filteredJobs = jobs.filter(job => {
-    const matchesSearch =
-      job.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      job.description.toLowerCase().includes(searchTerm.toLowerCase());
+  const onSubmitFirstStep = (data: JobFormValues) => {
+    setJobData(data);
+    setStep(2);
+  };
 
-    const matchesPosition = filters.position
-      ? job.title.toLowerCase().includes(filters.position.toLowerCase())
-      : true;
+  const onSubmitSecondStep = (data: TechnologiesFormValues) => {
+    if (jobData) {
+      onSave({ ...jobData, ...data });
+      setStep(1);
+      setJobData(null);
+      setTags([]);
+      jobForm.reset();
+      technologiesForm.reset();
+    }
+  };
 
-    const matchesLocation = filters.location
-      ? job.location.toLowerCase().includes(filters.location.toLowerCase())
-      : true;
-
-    const matchesTime = filters.time
-      ? job.posted_date.toLowerCase().includes(filters.time.toLowerCase())
-      : true;
-
-    return matchesSearch && matchesPosition && matchesLocation && matchesTime;
-  });
+  const handleClose = () => {
+    setStep(1);
+    setJobData(null);
+    setTags([]);
+    jobForm.reset();
+    technologiesForm.reset();
+    onClose();
+  };
 
   return (
-    <div>
-      <Header
-        title="Active Jobs"
-        subtitle="Manage all your active job postings."
-      />
+    <Dialog open={isOpen} onOpenChange={handleClose}>
+      {step === 1 ? (
+        <DialogContent className="sm:max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Add New Job - Basic Details</DialogTitle>
+            <DialogDescription>
+              Fill in the basic information about the job position.
+            </DialogDescription>
+          </DialogHeader>
 
-      <div className="mb-6 flex flex-col sm:flex-row items-stretch gap-4">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
-          <input
-            type="text"
-            placeholder="Search jobs..."
-            value={searchTerm}
-            onChange={handleSearchChange}
-            className="pl-10 pr-4 py-2 w-full rounded-lg glass border-none focus:outline-none focus:ring-2 focus:ring-primary-100"
-          />
-        </div>
-
-        <div className="flex gap-2">
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button variant="outline" className="flex items-center gap-2">
-                <Filter size={16} />
-                <span>Filters</span>
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-80">
-              <div className="space-y-4">
-                <h4 className="font-medium">Filter Jobs</h4>
-
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Position</label>
-                  <Input
-                    placeholder="Filter by position"
-                    value={filters.position}
-                    onChange={(e) => handleFilterChange('position', e.target.value)}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Location</label>
-                  <Input
-                    placeholder="Filter by location"
-                    value={filters.location}
-                    onChange={(e) => handleFilterChange('location', e.target.value)}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Time Posted</label>
-                  <Input
-                    placeholder="Filter by date posted"
-                    value={filters.time}
-                    onChange={(e) => handleFilterChange('time', e.target.value)}
-                  />
-                </div>
-
-                <div className="flex justify-end">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setFilters({ position: '', location: '', time: '' })}
-                  >
-                    Clear Filters
-                  </Button>
-                </div>
-              </div>
-            </PopoverContent>
-          </Popover>
-
-          <div className="flex border rounded-md overflow-hidden">
-            <button
-              onClick={() => setViewMode('grid')}
-              className={`p-2 ${viewMode === 'grid' ? 'bg-primary-100 text-white' : 'bg-white'}`}
-              title="Grid View"
-            >
-              <LayoutGrid size={18} />
-            </button>
-            <button
-              onClick={() => setViewMode('table')}
-              className={`p-2 ${viewMode === 'table' ? 'bg-primary-100 text-white' : 'bg-white'}`}
-              title="Table View"
-            >
-              <List size={18} />
-            </button>
-          </div>
-
-          <button
-            onClick={handleAddJob}
-            className="px-4 py-2 bg-primary-100 text-white rounded-lg flex items-center gap-2 hover:bg-primary-100/90 transition-colors shadow-md shadow-primary-100/20"
-          >
-            <PlusCircle size={18} />
-            <span>Add New Job</span>
-          </button>
-        </div>
-      </div>
-
-      {isLoading ? (
-        <div className="flex justify-center items-center h-64">
-          <div className="animate-spin h-8 w-8 border-4 border-primary-100 border-t-transparent rounded-full"></div>
-        </div>
-      ) : (
-        <>
-          {viewMode === 'grid' ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredJobs.map((job) => (
-                <JobCard
-                  key={job.id}
-                  job={job}
-                  onEdit={handleEdit}
-                  onDelete={handleDelete}
-                  onView={() => handleView(job)}
+          <Form {...jobForm}>
+            <form onSubmit={jobForm.handleSubmit(onSubmitFirstStep)} className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormField
+                  control={jobForm.control}
+                  name="title"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Job Title</FormLabel>
+                      <FormControl>
+                        <Input placeholder="e.g. Software Engineer" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
                 />
-              ))}
 
-              {filteredJobs.length === 0 && (
-                <div className="col-span-3 py-12 text-center">
-                  <p className="text-text-200">No jobs found matching your search.</p>
-                </div>
-              )}
-            </div>
-          ) : (
-            <JobsTable
-              jobs={filteredJobs}
-              onEdit={handleEdit}
-              onDelete={handleDelete}
-              onView={handleView}
-            />
-          )}
-        </>
+                <FormField
+                  control={jobForm.control}
+                  name="workplaceType"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Workplace Type</FormLabel>
+                      <FormControl>
+                        <Input placeholder="e.g. Remote, Hybrid, On-site" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormField
+                  control={jobForm.control}
+                  name="location"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Job Location</FormLabel>
+                      <FormControl>
+                        <Input placeholder="e.g. New York, NY" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={jobForm.control}
+                  name="type"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Job Type</FormLabel>
+                      <FormControl>
+                        <select {...field} className="w-full border rounded p-2">
+                          <option value="">Select job type</option>
+                          {JOB_TYPE_OPTIONS.map(type => (
+                            <option key={type} value={type}>{type}</option>
+                          ))}
+                        </select>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <FormField
+                control={jobForm.control}
+                name="description"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Job Description Prompt</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        placeholder="Describe the role, responsibilities, requirements, and any screening questions."
+                        className="min-h-[150px]"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={jobForm.control}
+                name="activeDays"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Job Active Duration (days)</FormLabel>
+                    <FormControl>
+                      <Input type="number" min={1} {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <DialogFooter>
+                <Button type="button" variant="outline" onClick={handleClose}>Cancel</Button>
+                <Button type="submit">Next</Button>
+              </DialogFooter>
+            </form>
+          </Form>
+        </DialogContent>
+      ) : (
+        <DialogContent className="sm:max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Add New Job - Technologies</DialogTitle>
+            <DialogDescription>
+              Specify the required technologies for this position.
+            </DialogDescription>
+          </DialogHeader>
+
+          <Form {...technologiesForm}>
+            <form onSubmit={technologiesForm.handleSubmit(onSubmitSecondStep)} className="space-y-4">
+              <FormField
+                control={technologiesForm.control}
+                name="technologies"
+                render={() => (
+                  <FormItem>
+                    <FormLabel>Required Technologies</FormLabel>
+                    <div className="space-y-2">
+                      <div className="flex flex-wrap gap-2 p-2 border rounded-md bg-background min-h-10">
+                        {tags.map((tag, i) => (
+                          <div
+                            key={i}
+                            className="flex items-center gap-1 px-2 py-1 text-sm rounded-md bg-primary-200 text-white"
+                          >
+                            {tag}
+                            <X
+                              size={14}
+                              className="cursor-pointer hover:text-red-500"
+                              onClick={() => handleRemoveTag(tag)}
+                            />
+                          </div>
+                        ))}
+                      </div>
+                      <div className="flex gap-2">
+                        <Input
+                          value={tagInput}
+                          onChange={(e) => setTagInput(e.target.value)}
+                          onKeyDown={handleKeyDown}
+                          placeholder="Type and press Enter to add technology"
+                          className="flex-grow"
+                        />
+                        <Button
+                          type="button"
+                          onClick={handleAddTag}
+                          variant="secondary"
+                          size="sm"
+                        >
+                          Add
+                        </Button>
+                      </div>
+                      <FormMessage />
+                    </div>
+                  </FormItem>
+                )}
+              />
+
+              <DialogFooter>
+                <Button type="button" variant="outline" onClick={() => setStep(1)}>Back</Button>
+                <Button type="submit">Save Job</Button>
+              </DialogFooter>
+            </form>
+          </Form>
+        </DialogContent>
       )}
-
-      <AddJobModal
-        isOpen={showAddModal}
-        onClose={() => setShowAddModal(false)}
-        onSave={handleSaveNewJob}
-      />
-
-      {selectedJob && (
-        <JobDetailsModal
-          job={selectedJob}
-          isOpen={!!selectedJob}
-          onClose={() => setSelectedJob(null)}
-        />
-      )}
-    </div>
+    </Dialog>
   );
 };
 
-export default Jobs;
+export default AddJobModal;
