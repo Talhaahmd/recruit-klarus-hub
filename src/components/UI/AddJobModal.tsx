@@ -279,33 +279,31 @@ const AddJobModal: React.FC<AddJobModalProps> = ({ isOpen, onClose, onSave }) =>
                   )}
                 />
                 
-                <FormField
-                  control={qualificationForm.control}
-                  name="complexity"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Role Complexity</FormLabel>
-                      <Select 
-                        onValueChange={field.onChange}
-                        value={field.value}
-                      >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select role complexity" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {COMPLEXITY_OPTIONS.map((option) => (
-                            <SelectItem key={option} value={option}>
-                              {option}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+               <FormField
+  control={qualificationForm.control}
+  name="complexity"
+  render={({ field }) => (
+    <FormItem>
+      <FormLabel>Role Complexity</FormLabel>
+      <Select onValueChange={field.onChange} value={field.value} defaultValue={field.value}>
+        <FormControl>
+          <SelectTrigger>
+            <SelectValue placeholder="Select role complexity" />
+          </SelectTrigger>
+        </FormControl>
+        <SelectContent>
+          {COMPLEXITY_OPTIONS.map((option) => (
+            <SelectItem key={option} value={option}>
+              {option}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+      <FormMessage />
+    </FormItem>
+  )}
+/>
+
               </div>
               
               <FormField
