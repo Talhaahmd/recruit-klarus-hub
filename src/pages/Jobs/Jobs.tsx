@@ -15,6 +15,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { jobsService, Job } from '@/services/jobsService';
 import { useNavigate } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client'; // ✅ Make sure this import is correct
 
 const Jobs: React.FC = () => {
   const navigate = useNavigate();
@@ -29,8 +30,7 @@ const Jobs: React.FC = () => {
     location: '',
     time: ''
   });
-  
-  // Fetch jobs when component mounts
+
   useEffect(() => {
     const fetchJobs = async () => {
       setIsLoading(true);
@@ -43,26 +43,25 @@ const Jobs: React.FC = () => {
         setIsLoading(false);
       }
     };
-    
+
     fetchJobs();
   }, []);
-  
+
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(e.target.value);
   };
-  
+
   const handleFilterChange = (key: string, value: string) => {
     setFilters(prev => ({
       ...prev,
       [key]: value
     }));
   };
-  
+
   const handleEdit = (id: string) => {
-    // In a real app, this would open a modal to edit the job
     toast.info(`Edit job with ID: ${id}`);
   };
-  
+
   const handleDelete = async (id: string) => {
     try {
       const success = await jobsService.deleteJob(id);
@@ -73,17 +72,28 @@ const Jobs: React.FC = () => {
       console.error('Error deleting job:', error);
     }
   };
-  
+
   const handleView = (job: Job) => {
     setSelectedJob(job);
   };
-  
+
   const handleAddJob = () => {
     setShowAddModal(true);
   };
-  
+
+  // ✅ UPDATED FUNCTION
   const handleSaveNewJob = async (jobData: NewJobData) => {
     try {
+      const {
+        data: { user },
+        error: userError,
+      } = await supabase.auth.getUser();
+
+      if (userError || !user) {
+        toast.error('You must be logged in to create a job.');
+        return;
+      }
+
       const newJob = await jobsService.createJob({
         title: jobData.title,
         description: jobData.description,
@@ -95,45 +105,51 @@ const Jobs: React.FC = () => {
         workplace_type: jobData.workplaceType,
         complexity: jobData.complexity,
         qualification: jobData.qualification || 'None',
-        active_days: jobData.activeDays
+        active_days: jobData.activeDays,
+        user_id: user.id, // ✅ Required by your DB
       });
-      
+
       if (newJob) {
         setJobs([newJob, ...jobs]);
+        toast.success('Job created successfully!');
+      } else {
+        toast.error('Job creation failed.');
       }
-      
+
       setShowAddModal(false);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error creating job:', error);
+      toast.error(`Failed to create job: ${error.message || 'Unknown error'}`);
     }
   };
-  
+
   const filteredJobs = jobs.filter(job => {
-    // Search term filter
-    const matchesSearch = 
+    const matchesSearch =
       job.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       job.description.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    // Additional filters
-    const matchesPosition = filters.position ? 
-      job.title.toLowerCase().includes(filters.position.toLowerCase()) : true;
-    
-    const matchesLocation = filters.location ? 
-      job.location.toLowerCase().includes(filters.location.toLowerCase()) : true;
-    
-    const matchesTime = filters.time ? 
-      job.posted_date.toLowerCase().includes(filters.time.toLowerCase()) : true;
-    
+
+    const matchesPosition = filters.position
+      ? job.title.toLowerCase().includes(filters.position.toLowerCase())
+      : true;
+
+    const matchesLocation = filters.location
+      ? job.location.toLowerCase().includes(filters.location.toLowerCase())
+      : true;
+
+    const matchesTime = filters.time
+      ? job.posted_date.toLowerCase().includes(filters.time.toLowerCase())
+      : true;
+
     return matchesSearch && matchesPosition && matchesLocation && matchesTime;
   });
 
   return (
     <div>
-      <Header 
-        title="Active Jobs" 
+      <Header
+        title="Active Jobs"
         subtitle="Manage all your active job postings."
       />
-      
+
       <div className="mb-6 flex flex-col sm:flex-row items-stretch gap-4">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
@@ -145,7 +161,7 @@ const Jobs: React.FC = () => {
             className="pl-10 pr-4 py-2 w-full rounded-lg glass border-none focus:outline-none focus:ring-2 focus:ring-primary-100"
           />
         </div>
-        
+
         <div className="flex gap-2">
           <Popover>
             <PopoverTrigger asChild>
@@ -157,37 +173,37 @@ const Jobs: React.FC = () => {
             <PopoverContent className="w-80">
               <div className="space-y-4">
                 <h4 className="font-medium">Filter Jobs</h4>
-                
+
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Position</label>
-                  <Input 
-                    placeholder="Filter by position" 
+                  <Input
+                    placeholder="Filter by position"
                     value={filters.position}
                     onChange={(e) => handleFilterChange('position', e.target.value)}
                   />
                 </div>
-                
+
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Location</label>
-                  <Input 
-                    placeholder="Filter by location" 
+                  <Input
+                    placeholder="Filter by location"
                     value={filters.location}
                     onChange={(e) => handleFilterChange('location', e.target.value)}
                   />
                 </div>
-                
+
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Time Posted</label>
-                  <Input 
-                    placeholder="Filter by date posted" 
+                  <Input
+                    placeholder="Filter by date posted"
                     value={filters.time}
                     onChange={(e) => handleFilterChange('time', e.target.value)}
                   />
                 </div>
-                
+
                 <div className="flex justify-end">
-                  <Button 
-                    variant="ghost" 
+                  <Button
+                    variant="ghost"
                     size="sm"
                     onClick={() => setFilters({ position: '', location: '', time: '' })}
                   >
@@ -197,7 +213,7 @@ const Jobs: React.FC = () => {
               </div>
             </PopoverContent>
           </Popover>
-          
+
           <div className="flex border rounded-md overflow-hidden">
             <button
               onClick={() => setViewMode('grid')}
@@ -214,7 +230,7 @@ const Jobs: React.FC = () => {
               <List size={18} />
             </button>
           </div>
-          
+
           <button
             onClick={handleAddJob}
             className="px-4 py-2 bg-primary-100 text-white rounded-lg flex items-center gap-2 hover:bg-primary-100/90 transition-colors shadow-md shadow-primary-100/20"
@@ -224,7 +240,7 @@ const Jobs: React.FC = () => {
           </button>
         </div>
       </div>
-      
+
       {isLoading ? (
         <div className="flex justify-center items-center h-64">
           <div className="animate-spin h-8 w-8 border-4 border-primary-100 border-t-transparent rounded-full"></div>
@@ -242,7 +258,7 @@ const Jobs: React.FC = () => {
                   onView={() => handleView(job)}
                 />
               ))}
-              
+
               {filteredJobs.length === 0 && (
                 <div className="col-span-3 py-12 text-center">
                   <p className="text-text-200">No jobs found matching your search.</p>
@@ -250,7 +266,7 @@ const Jobs: React.FC = () => {
               )}
             </div>
           ) : (
-            <JobsTable 
+            <JobsTable
               jobs={filteredJobs}
               onEdit={handleEdit}
               onDelete={handleDelete}
@@ -260,12 +276,12 @@ const Jobs: React.FC = () => {
         </>
       )}
 
-      <AddJobModal 
+      <AddJobModal
         isOpen={showAddModal}
         onClose={() => setShowAddModal(false)}
         onSave={handleSaveNewJob}
       />
-      
+
       {selectedJob && (
         <JobDetailsModal
           job={selectedJob}
