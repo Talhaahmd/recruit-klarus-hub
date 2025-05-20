@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Header } from '@/components/Layout/MainLayout';
 import { PlusCircle, Search, List, LayoutGrid, Filter } from 'lucide-react';
@@ -83,6 +84,7 @@ const Jobs: React.FC = () => {
 
   const handleSaveNewJob = async (jobData: NewJobData) => {
     try {
+      console.log("Job data being submitted:", jobData);
       const {
         data: { user },
         error: userError,
@@ -103,7 +105,7 @@ const Jobs: React.FC = () => {
         posted_date: new Date().toISOString().split('T')[0],
         technologies: jobData.technologies,
         workplace_type: jobData.workplaceType,
-        complexity: jobData.complexity,
+        complexity: jobData.complexity, // This now uses the validated value
         qualification: jobData.qualification || 'None',
         active_days: jobData.activeDays,
       });
@@ -113,7 +115,7 @@ const Jobs: React.FC = () => {
         toast.success('Job created successfully!');
         setShowAddModal(false);
       } else {
-        toast.error('Job creation failed.');
+        toast.error('Job creation failed. Please check the console for more details.');
       }
     } catch (error: any) {
       console.error('Error creating job:', error);

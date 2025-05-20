@@ -31,6 +31,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
+import { VALID_COMPLEXITIES } from '@/services/jobsService';
 
 // Validation schemas
 const jobFormSchema = z.object({
@@ -44,7 +45,10 @@ const jobFormSchema = z.object({
 
 const qualificationFormSchema = z.object({
   qualification: z.string().optional(),
-  complexity: z.string().min(1, { message: "Role complexity is required" }),
+  complexity: z.string().min(1, { message: "Role complexity is required" })
+    .refine(val => VALID_COMPLEXITIES.includes(val), {
+      message: `Complexity must be one of: ${VALID_COMPLEXITIES.join(', ')}`
+    }),
   technologies: z.array(z.string()).min(1, { message: "At least one technology is required" })
 });
 
@@ -57,8 +61,6 @@ interface AddJobModalProps {
   onClose: () => void;
   onSave: (data: NewJobData) => void;
 }
-
-const COMPLEXITY_OPTIONS = ["Intern", "Junior", "Mid Level", "Senior", "Lead"];
 
 const AddJobModal: React.FC<AddJobModalProps> = ({ isOpen, onClose, onSave }) => {
   const [step, setStep] = React.useState(1);
@@ -82,7 +84,7 @@ const AddJobModal: React.FC<AddJobModalProps> = ({ isOpen, onClose, onSave }) =>
     resolver: zodResolver(qualificationFormSchema),
     defaultValues: {
       qualification: '',
-      complexity: '',
+      complexity: 'Mid Level', // Set a default value that we know is valid
       technologies: [],
     }
   });
@@ -140,6 +142,9 @@ const AddJobModal: React.FC<AddJobModalProps> = ({ isOpen, onClose, onSave }) =>
         <DialogContent className="sm:max-w-2xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Add New Job - Basic Details</DialogTitle>
+            <DialogDescription>
+              Fill in the basic information about the job position.
+            </DialogDescription>
           </DialogHeader>
 
           <Form {...jobForm}>
@@ -247,6 +252,9 @@ const AddJobModal: React.FC<AddJobModalProps> = ({ isOpen, onClose, onSave }) =>
         <DialogContent className="sm:max-w-2xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Add New Job - Qualifications</DialogTitle>
+            <DialogDescription>
+              Specify the required qualifications and skills for this position.
+            </DialogDescription>
           </DialogHeader>
 
           <Form {...qualificationForm}>
@@ -266,12 +274,12 @@ const AddJobModal: React.FC<AddJobModalProps> = ({ isOpen, onClose, onSave }) =>
                   )}
                 />
 
-                <FormItem>
-                  <FormLabel>Role Complexity</FormLabel>
-                  <Controller
-                    control={qualificationForm.control}
-                    name="complexity"
-                    render={({ field }) => (
+                <FormField
+                  control={qualificationForm.control}
+                  name="complexity"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Role Complexity</FormLabel>
                       <Select value={field.value} onValueChange={field.onChange}>
                         <FormControl>
                           <SelectTrigger>
@@ -279,17 +287,17 @@ const AddJobModal: React.FC<AddJobModalProps> = ({ isOpen, onClose, onSave }) =>
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          {COMPLEXITY_OPTIONS.map((option) => (
+                          {VALID_COMPLEXITIES.map((option) => (
                             <SelectItem key={option} value={option}>
                               {option}
                             </SelectItem>
                           ))}
                         </SelectContent>
                       </Select>
-                    )}
-                  />
-                  <FormMessage />
-                </FormItem>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
               </div>
 
               <FormField
