@@ -93,6 +93,7 @@ const Jobs: React.FC = () => {
         return;
       }
 
+      // Ensure correct data mapping to match database fields
       const newJob = await jobsService.createJob({
         title: jobData.title,
         description: jobData.description,
@@ -105,18 +106,15 @@ const Jobs: React.FC = () => {
         complexity: jobData.complexity,
         qualification: jobData.qualification || 'None',
         active_days: jobData.activeDays,
-        // Note: We're removing user_id as it's not in the JobInput type
-        // The jobsService.createJob function will handle adding the user_id
       });
 
       if (newJob) {
         setJobs([newJob, ...jobs]);
         toast.success('Job created successfully!');
+        setShowAddModal(false);
       } else {
         toast.error('Job creation failed.');
       }
-
-      setShowAddModal(false);
     } catch (error: any) {
       console.error('Error creating job:', error);
       toast.error(`Failed to create job: ${error.message || 'Unknown error'}`);

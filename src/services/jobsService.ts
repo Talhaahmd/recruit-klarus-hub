@@ -18,6 +18,7 @@ export type Job = {
   complexity: string;
 };
 
+// The JobInput type should match what's expected by the database
 export type JobInput = Omit<Job, 'id' | 'applicants'>;
 
 export const jobsService = {
@@ -71,9 +72,15 @@ export const jobsService = {
         return null;
       }
       
+      // Ensure complexity is one of the allowed values
+      const validComplexities = ["Intern", "Junior", "Mid Level", "Senior", "Lead"];
+      if (!validComplexities.includes(job.complexity)) {
+        toast.error('Invalid complexity value. Must be one of: Intern, Junior, Mid Level, Senior, Lead');
+        return null;
+      }
+
       const jobData = {
         ...job,
-        applicants: 0,
         user_id: user.id
       };
       
@@ -84,6 +91,7 @@ export const jobsService = {
         .single();
         
       if (error) {
+        console.error('Database error:', error);
         throw error;
       }
       
@@ -91,7 +99,7 @@ export const jobsService = {
       return data;
     } catch (err: any) {
       console.error('Error creating job:', err.message);
-      toast.error('Failed to create job');
+      toast.error(`Failed to create job: ${err.message || 'Unknown error'}`);
       return null;
     }
   },
