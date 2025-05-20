@@ -1,8 +1,8 @@
-
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Header } from '@/components/Layout/MainLayout';
 import { mockCandidates, mockJobs, CandidateType } from '@/data/mockData';
-import { PlusCircle, Search, Filter, List, Grid } from 'lucide-react';
+import { PlusCircle, Search, Filter, List, Grid, Eye, Mail, Edit, Trash2 } from 'lucide-react';
 import CandidateCard from '@/components/UI/CandidateCard';
 import { toast } from 'sonner';
 import AddCandidateModal from '@/components/UI/AddCandidateModal';
@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/table";
 
 const Candidates: React.FC = () => {
+  const navigate = useNavigate();
   const [candidates, setCandidates] = useState<CandidateType[]>(mockCandidates);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedJob, setSelectedJob] = useState<string | 'all'>('all');
@@ -36,7 +37,7 @@ const Candidates: React.FC = () => {
   };
   
   const handleView = (id: string) => {
-    toast.info(`View candidate profile with ID: ${id}`);
+    navigate(`/candidates/${id}`);
   };
   
   const handleEmail = (email: string) => {
@@ -239,28 +240,28 @@ const Candidates: React.FC = () => {
                           className="p-1.5 rounded-full hover:bg-gray-100"
                           title="View Profile"
                         >
-                          <Search size={16} className="text-primary-100" />
+                          <Eye size={16} className="text-primary-100" />
                         </button>
                         <button 
                           onClick={() => handleEmail(candidate.email)}
                           className="p-1.5 rounded-full hover:bg-gray-100"
                           title="Email"
                         >
-                          <PlusCircle size={16} className="text-gray-500" />
+                          <Mail size={16} className="text-gray-500" />
                         </button>
                         <button 
                           onClick={() => handleEdit(candidate.id)}
                           className="p-1.5 rounded-full hover:bg-gray-100"
                           title="Edit"
                         >
-                          <Filter size={16} className="text-gray-500" />
+                          <Edit size={16} className="text-gray-500" />
                         </button>
                         <button 
                           onClick={() => handleDelete(candidate.id)}
                           className="p-1.5 rounded-full hover:bg-gray-100"
                           title="Delete"
                         >
-                          <PlusCircle size={16} className="text-gray-500" />
+                          <Trash2 size={16} className="text-gray-500" />
                         </button>
                       </div>
                     </TableCell>

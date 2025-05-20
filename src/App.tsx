@@ -18,6 +18,7 @@ import Signup from "./pages/Auth/Signup";
 import Dashboard from "./pages/Dashboard/Dashboard";
 import Jobs from "./pages/Jobs/Jobs";
 import Candidates from "./pages/Candidates/Candidates";
+import CandidateProfile from "./pages/Candidates/CandidateProfile";
 import Calendar from "./pages/Calendar/Calendar";
 import BuildProfile from "./pages/BuildProfile/BuildProfile";
 import Settings from "./pages/Settings/Settings";
@@ -43,6 +44,7 @@ const App = () => (
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/jobs" element={<Jobs />} />
               <Route path="/candidates" element={<Candidates />} />
+              <Route path="/candidates/:id" element={<CandidateProfile />} />
               <Route path="/calendar" element={<Calendar />} />
               <Route path="/build-profile" element={<BuildProfile />} />
               <Route path="/settings" element={<Settings />} />
