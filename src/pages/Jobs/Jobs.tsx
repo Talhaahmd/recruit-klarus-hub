@@ -1,316 +1,38 @@
 
-import React, { useState } from 'react';
-import { useForm, Controller } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import { X } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Header } from '@/components/Layout/MainLayout';
 import { toast } from 'sonner';
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogFooter, 
-  DialogHeader, 
-  DialogTitle,
-  DialogDescription
-} from '@/components/ui/dialog';
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
+import JobsTable from '@/components/UI/JobsTable';
+import AddJobModal from '@/components/UI/JobsComponents/AddJobModal';
+import { Job, jobsService } from '@/services/jobsService';
+import { PlusCircle, Loader2 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { NewJobData } from '@/components/UI/JobsComponents/AddJobModal';
 
-const JOB_TYPE_OPTIONS = ['Full-time', 'Part-time', 'Contract'];
-
-const jobFormSchema = z.object({
-  title: z.string().min(1, { message: "Job title is required" }),
-  workplaceType: z.string().min(1, { message: "Workplace type is required" }),
-  location: z.string().min(1, { message: "Job location is required" }),
-  type: z.enum(['Full-time', 'Part-time', 'Contract'], { message: "Invalid job type" }),
-  description: z.string().min(10, { message: "Description must be at least 10 characters" }),
-  activeDays: z.coerce.number().min(1, { message: "Active days must be at least 1" })
-});
-
-const technologiesSchema = z.object({
-  technologies: z.array(z.string()).min(1, { message: "At least one technology is required" })
-});
-
-type JobFormValues = z.infer<typeof jobFormSchema>;
-type TechnologiesFormValues = z.infer<typeof technologiesSchema>;
-export type NewJobData = JobFormValues & TechnologiesFormValues;
-
-interface AddJobModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  onSave: (data: NewJobData) => void;
-}
-
-const AddJobModal: React.FC<AddJobModalProps> = ({ isOpen, onClose, onSave }) => {
-  const [step, setStep] = React.useState(1);
-  const [jobData, setJobData] = React.useState<JobFormValues | null>(null);
-  const [tags, setTags] = React.useState<string[]>([]);
-  const [tagInput, setTagInput] = React.useState('');
-
-  const jobForm = useForm<JobFormValues>({
-    resolver: zodResolver(jobFormSchema),
-    defaultValues: {
-      title: '',
-      workplaceType: '',
-      location: '',
-      type: 'Full-time',
-      description: '',
-      activeDays: 30,
-    }
-  });
-
-  const technologiesForm = useForm<TechnologiesFormValues>({
-    resolver: zodResolver(technologiesSchema),
-    defaultValues: {
-      technologies: [],
-    }
-  });
-
-  const handleAddTag = () => {
-    const trimmed = tagInput.trim();
-    if (trimmed !== '' && !tags.includes(trimmed)) {
-      const newTags = [...tags, trimmed];
-      setTags(newTags);
-      technologiesForm.setValue('technologies', newTags);
-      setTagInput('');
-    }
-  };
-
-  const handleRemoveTag = (tagToRemove: string) => {
-    const newTags = tags.filter(tag => tag !== tagToRemove);
-    setTags(newTags);
-    technologiesForm.setValue('technologies', newTags);
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' || e.key === ',') {
-      e.preventDefault();
-      handleAddTag();
-    }
-  };
-
-  const onSubmitFirstStep = (data: JobFormValues) => {
-    setJobData(data);
-    setStep(2);
-  };
-
-  const onSubmitSecondStep = (data: TechnologiesFormValues) => {
-    if (jobData) {
-      onSave({ ...jobData, ...data });
-      setStep(1);
-      setJobData(null);
-      setTags([]);
-      jobForm.reset();
-      technologiesForm.reset();
-    }
-  };
-
-  const handleClose = () => {
-    setStep(1);
-    setJobData(null);
-    setTags([]);
-    jobForm.reset();
-    technologiesForm.reset();
-    onClose();
-  };
-
-  return (
-    <Dialog open={isOpen} onOpenChange={handleClose}>
-      {step === 1 ? (
-        <DialogContent className="sm:max-w-2xl max-h-[80vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Add New Job - Basic Details</DialogTitle>
-            <DialogDescription>
-              Fill in the basic information about the job position.
-            </DialogDescription>
-          </DialogHeader>
-
-          <Form {...jobForm}>
-            <form onSubmit={jobForm.handleSubmit(onSubmitFirstStep)} className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <FormField
-                  control={jobForm.control}
-                  name="title"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Job Title</FormLabel>
-                      <FormControl>
-                        <Input placeholder="e.g. Software Engineer" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={jobForm.control}
-                  name="workplaceType"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Workplace Type</FormLabel>
-                      <FormControl>
-                        <Input placeholder="e.g. Remote, Hybrid, On-site" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <FormField
-                  control={jobForm.control}
-                  name="location"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Job Location</FormLabel>
-                      <FormControl>
-                        <Input placeholder="e.g. New York, NY" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={jobForm.control}
-                  name="type"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Job Type</FormLabel>
-                      <FormControl>
-                        <select {...field} className="w-full border rounded p-2">
-                          <option value="">Select job type</option>
-                          {JOB_TYPE_OPTIONS.map(type => (
-                            <option key={type} value={type}>{type}</option>
-                          ))}
-                        </select>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-
-              <FormField
-                control={jobForm.control}
-                name="description"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Job Description Prompt</FormLabel>
-                    <FormControl>
-                      <Textarea
-                        placeholder="Describe the role, responsibilities, requirements, and any screening questions."
-                        className="min-h-[150px]"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={jobForm.control}
-                name="activeDays"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Job Active Duration (days)</FormLabel>
-                    <FormControl>
-                      <Input type="number" min={1} {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <DialogFooter>
-                <Button type="button" variant="outline" onClick={handleClose}>Cancel</Button>
-                <Button type="submit">Next</Button>
-              </DialogFooter>
-            </form>
-          </Form>
-        </DialogContent>
-      ) : (
-        <DialogContent className="sm:max-w-2xl max-h-[80vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Add New Job - Technologies</DialogTitle>
-            <DialogDescription>
-              Specify the required technologies for this position.
-            </DialogDescription>
-          </DialogHeader>
-
-          <Form {...technologiesForm}>
-            <form onSubmit={technologiesForm.handleSubmit(onSubmitSecondStep)} className="space-y-4">
-              <FormField
-                control={technologiesForm.control}
-                name="technologies"
-                render={() => (
-                  <FormItem>
-                    <FormLabel>Required Technologies</FormLabel>
-                    <div className="space-y-2">
-                      <div className="flex flex-wrap gap-2 p-2 border rounded-md bg-background min-h-10">
-                        {tags.map((tag, i) => (
-                          <div
-                            key={i}
-                            className="flex items-center gap-1 px-2 py-1 text-sm rounded-md bg-primary-200 text-white"
-                          >
-                            {tag}
-                            <X
-                              size={14}
-                              className="cursor-pointer hover:text-red-500"
-                              onClick={() => handleRemoveTag(tag)}
-                            />
-                          </div>
-                        ))}
-                      </div>
-                      <div className="flex gap-2">
-                        <Input
-                          value={tagInput}
-                          onChange={(e) => setTagInput(e.target.value)}
-                          onKeyDown={handleKeyDown}
-                          placeholder="Type and press Enter to add technology"
-                          className="flex-grow"
-                        />
-                        <Button
-                          type="button"
-                          onClick={handleAddTag}
-                          variant="secondary"
-                          size="sm"
-                        >
-                          Add
-                        </Button>
-                      </div>
-                      <FormMessage />
-                    </div>
-                  </FormItem>
-                )}
-              />
-
-              <DialogFooter>
-                <Button type="button" variant="outline" onClick={() => setStep(1)}>Back</Button>
-                <Button type="submit">Save Job</Button>
-              </DialogFooter>
-            </form>
-          </Form>
-        </DialogContent>
-      )}
-    </Dialog>
-  );
-};
-
-// The Jobs component that uses the AddJobModal
 const Jobs = () => {
   const [isAddJobModalOpen, setIsAddJobModalOpen] = useState(false);
+  const [jobs, setJobs] = useState<Job[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const navigate = useNavigate();
+
+  // Fetch jobs when component mounts
+  useEffect(() => {
+    fetchJobs();
+  }, []);
+
+  const fetchJobs = async () => {
+    setIsLoading(true);
+    try {
+      const fetchedJobs = await jobsService.getJobs();
+      setJobs(fetchedJobs);
+    } catch (error) {
+      console.error('Error fetching jobs:', error);
+      toast.error('Failed to load jobs');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleAddJobClick = () => {
     setIsAddJobModalOpen(true);
@@ -320,22 +42,103 @@ const Jobs = () => {
     setIsAddJobModalOpen(false);
   };
 
-  const handleSaveJob = (data: NewJobData) => {
-    console.log('Job saved:', data);
-    toast.success('Job created successfully');
-    setIsAddJobModalOpen(false);
+  const handleSaveJob = async (data: NewJobData) => {
+    try {
+      // Transform the form data to match JobInput type
+      const jobData = {
+        title: data.title,
+        description: data.description,
+        location: data.location,
+        type: data.type,
+        status: 'Active', // Default status for new jobs
+        posted_date: new Date().toISOString().split('T')[0], // Today's date in YYYY-MM-DD format
+        active_days: data.activeDays,
+        technologies: data.technologies,
+        workplace_type: data.workplaceType,
+        applicants: 0 // Default value for new jobs
+      };
+
+      console.log('Saving job with data:', jobData);
+      const savedJob = await jobsService.createJob(jobData);
+      
+      if (savedJob) {
+        toast.success('Job created successfully');
+        fetchJobs(); // Refresh the jobs list after saving
+      } else {
+        toast.error('Failed to create job');
+      }
+    } catch (error) {
+      console.error('Error creating job:', error);
+      toast.error('An error occurred while creating the job');
+    } finally {
+      setIsAddJobModalOpen(false);
+    }
+  };
+
+  const handleEditJob = (id: string) => {
+    // Implementation for editing a job
+    console.log('Edit job:', id);
+  };
+
+  const handleDeleteJob = async (id: string) => {
+    try {
+      const success = await jobsService.deleteJob(id);
+      if (success) {
+        setJobs(jobs.filter(job => job.id !== id));
+        toast.success('Job deleted successfully');
+      } else {
+        toast.error('Failed to delete job');
+      }
+    } catch (error) {
+      console.error('Error deleting job:', error);
+      toast.error('An error occurred while deleting the job');
+    }
+  };
+
+  const handleViewJob = (job: Job) => {
+    // Navigate to job details or show a modal with job details
+    console.log('View job:', job);
   };
 
   return (
     <div className="container mx-auto p-4">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">Jobs Management</h1>
-        <Button onClick={handleAddJobClick}>Add New Job</Button>
+      <Header 
+        title="Jobs Management" 
+        subtitle="Create and manage job postings"
+      />
+      
+      <div className="mb-6 flex justify-between items-center">
+        <div>
+          <h2 className="text-lg font-medium">All Jobs ({jobs.length})</h2>
+          <p className="text-sm text-gray-500">Manage your active and closed job postings</p>
+        </div>
+        <Button onClick={handleAddJobClick} className="flex items-center gap-2">
+          <PlusCircle size={16} />
+          Post New Job
+        </Button>
       </div>
       
-      <div className="bg-white rounded-lg shadow p-6">
-        <p>Your jobs will appear here.</p>
-      </div>
+      {isLoading ? (
+        <div className="flex justify-center items-center h-64">
+          <Loader2 className="h-8 w-8 animate-spin text-primary-100" />
+        </div>
+      ) : jobs.length > 0 ? (
+        <JobsTable 
+          jobs={jobs} 
+          onEdit={handleEditJob} 
+          onDelete={handleDeleteJob} 
+          onView={handleViewJob} 
+        />
+      ) : (
+        <div className="glass-card p-8 text-center">
+          <h3 className="text-lg font-medium mb-2">No jobs posted yet</h3>
+          <p className="text-gray-500 mb-4">Create your first job posting to start receiving applications</p>
+          <Button onClick={handleAddJobClick} variant="outline" className="flex items-center gap-2 mx-auto">
+            <PlusCircle size={16} />
+            Post New Job
+          </Button>
+        </div>
+      )}
 
       <AddJobModal 
         isOpen={isAddJobModalOpen} 

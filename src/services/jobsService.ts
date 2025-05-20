@@ -18,12 +18,14 @@ export type Job = {
 };
 
 // The JobInput type should match what's expected by the database
-export type JobInput = Omit<Job, 'id' | 'applicants'>;
+export type JobInput = Omit<Job, 'id'>;
 
 export const jobsService = {
   // Get all jobs for current user
   getJobs: async (): Promise<Job[]> => {
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      
       const { data, error } = await supabase
         .from('jobs')
         .select('*')
@@ -33,6 +35,7 @@ export const jobsService = {
         throw error;
       }
       
+      console.log('Fetched jobs from Supabase:', data);
       return data || [];
     } catch (err: any) {
       console.error('Error fetching jobs:', err.message);

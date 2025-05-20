@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { Header } from '@/components/Layout/MainLayout';
 import { 
@@ -7,7 +8,8 @@ import {
   TrendingUp, 
   CheckCircle, 
   Clock,
-  ArrowUpRight
+  ArrowUpRight,
+  Loader2
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { jobsService } from '@/services/jobsService';
@@ -32,6 +34,7 @@ const Dashboard: React.FC = () => {
           candidatesService.getCandidates()
         ]);
         
+        console.log('Fetched jobs:', jobsData);
         setJobs(jobsData);
         setCandidates(candidatesData);
       } catch (error) {
@@ -101,7 +104,7 @@ const Dashboard: React.FC = () => {
           subtitle="Loading dashboard data..."
         />
         <div className="flex justify-center items-center h-64">
-          <div className="animate-spin h-8 w-8 border-4 border-primary-100 border-t-transparent rounded-full"></div>
+          <Loader2 className="h-8 w-8 animate-spin text-primary-100" />
         </div>
       </div>
     );
