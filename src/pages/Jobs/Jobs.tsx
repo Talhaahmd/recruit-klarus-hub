@@ -1,18 +1,20 @@
-
 import React, { useState, useEffect } from 'react';
 import { Header } from '@/components/Layout/MainLayout';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import JobsTable from '@/components/UI/JobsTable';
 import AddJobModal, { NewJobData } from '@/components/UI/JobsComponents/AddJobModal';
+import JobDetailsModal from '@/components/UI/JobsComponents/JobDetailsModal';
 import { Job, jobsService } from '@/services/jobsService';
 import { PlusCircle, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from '@/integrations/supabase/client'; // Replace auth-helpers with direct Supabase client
+import { supabase } from '@/integrations/supabase/client';
 
 const Jobs = () => {
   const [user, setUser] = useState(null);
   const [isAddJobModalOpen, setIsAddJobModalOpen] = useState(false);
+  const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
+  const [selectedJob, setSelectedJob] = useState<Job | null>(null);
   const [jobs, setJobs] = useState<Job[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
@@ -23,7 +25,6 @@ const Jobs = () => {
       const { data } = await supabase.auth.getUser();
       setUser(data.user);
     };
-    
     getUser();
   }, []);
 
@@ -71,7 +72,7 @@ const Jobs = () => {
         technologies: data.technologies,
         workplace_type: data.workplaceType,
         applicants: 0,
-        user_id: user.id // ✅ Required for Supabase RLS
+        user_id: user.id
       };
 
       console.log('Creating job with data:', jobData);
@@ -113,8 +114,8 @@ const Jobs = () => {
   };
 
   const handleViewJob = (job: Job) => {
-    console.log('View job:', job);
-    // To be implemented: modal or route
+    setSelectedJob(job);
+    setIsDetailsModalOpen(true);
   };
 
   return (
@@ -162,6 +163,14 @@ const Jobs = () => {
         onClose={handleCloseModal} 
         onSave={handleSaveJob} 
       />
+
+      {selectedJob && (
+        <JobDetailsModal 
+          job={selectedJob}
+          isOpen={isDetailsModalOpen}
+          onClose={() => setIsDetailsModalOpen(false)}
+        />
+      )}
     </div>
   );
 };
