@@ -44,46 +44,46 @@ export type Database = {
       }
       candidates: {
         Row: {
-          applied_date: string
+          applied_date: string | null
           created_at: string | null
           email: string
           id: string
-          job_id: string
+          job_id: string | null
           name: string
           notes: string | null
           phone: string
           rating: number
           resume_url: string | null
-          status: string
-          user_id: string
+          status: string | null
+          user_id: string | null
         }
         Insert: {
-          applied_date: string
+          applied_date?: string | null
           created_at?: string | null
           email: string
           id?: string
-          job_id: string
+          job_id?: string | null
           name: string
           notes?: string | null
           phone: string
           rating: number
           resume_url?: string | null
-          status: string
-          user_id: string
+          status?: string | null
+          user_id?: string | null
         }
         Update: {
-          applied_date?: string
+          applied_date?: string | null
           created_at?: string | null
           email?: string
           id?: string
-          job_id?: string
+          job_id?: string | null
           name?: string
           notes?: string | null
           phone?: string
           rating?: number
           resume_url?: string | null
-          status?: string
-          user_id?: string
+          status?: string | null
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -210,6 +210,57 @@ export type Database = {
           full_name?: string | null
           id?: string
           updated_at?: string | null
+        }
+        Relationships: []
+      }
+      screencandidates: {
+        Row: {
+          aicontent: string | null
+          certification: string | null
+          created_at: string | null
+          education: string | null
+          email: string | null
+          experience: string | null
+          firstname: string | null
+          id: string
+          lastname: string | null
+          phone: string | null
+          projects: string | null
+          rating: number | null
+          skills: string | null
+          summary: string | null
+        }
+        Insert: {
+          aicontent?: string | null
+          certification?: string | null
+          created_at?: string | null
+          education?: string | null
+          email?: string | null
+          experience?: string | null
+          firstname?: string | null
+          id?: string
+          lastname?: string | null
+          phone?: string | null
+          projects?: string | null
+          rating?: number | null
+          skills?: string | null
+          summary?: string | null
+        }
+        Update: {
+          aicontent?: string | null
+          certification?: string | null
+          created_at?: string | null
+          education?: string | null
+          email?: string | null
+          experience?: string | null
+          firstname?: string | null
+          id?: string
+          lastname?: string | null
+          phone?: string | null
+          projects?: string | null
+          rating?: number | null
+          skills?: string | null
+          summary?: string | null
         }
         Relationships: []
       }

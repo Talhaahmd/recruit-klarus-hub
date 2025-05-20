@@ -1,9 +1,10 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Header } from '@/components/Layout/MainLayout';
 import { PlusCircle, Search, Mail, Edit, Trash2, List, Grid, Filter } from 'lucide-react';
 import { toast } from 'sonner';
-import { supabase } from '@/lib/supabaseClient';
+import { supabase } from '@/integrations/supabase/client';
 import CandidateCard from '@/components/UI/CandidateCard';
 import AddCandidateModal from '@/components/UI/AddCandidateModal';
 import {
@@ -14,10 +15,11 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Candidate } from '@/services/candidatesService';
 
 const Candidates: React.FC = () => {
   const navigate = useNavigate();
-  const [candidates, setCandidates] = useState<any[]>([]);
+  const [candidates, setCandidates] = useState<Candidate[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [analysisFilter, setAnalysisFilter] = useState<number | null>(null);
@@ -35,8 +37,22 @@ const Candidates: React.FC = () => {
       if (error) {
         toast.error('Failed to fetch candidates');
         console.error(error);
-      } else {
-        setCandidates(data);
+      } else if (data) {
+        // Transform the data to match the Candidate type
+        const formattedCandidates: Candidate[] = data.map(candidate => ({
+          id: candidate.id,
+          job_id: '', // Default empty string for required fields
+          name: `${candidate.Firstname || ''} ${candidate.Lastname || ''}`,
+          email: candidate.email || '',
+          phone: candidate.Phone || '',
+          resume_url: '',
+          applied_date: new Date().toISOString(),
+          status: 'Screened',
+          notes: candidate.summary || '',
+          rating: candidate.rating || 0
+        }));
+        
+        setCandidates(formattedCandidates);
       }
       setIsLoading(false);
     };
@@ -82,7 +98,7 @@ const Candidates: React.FC = () => {
   };
 
   const filteredCandidates = candidates.filter(candidate => {
-    const fullName = `${candidate.Firstname} ${candidate.Lastname}`.toLowerCase();
+    const fullName = candidate.name.toLowerCase();
     const matchesSearch =
       fullName.includes(searchTerm.toLowerCase()) ||
       candidate.email.toLowerCase().includes(searchTerm.toLowerCase());
@@ -145,13 +161,7 @@ const Candidates: React.FC = () => {
           {filteredCandidates.map(candidate => (
             <CandidateCard
               key={candidate.id}
-              candidate={{
-                id: candidate.id,
-                name: `${candidate.Firstname} ${candidate.Lastname}`,
-                email: candidate.email,
-                phone: candidate.Phone,
-                rating: candidate.rating,
-              }}
+              candidate={candidate}
               onEdit={handleEdit}
               onDelete={() => handleDelete(candidate.id)}
               onView={() => handleView(candidate.id)}
@@ -176,10 +186,10 @@ const Candidates: React.FC = () => {
             <TableBody>
               {filteredCandidates.map(candidate => (
                 <TableRow key={candidate.id} onClick={() => handleView(candidate.id)} className="cursor-pointer hover:bg-gray-50">
-                  <TableCell>{`${candidate.Firstname} ${candidate.Lastname}`}</TableCell>
+                  <TableCell>{candidate.name}</TableCell>
                   <TableCell>{candidate.email}</TableCell>
-                  <TableCell>{candidate.Phone}</TableCell>
-                  <TableCell>{candidate.education}</TableCell>
+                  <TableCell>{candidate.phone}</TableCell>
+                  <TableCell>{/* Education information not available */}</TableCell>
                   <TableCell>
                     <span className={`inline-block px-2 py-1 text-xs rounded-full ${getAnalysisColor(candidate.rating)}`}>
                       {candidate.rating}/10
