@@ -30,6 +30,7 @@ const CandidateProfile: React.FC = () => {
   const [candidate, setCandidate] = useState<Candidate | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [appliedJob, setAppliedJob] = useState<{id: string, title: string} | null>(null);
+  const [jobName, setJobName] = useState<string | null>(null);
   
   useEffect(() => {
     const fetchCandidate = async () => {
@@ -74,6 +75,7 @@ const CandidateProfile: React.FC = () => {
             id: jobData.id,
             title: jobData.title
           });
+          setJobName(jobData.title);
           return;
         }
       }
@@ -81,11 +83,12 @@ const CandidateProfile: React.FC = () => {
       // If not, try to get it from job_applications table
       const jobApplication = await submissionService.getJobApplicationByCvLinkId(submissionId);
       if (jobApplication?.job_id) {
-  setAppliedJob({
-    id: jobApplication.job_id,
-    title: jobApplication.job_name || 'Untitled Job'
-  });
-}
+        setAppliedJob({
+          id: jobApplication.job_id,
+          title: jobApplication.job_name || 'Untitled Job'
+        });
+        setJobName(jobApplication.job_name || 'Untitled Job');
+      }
 
     } catch (error) {
       console.error("Error fetching job application info:", error);
@@ -220,21 +223,21 @@ const CandidateProfile: React.FC = () => {
           <div className="flex flex-col md:flex-row gap-6">
             {/* Left column - Basic info */}
             <div className="w-full md:w-1/3 space-y-6">
-              <Card className="border-none shadow-md hover:shadow-lg transition-shadow">
+              <Card className="border-none shadow-md hover:shadow-lg transition-shadow bg-white">
                 <CardContent className="p-6">
                   <div className="flex items-start justify-between">
                    <div>
-  <h2 className="text-2xl font-bold">{candidate.name}</h2>
-  <p className="text-gray-500">{candidate.current_job_title || 'Job Seeker'}</p>
+                      <h2 className="text-2xl font-bold">{candidate.name}</h2>
+                      <p className="text-gray-500">{candidate.current_job_title || 'Job Seeker'}</p>
 
-  {/* ✅ Show Applied Job Name if available */}
-  {appliedJob?.title && (
-    <p className="text-sm text-gray-600 mt-1 flex items-center">
-      <Briefcase size={14} className="mr-2 text-gray-400" />
-      Applied for: <span className="ml-1 font-medium">{appliedJob.title}</span>
-    </p>
-  )}
-</div>
+                      {/* Show Applied Job Name if available */}
+                      {(appliedJob?.title || jobName) && (
+                        <p className="text-sm text-gray-600 mt-1 flex items-center">
+                          <Briefcase size={14} className="mr-2 text-primary-100" />
+                          Applied for: <span className="ml-1 font-medium">{appliedJob?.title || jobName}</span>
+                        </p>
+                      )}
+                    </div>
 
                     <div className={`px-3 py-1 rounded-full text-sm font-medium ${getAnalysisColor(candidate.rating)}`}>
                       {candidate.rating}/10
@@ -253,30 +256,30 @@ const CandidateProfile: React.FC = () => {
                   )}
                   
                   <div className="mt-6 space-y-4">
-                    <div className="flex items-center">
-                      <Mail className="w-5 h-5 mr-3 text-gray-400" />
+                    <div className="flex items-center bg-gray-50 p-2 rounded-md hover:bg-gray-100 transition-colors">
+                      <Mail className="w-5 h-5 mr-3 text-primary-100" />
                       <a href={`mailto:${candidate.email}`} className="text-primary-100 hover:underline">
                         {candidate.email}
                       </a>
                     </div>
                     
                     {candidate.phone && (
-                      <div className="flex items-center">
-                        <Phone className="w-5 h-5 mr-3 text-gray-400" />
+                      <div className="flex items-center bg-gray-50 p-2 rounded-md hover:bg-gray-100 transition-colors">
+                        <Phone className="w-5 h-5 mr-3 text-primary-100" />
                         <span>{candidate.phone}</span>
                       </div>
                     )}
                     
                     {candidate.location && (
-                      <div className="flex items-center">
-                        <MapPin className="w-5 h-5 mr-3 text-gray-400" />
+                      <div className="flex items-center bg-gray-50 p-2 rounded-md hover:bg-gray-100 transition-colors">
+                        <MapPin className="w-5 h-5 mr-3 text-primary-100" />
                         <span>{candidate.location}</span>
                       </div>
                     )}
                     
                     {candidate.linkedin && (
-                      <div className="flex items-center">
-                        <Linkedin className="w-5 h-5 mr-3 text-gray-400" />
+                      <div className="flex items-center bg-gray-50 p-2 rounded-md hover:bg-gray-100 transition-colors">
+                        <Linkedin className="w-5 h-5 mr-3 text-primary-100" />
                         <a 
                           href={candidate.linkedin.startsWith('http') ? candidate.linkedin : `https://${candidate.linkedin}`} 
                           target="_blank" 
@@ -289,15 +292,15 @@ const CandidateProfile: React.FC = () => {
                     )}
                     
                     {candidate.years_experience && (
-                      <div className="flex items-center">
-                        <Briefcase className="w-5 h-5 mr-3 text-gray-400" />
+                      <div className="flex items-center bg-gray-50 p-2 rounded-md hover:bg-gray-100 transition-colors">
+                        <Briefcase className="w-5 h-5 mr-3 text-primary-100" />
                         <span>{candidate.years_experience} Years Experience</span>
                       </div>
                     )}
                     
                     {candidate.applied_date && (
-                      <div className="flex items-center">
-                        <Calendar className="w-5 h-5 mr-3 text-gray-400" />
+                      <div className="flex items-center bg-gray-50 p-2 rounded-md hover:bg-gray-100 transition-colors">
+                        <Calendar className="w-5 h-5 mr-3 text-primary-100" />
                         <span>Applied: {new Date(candidate.applied_date).toLocaleDateString()}</span>
                       </div>
                     )}
@@ -305,7 +308,7 @@ const CandidateProfile: React.FC = () => {
                 </CardContent>
               </Card>
               
-              <Card className="border-none shadow-md">
+              <Card className="border-none shadow-md bg-white">
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between mb-4">
                     <h3 className="text-lg font-semibold">Application Status</h3>
@@ -322,15 +325,28 @@ const CandidateProfile: React.FC = () => {
                       {candidate.status || 'New'}
                     </span>
                   </div>
-                  {candidate.applied_date && (
-                    <p className="text-sm text-gray-500">
-                      Applied on: {new Date(candidate.applied_date).toLocaleDateString()}
-                    </p>
-                  )}
+                  
+                  <div className="space-y-2">
+                    {candidate.applied_date && (
+                      <p className="text-sm text-gray-500">
+                        Applied on: {new Date(candidate.applied_date).toLocaleDateString()}
+                      </p>
+                    )}
+                    
+                    {/* Display the job name from job_applications table */}
+                    {jobName && (
+                      <div className="mt-2 p-2 bg-gray-50 rounded-md border border-gray-200">
+                        <p className="text-sm font-medium flex items-center gap-1">
+                          <Briefcase size={14} className="text-primary-100" />
+                          Position: <span className="text-primary-100">{jobName}</span>
+                        </p>
+                      </div>
+                    )}
+                  </div>
                 </CardContent>
               </Card>
               
-              <Card className="border-none shadow-md">
+              <Card className="border-none shadow-md bg-white">
                 <CardContent className="p-6">
                   <h3 className="text-lg font-semibold mb-4">AI Analysis</h3>
                   <div className="flex items-center mb-4">
@@ -353,7 +369,7 @@ const CandidateProfile: React.FC = () => {
                   <Button
                     onClick={() => setActiveTab('ai')}
                     variant="outline"
-                    className="w-full mt-2 gap-2"
+                    className="w-full mt-2 gap-2 bg-white hover:bg-gray-50"
                   >
                     <FileText size={16} />
                     View AI Analysis
@@ -370,11 +386,11 @@ const CandidateProfile: React.FC = () => {
                 onValueChange={setActiveTab}
                 className="w-full"
               >
-                <TabsList className="grid w-full grid-cols-2">
-                  <TabsTrigger value="details" className="flex items-center gap-2">
+                <TabsList className="grid w-full grid-cols-2 bg-gray-100">
+                  <TabsTrigger value="details" className="flex items-center gap-2 data-[state=active]:bg-white">
                     <User size={16} /> Profile Details
                   </TabsTrigger>
-                  <TabsTrigger value="ai" className="flex items-center gap-2">
+                  <TabsTrigger value="ai" className="flex items-center gap-2 data-[state=active]:bg-white">
                     <Star size={16} /> AI Analysis
                   </TabsTrigger>
                 </TabsList>
@@ -382,9 +398,11 @@ const CandidateProfile: React.FC = () => {
                 <TabsContent value="details" className="mt-6 space-y-6">
                   {/* Professional Summary */}
                   {candidate.notes && (
-                    <Card className="border-none shadow-sm hover:shadow-md transition-shadow">
-                      <CardContent className="p-6">
-                        <h3 className="text-lg font-semibold mb-4">Professional Summary</h3>
+                    <Card className="border-none shadow-sm hover:shadow-md transition-shadow bg-white">
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-lg font-semibold">Professional Summary</CardTitle>
+                      </CardHeader>
+                      <CardContent className="pt-0">
                         <p className="text-gray-700">{candidate.notes}</p>
                       </CardContent>
                     </Card>
@@ -392,9 +410,11 @@ const CandidateProfile: React.FC = () => {
                   
                   {/* Expertise/Skills */}
                   {skills.length > 0 && (
-                    <Card className="border-none shadow-sm hover:shadow-md transition-shadow">
-                      <CardContent className="p-6">
-                        <h3 className="text-lg font-semibold mb-4">Skills & Expertise</h3>
+                    <Card className="border-none shadow-sm hover:shadow-md transition-shadow bg-white">
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-lg font-semibold">Skills & Expertise</CardTitle>
+                      </CardHeader>
+                      <CardContent className="pt-0">
                         <div className="flex flex-wrap">{renderSkillTags()}</div>
                       </CardContent>
                     </Card>
@@ -402,18 +422,20 @@ const CandidateProfile: React.FC = () => {
                   
                   {/* Work History */}
                   {(jobTitles.length > 0 || companies.length > 0) && (
-                    <Card className="border-none shadow-sm hover:shadow-md transition-shadow">
-                      <CardContent className="p-6">
-                        <h3 className="text-lg font-semibold mb-4">Work History</h3>
+                    <Card className="border-none shadow-sm hover:shadow-md transition-shadow bg-white">
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-lg font-semibold">Work History</CardTitle>
+                      </CardHeader>
+                      <CardContent className="pt-0">
                         <div className="space-y-4">
                           {jobTitles.length > 0 && (
                             <div className="flex items-start">
-                              <Briefcase className="w-5 h-5 mr-3 text-gray-400 mt-0.5" />
+                              <Briefcase className="w-5 h-5 mr-3 text-primary-100 mt-0.5" />
                               <div>
                                 <h4 className="text-sm font-medium text-gray-600">Previous Job Titles</h4>
                                 <div className="flex flex-wrap gap-2 mt-1">
                                   {jobTitles.map((title, index) => (
-                                    <Badge key={index} variant="secondary">{title}</Badge>
+                                    <Badge key={index} variant="secondary" className="bg-gray-100">{title}</Badge>
                                   ))}
                                 </div>
                               </div>
@@ -422,7 +444,7 @@ const CandidateProfile: React.FC = () => {
                           
                           {companies.length > 0 && (
                             <div className="flex items-start">
-                              <Building className="w-5 h-5 mr-3 text-gray-400 mt-0.5" />
+                              <Building className="w-5 h-5 mr-3 text-primary-100 mt-0.5" />
                               <div>
                                 <h4 className="text-sm font-medium text-gray-600">Companies</h4>
                                 <div className="flex flex-wrap gap-2 mt-1">
@@ -440,18 +462,20 @@ const CandidateProfile: React.FC = () => {
                   
                   {/* Education */}
                   {(degrees.length > 0 || institutions.length > 0) && (
-                    <Card className="border-none shadow-sm hover:shadow-md transition-shadow">
-                      <CardContent className="p-6">
-                        <h3 className="text-lg font-semibold mb-4">Education</h3>
+                    <Card className="border-none shadow-sm hover:shadow-md transition-shadow bg-white">
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-lg font-semibold">Education</CardTitle>
+                      </CardHeader>
+                      <CardContent className="pt-0">
                         <div className="space-y-4">
                           {degrees.length > 0 && (
                             <div className="flex items-start">
-                              <GraduationCap className="w-5 h-5 mr-3 text-gray-400 mt-0.5" />
+                              <GraduationCap className="w-5 h-5 mr-3 text-primary-100 mt-0.5" />
                               <div>
                                 <h4 className="text-sm font-medium text-gray-600">Degrees</h4>
                                 <div className="flex flex-wrap gap-2 mt-1">
                                   {degrees.map((degree, index) => (
-                                    <Badge key={index} variant="secondary">{degree}</Badge>
+                                    <Badge key={index} variant="secondary" className="bg-gray-100">{degree}</Badge>
                                   ))}
                                 </div>
                               </div>
@@ -460,7 +484,7 @@ const CandidateProfile: React.FC = () => {
                           
                           {institutions.length > 0 && (
                             <div className="flex items-start">
-                              <BookOpen className="w-5 h-5 mr-3 text-gray-400 mt-0.5" />
+                              <BookOpen className="w-5 h-5 mr-3 text-primary-100 mt-0.5" />
                               <div>
                                 <h4 className="text-sm font-medium text-gray-600">Institutions</h4>
                                 <div className="flex flex-wrap gap-2 mt-1">
@@ -474,7 +498,7 @@ const CandidateProfile: React.FC = () => {
                           
                           {candidate.graduation_years && (
                             <div className="flex items-start">
-                              <Calendar className="w-5 h-5 mr-3 text-gray-400 mt-0.5" />
+                              <Calendar className="w-5 h-5 mr-3 text-primary-100 mt-0.5" />
                               <div>
                                 <h4 className="text-sm font-medium text-gray-600">Graduation Years</h4>
                                 <p className="text-gray-700">{candidate.graduation_years}</p>
@@ -488,11 +512,13 @@ const CandidateProfile: React.FC = () => {
                   
                   {/* Certifications */}
                   {certifications.length > 0 && (
-                    <Card className="border-none shadow-sm hover:shadow-md transition-shadow">
-                      <CardContent className="p-6">
-                        <h3 className="text-lg font-semibold mb-4">Certifications</h3>
+                    <Card className="border-none shadow-sm hover:shadow-md transition-shadow bg-white">
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-lg font-semibold">Certifications</CardTitle>
+                      </CardHeader>
+                      <CardContent className="pt-0">
                         <div className="flex items-start">
-                          <Award className="w-5 h-5 mr-3 text-gray-400 mt-0.5" />
+                          <Award className="w-5 h-5 mr-3 text-primary-100 mt-0.5" />
                           <div className="flex flex-wrap gap-2">
                             {certifications.map((cert, index) => (
                               <Badge key={index} variant="outline">{cert}</Badge>
@@ -505,9 +531,11 @@ const CandidateProfile: React.FC = () => {
                   
                   {/* Experience Level */}
                   {candidate.experience_level && (
-                    <Card className="border-none shadow-sm hover:shadow-md transition-shadow">
-                      <CardContent className="p-6">
-                        <h3 className="text-lg font-semibold mb-4">Experience Level</h3>
+                    <Card className="border-none shadow-sm hover:shadow-md transition-shadow bg-white">
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-lg font-semibold">Experience Level</CardTitle>
+                      </CardHeader>
+                      <CardContent className="pt-0">
                         <div className="flex items-center gap-2">
                           <Briefcase className="text-primary-100" size={18} />
                           <span className="text-gray-700">{candidate.experience_level}</span>
@@ -517,11 +545,13 @@ const CandidateProfile: React.FC = () => {
                   )}
                   
                   {/* Notes */}
-                  <Card className="border-none shadow-sm hover:shadow-md transition-shadow">
-                    <CardContent className="p-6">
-                      <div className="flex justify-between items-center mb-4">
-                        <h3 className="text-lg font-semibold">Notes</h3>
+                  <Card className="border-none shadow-sm hover:shadow-md transition-shadow bg-white">
+                    <CardHeader className="pb-2">
+                      <div className="flex justify-between items-center">
+                        <CardTitle className="text-lg font-semibold">Notes</CardTitle>
                       </div>
+                    </CardHeader>
+                    <CardContent className="pt-0">
                       <div className="bg-gray-50 rounded-lg p-4 border">
                         {candidate.notes ? (
                           <div className="text-gray-700">{candidate.notes}</div>
@@ -534,7 +564,7 @@ const CandidateProfile: React.FC = () => {
                 </TabsContent>
                 
                 <TabsContent value="ai" className="mt-6">
-                  <Card className="border-none shadow-md overflow-hidden">
+                  <Card className="border-none shadow-md overflow-hidden bg-white">
                     <CardContent className="p-6">
                       <div className="flex items-center justify-between mb-6">
                         <h3 className="text-lg font-semibold flex items-center gap-2">
@@ -548,7 +578,7 @@ const CandidateProfile: React.FC = () => {
                               <span className="text-sm ml-1">/10</span>
                             </div>
                           </HoverCardTrigger>
-                          <HoverCardContent className="w-80">
+                          <HoverCardContent className="w-80 bg-white">
                             <div className="space-y-2">
                               <h4 className="font-medium">AI Analysis Score Explained</h4>
                               <p className="text-sm text-gray-500">
@@ -564,7 +594,7 @@ const CandidateProfile: React.FC = () => {
                       <div className="space-y-6">
                         {/* AI Summary */}
                         {candidate.ai_summary && (
-                          <div>
+                          <div className="animate-fade-in">
                             <h4 className="font-medium mb-2 flex items-center gap-2">
                               <MessageCircle size={16} className="text-primary-100" />
                               Summary Analysis
@@ -577,7 +607,7 @@ const CandidateProfile: React.FC = () => {
                         
                         {/* AI Content (full analysis) */}
                         {candidate.ai_content && (
-                          <div className="mt-6">
+                          <div className="mt-6 animate-fade-in">
                             <h4 className="font-medium mb-2 flex items-center gap-2">
                               <FileText size={16} className="text-primary-100" />
                               Detailed Analysis
