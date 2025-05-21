@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { calendarService, CalendarEvent } from '@/services/calendarService';
@@ -12,16 +13,16 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
-import { Calendar as CalendarIcon } from "lucide-react"
+import { CalendarIcon } from "lucide-react"
 import { format } from "date-fns"
 import { cn } from "@/lib/utils"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { Calendar } from "@/components/ui/calendar"
+// Rename the import to prevent naming conflict
+import { Calendar as CalendarUI } from "@/components/ui/calendar"
 import { useForm } from "react-hook-form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
@@ -38,7 +39,7 @@ interface CandidateFormValues {
   reset?: () => void;
 }
 
-const Calendar = () => {
+const CalendarPage = () => {
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -81,7 +82,8 @@ const Calendar = () => {
 
   const createCandidate = async (formData: any) => {
     try {
-      const candidateData = {
+      // Create a complete candidate object with all required properties
+      const candidateData: CandidateInput = {
         full_name: `${formData.firstName} ${formData.lastName}`,
         email: formData.email,
         phone: formData.phone,
@@ -91,18 +93,33 @@ const Calendar = () => {
         experience_level: formData.experienceLevel || '',
         linkedin: formData.linkedin || '',
         source: 'Calendar',
-        // Remove the job_id property as it doesn't exist in CandidateInput type
+        // Add all the required properties with default values
+        years_experience: '',
+        certifications: '',
+        companies: '',
+        job_titles: '',
+        degrees: '',
+        graduation_years: '',
+        institutions: '',
+        ai_rating: 0,
+        ai_content: '',
+        ai_summary: '',
+        suitable_role: '',
+        name: `${formData.firstName} ${formData.lastName}`,
+        rating: 0,
+        notes: '',
+        status: 'New',
+        applied_date: new Date().toISOString(),
+        resume_url: ''
       };
 
       const savedCandidate = await candidatesService.createCandidate(candidateData);
       
       if (savedCandidate) {
         toast.success('Candidate created successfully');
-        // Reset form, close modal and refresh events
-        if (typeof formData.reset === 'function') formData.reset();
-        // Assuming there are functions to close modal and refetch events
-        // closeModal();
-        // refetchEvents();
+        // Reset form and close modal
+        reset();
+        closeModal();
       }
     } catch (error) {
       console.error('Error creating candidate:', error);
@@ -216,4 +233,4 @@ const Calendar = () => {
   );
 };
 
-export default Calendar;
+export default CalendarPage;
