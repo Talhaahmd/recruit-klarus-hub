@@ -216,22 +216,19 @@ const CandidateProfile: React.FC = () => {
           </div>
         </div>
       ) : candidate ? (
-        <div className="p-6 bg-background">
-          <div className="flex flex-col md:flex-row gap-6">
-            {/* Left column - Basic info */}
-            <div className="w-full md:w-1/3 space-y-6">
-              <Card className="border-none shadow-md hover:shadow-lg transition-shadow">
-                <CardContent className="p-6">
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <h2 className="text-2xl font-bold">{candidate.name}</h2>
-                      <p className="text-gray-500">{candidate.current_job_title || 'Job Seeker'}</p>
-                    </div>
-                    <div className={`px-3 py-1 rounded-full text-sm font-medium ${getAnalysisColor(candidate.rating)}`}>
-                      {candidate.rating}/10
-                    </div>
-                  </div>
-                  
+        <div>
+  <h2 className="text-2xl font-bold">{candidate.name}</h2>
+  <p className="text-gray-500">{candidate.current_job_title || 'Job Seeker'}</p>
+
+  {/* ✅ Show Applied Job Name if available */}
+  {appliedJob?.title && (
+    <p className="text-sm text-gray-600 mt-1 flex items-center">
+      <Briefcase size={14} className="mr-2 text-gray-400" />
+      Applied for: <span className="ml-1 font-medium">{appliedJob.title}</span>
+    </p>
+  )}
+</div>
+
                   {/* Add job application information */}
                   {(candidate.resume_url || appliedJob) && (
                     <div className="mt-4">
