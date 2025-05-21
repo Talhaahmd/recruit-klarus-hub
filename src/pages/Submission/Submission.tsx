@@ -1,16 +1,41 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Upload, Check, X, FileType } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Label } from '@/components/ui/label';
+import { jobsService } from '@/services/jobsService';
 
 const CVSubmission = () => {
   const [file, setFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
   const [uploadComplete, setUploadComplete] = useState(false);
+  const [jobs, setJobs] = useState<any[]>([]);
+  const [selectedJobId, setSelectedJobId] = useState<string | null>(null);
+  const [isLoadingJobs, setIsLoadingJobs] = useState(false);
+
+  useEffect(() => {
+    fetchJobs();
+  }, []);
+
+  const fetchJobs = async () => {
+    try {
+      setIsLoadingJobs(true);
+      const jobsList = await jobsService.getJobs();
+      // Filter active jobs only
+      const activeJobs = jobsList.filter(job => job.status === 'Active');
+      setJobs(activeJobs);
+    } catch (error) {
+      console.error('Error fetching jobs:', error);
+      toast.error('Failed to load jobs');
+    } finally {
+      setIsLoadingJobs(false);
+    }
+  };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
@@ -35,6 +60,11 @@ const CVSubmission = () => {
   const handleUpload = async () => {
     if (!file) {
       toast.error('Please select a file to upload');
+      return;
+    }
+
+    if (!selectedJobId) {
+      toast.error('Please select a job position');
       return;
     }
 
@@ -63,7 +93,7 @@ const CVSubmission = () => {
         .getPublicUrl(filePath);
       
       // Save metadata to 'cv_links' table
-      const { error: insertError } = await supabase
+      const { data: cvLinkData, error: insertError } = await supabase
         .from('cv_links')
         .insert([
           {
@@ -71,17 +101,35 @@ const CVSubmission = () => {
             file_url: urlData.publicUrl,
             file_size: file.size,
             file_type: file.type,
-            status: 'new'
+            status: 'new',
+            job_id: selectedJobId
           }
-        ]);
+        ])
+        .select()
+        .single();
       
       if (insertError) {
         throw insertError;
       }
       
+      // Create record in job_applications table
+      const { error: applicationError } = await supabase
+        .from('job_applications')
+        .insert([
+          {
+            cv_link_id: cvLinkData.id,
+            job_id: selectedJobId
+          }
+        ]);
+        
+      if (applicationError) {
+        throw applicationError;
+      }
+      
       toast.success('Your CV has been successfully uploaded');
       setUploadComplete(true);
       setFile(null);
+      setSelectedJobId(null);
       
       // Reset the file input
       const fileInput = document.getElementById('cv-upload') as HTMLInputElement;
@@ -108,6 +156,33 @@ const CVSubmission = () => {
         
         <CardContent>
           <div className="space-y-4">
+            {/* Job Selection Dropdown */}
+            <div className="space-y-2">
+              <Label htmlFor="job-position">Select Position</Label>
+              <Select 
+                value={selectedJobId || undefined}
+                onValueChange={(value) => setSelectedJobId(value)}
+                disabled={isLoadingJobs}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select the position you're applying for" />
+                </SelectTrigger>
+                <SelectContent>
+                  {isLoadingJobs ? (
+                    <SelectItem value="loading" disabled>Loading jobs...</SelectItem>
+                  ) : jobs.length > 0 ? (
+                    jobs.map((job) => (
+                      <SelectItem key={job.id} value={job.id}>
+                        {job.title}
+                      </SelectItem>
+                    ))
+                  ) : (
+                    <SelectItem value="none" disabled>No active jobs available</SelectItem>
+                  )}
+                </SelectContent>
+              </Select>
+            </div>
+
             <div 
               onClick={() => document.getElementById('cv-upload')?.click()}
               className={`
@@ -167,7 +242,7 @@ const CVSubmission = () => {
           <Button 
             className="w-full" 
             onClick={handleUpload} 
-            disabled={!file || uploading || uploadComplete}
+            disabled={!file || !selectedJobId || uploading || uploadComplete}
           >
             {uploading ? (
               <>

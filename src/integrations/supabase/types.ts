@@ -125,6 +125,7 @@ export type Database = {
           file_type: string | null
           file_url: string
           id: string
+          job_id: string | null
           status: string | null
         }
         Insert: {
@@ -134,6 +135,7 @@ export type Database = {
           file_type?: string | null
           file_url: string
           id?: string
+          job_id?: string | null
           status?: string | null
         }
         Update: {
@@ -143,9 +145,54 @@ export type Database = {
           file_type?: string | null
           file_url?: string
           id?: string
+          job_id?: string | null
           status?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "cv_links_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      job_applications: {
+        Row: {
+          created_at: string | null
+          cv_link_id: string
+          id: string
+          job_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          cv_link_id: string
+          id?: string
+          job_id: string
+        }
+        Update: {
+          created_at?: string | null
+          cv_link_id?: string
+          id?: string
+          job_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "job_applications_cv_link_id_fkey"
+            columns: ["cv_link_id"]
+            isOneToOne: false
+            referencedRelation: "cv_links"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "job_applications_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       jobs: {
         Row: {
@@ -225,6 +272,21 @@ export type Database = {
           scheduled_date?: string | null
           scheduled_time?: string | null
           user_id?: string
+        }
+        Relationships: []
+      }
+      linksubmissions: {
+        Row: {
+          id: string
+          link: string | null
+        }
+        Insert: {
+          id?: string
+          link?: string | null
+        }
+        Update: {
+          id?: string
+          link?: string | null
         }
         Relationships: []
       }

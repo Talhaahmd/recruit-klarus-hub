@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { 
@@ -18,6 +17,7 @@ import {
 } from "@/components/ui/hover-card";
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
+import JobApplicationInfo from '@/components/UI/JobApplicationInfo';
 
 const CandidateProfile: React.FC = () => {
   const { id } = useParams();
@@ -152,6 +152,13 @@ const CandidateProfile: React.FC = () => {
                       {candidate.rating}/10
                     </div>
                   </div>
+                  
+                  {/* Add job application information */}
+                  {candidate.resume_url && (
+                    <div className="mt-4">
+                      <JobApplicationInfo resumeUrl={candidate.resume_url} candidateId={id} />
+                    </div>
+                  )}
                   
                   <div className="mt-6 space-y-4">
                     <div className="flex items-center">
