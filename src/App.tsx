@@ -14,6 +14,9 @@ import Index from "./pages/Index";
 import Login from "./pages/Auth/Login";
 import Signup from "./pages/Auth/Signup";
 
+// Public Pages
+import CVSubmission from "./pages/Submission/Submission";
+
 // Dashboard Pages
 import Dashboard from "./pages/Dashboard/Dashboard";
 import Jobs from "./pages/Jobs/Jobs";
@@ -34,10 +37,11 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <Routes>
-            {/* Auth Routes */}
+            {/* Public Routes (No Auth Required) */}
             <Route path="/" element={<Index />} />
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
+            <Route path="/submission" element={<CVSubmission />} />
             
             {/* Protected Routes */}
             <Route path="/" element={<MainLayout />}>
