@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Candidate } from '@/services/candidatesService';
 import { Mail, Phone, Edit, Trash2, MapPin, Star, Briefcase } from 'lucide-react';
@@ -50,6 +49,13 @@ const CandidateCard: React.FC<CandidateCardProps> = ({
         // If not, try to get it from job_applications table
         const jobApplication = await submissionService.getJobApplicationByCvLinkId(submissionId);
         if (jobApplication?.job_id) {
+          // First try to use job_name from jobApplication if available
+          if (jobApplication.job_name) {
+            setAppliedJob(jobApplication.job_name);
+            return;
+          }
+          
+          // If job_name is not available, fetch job title from jobs table
           const jobData = await jobsService.getJobById(jobApplication.job_id);
           if (jobData?.title) {
             setAppliedJob(jobData.title);
@@ -106,15 +112,17 @@ const CandidateCard: React.FC<CandidateCardProps> = ({
       <div className="flex justify-between items-start">
         <div>
           <h3 className="font-semibold text-text-100 truncate max-w-[200px]">{candidate.name || candidate.full_name}</h3>
-          <p className="text-sm text-text-200 mt-1 flex items-center gap-1 truncate max-w-[220px]">
-            {candidate.current_job_title || jobTitle}
-          </p>
-          {appliedJob && (
-            <div className="flex items-center gap-1 mt-1 text-xs text-primary-100">
-              <Briefcase size={12} />
-              <span className="truncate max-w-[200px]">Applied for: {appliedJob}</span>
-            </div>
-          )}
+          <div className="flex flex-col gap-1">
+            <p className="text-sm text-text-200 flex items-center gap-1 truncate max-w-[220px]">
+              {candidate.current_job_title || jobTitle}
+            </p>
+            {appliedJob && (
+              <div className="flex items-center gap-1 text-xs text-primary-100">
+                <Briefcase size={12} />
+                <span className="truncate max-w-[200px] font-medium">Applied for: {appliedJob}</span>
+              </div>
+            )}
+          </div>
         </div>
         <div className="flex gap-1">
           <Button 

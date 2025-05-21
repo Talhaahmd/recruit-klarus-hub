@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
@@ -17,6 +16,7 @@ export type JobApplication = {
   id: string;
   cv_link_id: string;
   job_id: string;
+  job_name?: string | null;
   created_at: string;
 };
 

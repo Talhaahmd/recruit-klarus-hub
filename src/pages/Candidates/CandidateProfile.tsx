@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { 
@@ -83,13 +82,26 @@ const CandidateProfile: React.FC = () => {
       // If not, try to get it from job_applications table
       const jobApplication = await submissionService.getJobApplicationByCvLinkId(submissionId);
       if (jobApplication?.job_id) {
-        setAppliedJob({
-          id: jobApplication.job_id,
-          title: jobApplication.job_name || 'Untitled Job'
-        });
-        setJobName(jobApplication.job_name || 'Untitled Job');
+        // First try to use job_name from the job application if available
+        if (jobApplication.job_name) {
+          setAppliedJob({
+            id: jobApplication.job_id,
+            title: jobApplication.job_name
+          });
+          setJobName(jobApplication.job_name);
+          return;
+        }
+        
+        // If job_name is not available, fetch the job title from jobs table
+        const jobData = await jobsService.getJobById(jobApplication.job_id);
+        if (jobData) {
+          setAppliedJob({
+            id: jobData.id,
+            title: jobData.title
+          });
+          setJobName(jobData.title);
+        }
       }
-
     } catch (error) {
       console.error("Error fetching job application info:", error);
     }
@@ -153,6 +165,50 @@ const CandidateProfile: React.FC = () => {
       </div>
     );
   }
+
+  // Rendering Application Status card with job name
+  const renderApplicationStatusCard = () => {
+    return (
+      <Card className="border-none shadow-md bg-white">
+        <CardContent className="p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold">Application Status</h3>
+            <span className={`px-2 py-1 text-xs rounded-full 
+              ${candidate?.status === 'New' ? 'bg-blue-100 text-blue-800' : 
+                candidate?.status === 'Screening' ? 'bg-purple-100 text-purple-800' :
+                candidate?.status === 'Interview' ? 'bg-yellow-100 text-yellow-800' :
+                candidate?.status === 'Assessment' ? 'bg-orange-100 text-orange-800' :
+                candidate?.status === 'Offer' ? 'bg-green-100 text-green-800' :
+                candidate?.status === 'Hired' ? 'bg-green-200 text-green-900' :
+                'bg-gray-100 text-gray-800'
+              }`}
+            >
+              {candidate?.status || 'New'}
+            </span>
+          </div>
+          
+          <div className="space-y-2">
+            {candidate?.applied_date && (
+              <p className="text-sm text-gray-500">
+                Applied on: {new Date(candidate.applied_date).toLocaleDateString()}
+              </p>
+            )}
+            
+            {/* Display the job name prominently */}
+            {jobName && (
+              <div className="mt-2 p-3 bg-primary-50 rounded-md border border-primary-100">
+                <p className="text-sm font-medium flex items-center gap-2">
+                  <Briefcase size={16} className="text-primary-100" />
+                  <span>Applied Position:</span> 
+                  <span className="text-primary-900 font-semibold">{jobName}</span>
+                </p>
+              </div>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+    );
+  };
 
   const renderSkillTags = () => {
     return skills.map((skill, index) => (
@@ -226,15 +282,16 @@ const CandidateProfile: React.FC = () => {
               <Card className="border-none shadow-md hover:shadow-lg transition-shadow bg-white">
                 <CardContent className="p-6">
                   <div className="flex items-start justify-between">
-                   <div>
+                    <div>
                       <h2 className="text-2xl font-bold">{candidate.name}</h2>
                       <p className="text-gray-500">{candidate.current_job_title || 'Job Seeker'}</p>
 
                       {/* Show Applied Job Name if available */}
                       {(appliedJob?.title || jobName) && (
-                        <p className="text-sm text-gray-600 mt-1 flex items-center">
-                          <Briefcase size={14} className="mr-2 text-primary-100" />
-                          Applied for: <span className="ml-1 font-medium">{appliedJob?.title || jobName}</span>
+                        <p className="text-sm text-primary-600 mt-2 flex items-center bg-primary-50 p-1.5 px-2 rounded-md">
+                          <Briefcase size={14} className="mr-1.5 text-primary-700" />
+                          <span className="font-medium">Applied for:</span>
+                          <span className="ml-1.5 font-semibold">{appliedJob?.title || jobName}</span>
                         </p>
                       )}
                     </div>
@@ -308,43 +365,8 @@ const CandidateProfile: React.FC = () => {
                 </CardContent>
               </Card>
               
-              <Card className="border-none shadow-md bg-white">
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-lg font-semibold">Application Status</h3>
-                    <span className={`px-2 py-1 text-xs rounded-full 
-                      ${candidate.status === 'New' ? 'bg-blue-100 text-blue-800' : 
-                        candidate.status === 'Screening' ? 'bg-purple-100 text-purple-800' :
-                        candidate.status === 'Interview' ? 'bg-yellow-100 text-yellow-800' :
-                        candidate.status === 'Assessment' ? 'bg-orange-100 text-orange-800' :
-                        candidate.status === 'Offer' ? 'bg-green-100 text-green-800' :
-                        candidate.status === 'Hired' ? 'bg-green-200 text-green-900' :
-                        'bg-red-100 text-red-800'
-                      }`}
-                    >
-                      {candidate.status || 'New'}
-                    </span>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    {candidate.applied_date && (
-                      <p className="text-sm text-gray-500">
-                        Applied on: {new Date(candidate.applied_date).toLocaleDateString()}
-                      </p>
-                    )}
-                    
-                    {/* Display the job name from job_applications table */}
-                    {jobName && (
-                      <div className="mt-2 p-2 bg-gray-50 rounded-md border border-gray-200">
-                        <p className="text-sm font-medium flex items-center gap-1">
-                          <Briefcase size={14} className="text-primary-100" />
-                          Position: <span className="text-primary-100">{jobName}</span>
-                        </p>
-                      </div>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
+              {/* Application Status Card */}
+              {renderApplicationStatusCard()}
               
               <Card className="border-none shadow-md bg-white">
                 <CardContent className="p-6">
