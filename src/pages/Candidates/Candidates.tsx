@@ -1,8 +1,7 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Header } from '@/components/Layout/MainLayout';
-import { PlusCircle, Search, Mail, Edit, Trash2, List, Grid, Filter } from 'lucide-react';
+import { PlusCircle, Search, Mail, Edit, Trash2, List, Grid } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import CandidateCard from '@/components/UI/CandidateCard';
@@ -15,11 +14,10 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Candidate } from '@/services/candidatesService';
 
 const Candidates: React.FC = () => {
   const navigate = useNavigate();
-  const [candidates, setCandidates] = useState<Candidate[]>([]);
+  const [candidates, setCandidates] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [analysisFilter, setAnalysisFilter] = useState<number | null>(null);
@@ -30,29 +28,24 @@ const Candidates: React.FC = () => {
     const fetchCandidates = async () => {
       setIsLoading(true);
       const { data, error } = await supabase
-        .from('screencandidates')
+        .from('candidates')
         .select('*')
-        .order('created_at', { ascending: false });
+        .order('timestamp', { ascending: false });
 
       if (error) {
         toast.error('Failed to fetch candidates');
         console.error(error);
       } else if (data) {
-        // Transform the data to match the Candidate type
-        const formattedCandidates: Candidate[] = data.map(candidate => ({
-          id: candidate.id,
-          job_id: '', // Default empty string for required fields
-          name: `${candidate.firstname || ''} ${candidate.lastname || ''}`,
-          email: candidate.email || '',
-          phone: candidate.phone || '',
-          resume_url: '',
-          applied_date: new Date().toISOString(),
-          status: 'Screened',
-          notes: candidate.summary || '',
-          rating: candidate.rating || 0
+        const formatted = data.map(c => ({
+          id: c.id,
+          name: c.full_name,
+          email: c.email,
+          phone: c.phone,
+          rating: c.ai_rating || 0,
+          education: c.degrees,
+          summary: c.ai_summary || '',
         }));
-        
-        setCandidates(formattedCandidates);
+        setCandidates(formatted);
       }
       setIsLoading(false);
     };
@@ -73,7 +66,7 @@ const Candidates: React.FC = () => {
   };
 
   const handleDelete = async (id: string) => {
-    const { error } = await supabase.from('screencandidates').delete().eq('id', id);
+    const { error } = await supabase.from('candidates').delete().eq('id', id);
     if (error) {
       toast.error('Failed to delete candidate');
     } else {
@@ -98,14 +91,11 @@ const Candidates: React.FC = () => {
   };
 
   const filteredCandidates = candidates.filter(candidate => {
-    const fullName = candidate.name.toLowerCase();
     const matchesSearch =
-      fullName.includes(searchTerm.toLowerCase()) ||
+      candidate.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       candidate.email.toLowerCase().includes(searchTerm.toLowerCase());
-
     const matchesAnalysis =
       analysisFilter === null || candidate.rating >= analysisFilter;
-
     return matchesSearch && matchesAnalysis;
   });
 
@@ -161,7 +151,14 @@ const Candidates: React.FC = () => {
           {filteredCandidates.map(candidate => (
             <CandidateCard
               key={candidate.id}
-              candidate={candidate}
+              candidate={{
+                id: candidate.id,
+                name: candidate.name,
+                email: candidate.email,
+                phone: candidate.phone,
+                rating: candidate.rating,
+                summary: candidate.summary,
+              }}
               onEdit={handleEdit}
               onDelete={() => handleDelete(candidate.id)}
               onView={() => handleView(candidate.id)}
@@ -189,7 +186,7 @@ const Candidates: React.FC = () => {
                   <TableCell>{candidate.name}</TableCell>
                   <TableCell>{candidate.email}</TableCell>
                   <TableCell>{candidate.phone}</TableCell>
-                  <TableCell>{/* Education information not available */}</TableCell>
+                  <TableCell>{candidate.education}</TableCell>
                   <TableCell>
                     <span className={`inline-block px-2 py-1 text-xs rounded-full ${getAnalysisColor(candidate.rating)}`}>
                       {candidate.rating}/10
