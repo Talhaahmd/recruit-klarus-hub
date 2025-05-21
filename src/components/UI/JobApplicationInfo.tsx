@@ -10,13 +10,20 @@ import { Button } from '@/components/ui/button';
 interface JobApplicationInfoProps {
   resumeUrl?: string | null;
   candidateId?: string;
+  appliedJob?: {id: string, title: string} | null;
 }
 
-const JobApplicationInfo: React.FC<JobApplicationInfoProps> = ({ resumeUrl, candidateId }) => {
+const JobApplicationInfo: React.FC<JobApplicationInfoProps> = ({ resumeUrl, candidateId, appliedJob }) => {
   const [job, setJob] = useState<any | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
+    // If appliedJob is already provided, use it directly
+    if (appliedJob) {
+      setJob(appliedJob);
+      return;
+    }
+    
     const fetchJobDetails = async () => {
       if (!resumeUrl) return;
       
@@ -63,7 +70,7 @@ const JobApplicationInfo: React.FC<JobApplicationInfoProps> = ({ resumeUrl, cand
     };
 
     fetchJobDetails();
-  }, [resumeUrl]);
+  }, [resumeUrl, appliedJob]);
 
   // Helper function to extract submission ID from URL
   const extractSubmissionIdFromUrl = (url: string): string | null => {
@@ -111,22 +118,26 @@ const JobApplicationInfo: React.FC<JobApplicationInfoProps> = ({ resumeUrl, cand
             </h3>
             <div className="flex flex-col">
               <span className="font-semibold text-lg">{job.title}</span>
-              <div className="flex items-center gap-2 mt-1">
-                <Badge variant="outline">{job.type}</Badge>
-                <Badge variant="outline">{job.location}</Badge>
-              </div>
+              {job.type && job.location && (
+                <div className="flex items-center gap-2 mt-1">
+                  {job.type && <Badge variant="outline">{job.type}</Badge>}
+                  {job.location && <Badge variant="outline">{job.location}</Badge>}
+                </div>
+              )}
             </div>
           </div>
           
-          <Button 
-            variant="ghost" 
-            size="sm"
-            onClick={() => window.open(`/jobs/${job.id}`, '_blank')}
-            className="flex items-center gap-1 text-primary-100"
-          >
-            <ExternalLink className="h-4 w-4" />
-            View Job
-          </Button>
+          {job.id && (
+            <Button 
+              variant="ghost" 
+              size="sm"
+              onClick={() => window.open(`/jobs/${job.id}`, '_blank')}
+              className="flex items-center gap-1 text-primary-100"
+            >
+              <ExternalLink className="h-4 w-4" />
+              View Job
+            </Button>
+          )}
         </div>
       </CardContent>
     </Card>

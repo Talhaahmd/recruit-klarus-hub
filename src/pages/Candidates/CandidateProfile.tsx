@@ -1,10 +1,13 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { 
   User, Mail, Phone, MapPin, Briefcase, FileText, Linkedin, 
-  Tag, Award, ArrowLeft, Calendar, Star, MessageCircle
+  Calendar, Star, MessageCircle, BookOpen, Building, Award, GraduationCap
 } from 'lucide-react';
 import { candidatesService, Candidate } from '@/services/candidatesService';
+import { submissionService } from '@/services/submissionService';
+import { jobsService } from '@/services/jobsService'; 
 import { Header } from '@/components/Layout/MainLayout';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -15,9 +18,10 @@ import {
   HoverCardContent,
   HoverCardTrigger,
 } from "@/components/ui/hover-card";
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import JobApplicationInfo from '@/components/UI/JobApplicationInfo';
+import { ArrowLeft } from 'lucide-react';
 
 const CandidateProfile: React.FC = () => {
   const { id } = useParams();
@@ -25,6 +29,7 @@ const CandidateProfile: React.FC = () => {
   const [activeTab, setActiveTab] = useState<string>('details');
   const [candidate, setCandidate] = useState<Candidate | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
+  const [appliedJob, setAppliedJob] = useState<{id: string, title: string} | null>(null);
   
   useEffect(() => {
     const fetchCandidate = async () => {
@@ -34,6 +39,11 @@ const CandidateProfile: React.FC = () => {
         setLoading(true);
         const data = await candidatesService.getCandidateById(id);
         setCandidate(data);
+        
+        // Fetch job application info if resume URL exists
+        if (data?.resume_url) {
+          fetchAppliedJob(data.resume_url);
+        }
       } catch (error) {
         console.error("Error fetching candidate:", error);
         toast.error("Failed to load candidate profile");
@@ -44,6 +54,62 @@ const CandidateProfile: React.FC = () => {
     
     fetchCandidate();
   }, [id]);
+
+  // Function to fetch job application information
+  const fetchAppliedJob = async (resumeUrl: string) => {
+    try {
+      // Extract submission ID from resume URL
+      const submissionId = extractSubmissionIdFromUrl(resumeUrl);
+      if (!submissionId) return;
+      
+      console.log("Found submission ID:", submissionId);
+      
+      // First check if job_id exists directly in the submission
+      const submission = await submissionService.getSubmissionById(submissionId);
+      
+      if (submission?.job_id) {
+        const jobData = await jobsService.getJobById(submission.job_id);
+        if (jobData) {
+          setAppliedJob({
+            id: jobData.id,
+            title: jobData.title
+          });
+          return;
+        }
+      }
+      
+      // If not, try to get it from job_applications table
+      const jobApplication = await submissionService.getJobApplicationByCvLinkId(submissionId);
+      if (jobApplication?.job_id) {
+        const jobData = await jobsService.getJobById(jobApplication.job_id);
+        if (jobData) {
+          setAppliedJob({
+            id: jobData.id,
+            title: jobData.title
+          });
+        }
+      }
+    } catch (error) {
+      console.error("Error fetching job application info:", error);
+    }
+  };
+  
+  // Helper function to extract submission ID from URL
+  const extractSubmissionIdFromUrl = (url: string): string | null => {
+    try {
+      const parts = url.split('/');
+      // Try to find a UUID pattern in the URL
+      for (const part of parts) {
+        if (/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(part)) {
+          return part;
+        }
+      }
+      return null;
+    } catch (error) {
+      console.error('Error extracting submission ID:', error);
+      return null;
+    }
+  };
   
   const handleGoBack = () => {
     navigate('/candidates');
@@ -57,6 +123,21 @@ const CandidateProfile: React.FC = () => {
 
   // Parse skills as array 
   const skills = candidate?.skills ? candidate.skills.split(',').map(skill => skill.trim()) : [];
+
+  // Parse previous companies as array
+  const companies = candidate?.companies ? candidate.companies.split(',').map(company => company.trim()) : [];
+
+  // Parse job titles as array
+  const jobTitles = candidate?.job_titles ? candidate.job_titles.split(',').map(title => title.trim()) : [];
+
+  // Parse degrees as array
+  const degrees = candidate?.degrees ? candidate.degrees.split(',').map(degree => degree.trim()) : [];
+
+  // Parse institutions as array
+  const institutions = candidate?.institutions ? candidate.institutions.split(',').map(institution => institution.trim()) : [];
+
+  // Parse certifications as array
+  const certifications = candidate?.certifications ? candidate.certifications.split(',').map(cert => cert.trim()) : [];
 
   if (!id) {
     return (
@@ -154,9 +235,13 @@ const CandidateProfile: React.FC = () => {
                   </div>
                   
                   {/* Add job application information */}
-                  {candidate.resume_url && (
+                  {(candidate.resume_url || appliedJob) && (
                     <div className="mt-4">
-                      <JobApplicationInfo resumeUrl={candidate.resume_url} candidateId={id} />
+                      <JobApplicationInfo 
+                        resumeUrl={candidate.resume_url} 
+                        candidateId={id}
+                        appliedJob={appliedJob}
+                      />
                     </div>
                   )}
                   
@@ -193,6 +278,13 @@ const CandidateProfile: React.FC = () => {
                         >
                           LinkedIn Profile
                         </a>
+                      </div>
+                    )}
+                    
+                    {candidate.years_experience && (
+                      <div className="flex items-center">
+                        <Briefcase className="w-5 h-5 mr-3 text-gray-400" />
+                        <span>{candidate.years_experience} Years Experience</span>
                       </div>
                     )}
                     
@@ -301,6 +393,109 @@ const CandidateProfile: React.FC = () => {
                     </Card>
                   )}
                   
+                  {/* Work History */}
+                  {(jobTitles.length > 0 || companies.length > 0) && (
+                    <Card className="border-none shadow-sm hover:shadow-md transition-shadow">
+                      <CardContent className="p-6">
+                        <h3 className="text-lg font-semibold mb-4">Work History</h3>
+                        <div className="space-y-4">
+                          {jobTitles.length > 0 && (
+                            <div className="flex items-start">
+                              <Briefcase className="w-5 h-5 mr-3 text-gray-400 mt-0.5" />
+                              <div>
+                                <h4 className="text-sm font-medium text-gray-600">Previous Job Titles</h4>
+                                <div className="flex flex-wrap gap-2 mt-1">
+                                  {jobTitles.map((title, index) => (
+                                    <Badge key={index} variant="secondary">{title}</Badge>
+                                  ))}
+                                </div>
+                              </div>
+                            </div>
+                          )}
+                          
+                          {companies.length > 0 && (
+                            <div className="flex items-start">
+                              <Building className="w-5 h-5 mr-3 text-gray-400 mt-0.5" />
+                              <div>
+                                <h4 className="text-sm font-medium text-gray-600">Companies</h4>
+                                <div className="flex flex-wrap gap-2 mt-1">
+                                  {companies.map((company, index) => (
+                                    <Badge key={index} variant="outline">{company}</Badge>
+                                  ))}
+                                </div>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )}
+                  
+                  {/* Education */}
+                  {(degrees.length > 0 || institutions.length > 0) && (
+                    <Card className="border-none shadow-sm hover:shadow-md transition-shadow">
+                      <CardContent className="p-6">
+                        <h3 className="text-lg font-semibold mb-4">Education</h3>
+                        <div className="space-y-4">
+                          {degrees.length > 0 && (
+                            <div className="flex items-start">
+                              <GraduationCap className="w-5 h-5 mr-3 text-gray-400 mt-0.5" />
+                              <div>
+                                <h4 className="text-sm font-medium text-gray-600">Degrees</h4>
+                                <div className="flex flex-wrap gap-2 mt-1">
+                                  {degrees.map((degree, index) => (
+                                    <Badge key={index} variant="secondary">{degree}</Badge>
+                                  ))}
+                                </div>
+                              </div>
+                            </div>
+                          )}
+                          
+                          {institutions.length > 0 && (
+                            <div className="flex items-start">
+                              <BookOpen className="w-5 h-5 mr-3 text-gray-400 mt-0.5" />
+                              <div>
+                                <h4 className="text-sm font-medium text-gray-600">Institutions</h4>
+                                <div className="flex flex-wrap gap-2 mt-1">
+                                  {institutions.map((institution, index) => (
+                                    <Badge key={index} variant="outline">{institution}</Badge>
+                                  ))}
+                                </div>
+                              </div>
+                            </div>
+                          )}
+                          
+                          {candidate.graduation_years && (
+                            <div className="flex items-start">
+                              <Calendar className="w-5 h-5 mr-3 text-gray-400 mt-0.5" />
+                              <div>
+                                <h4 className="text-sm font-medium text-gray-600">Graduation Years</h4>
+                                <p className="text-gray-700">{candidate.graduation_years}</p>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )}
+                  
+                  {/* Certifications */}
+                  {certifications.length > 0 && (
+                    <Card className="border-none shadow-sm hover:shadow-md transition-shadow">
+                      <CardContent className="p-6">
+                        <h3 className="text-lg font-semibold mb-4">Certifications</h3>
+                        <div className="flex items-start">
+                          <Award className="w-5 h-5 mr-3 text-gray-400 mt-0.5" />
+                          <div className="flex flex-wrap gap-2">
+                            {certifications.map((cert, index) => (
+                              <Badge key={index} variant="outline">{cert}</Badge>
+                            ))}
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )}
+                  
                   {/* Experience Level */}
                   {candidate.experience_level && (
                     <Card className="border-none shadow-sm hover:shadow-md transition-shadow">
@@ -319,7 +514,6 @@ const CandidateProfile: React.FC = () => {
                     <CardContent className="p-6">
                       <div className="flex justify-between items-center mb-4">
                         <h3 className="text-lg font-semibold">Notes</h3>
-                        <Button variant="outline" size="sm">Add Note</Button>
                       </div>
                       <div className="bg-gray-50 rounded-lg p-4 border">
                         {candidate.notes ? (

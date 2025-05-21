@@ -164,6 +164,7 @@ export type Database = {
           cv_link_id: string
           id: string
           job_id: string
+          job_name: string | null
           link_for_cv: string | null
         }
         Insert: {
@@ -171,6 +172,7 @@ export type Database = {
           cv_link_id: string
           id?: string
           job_id: string
+          job_name?: string | null
           link_for_cv?: string | null
         }
         Update: {
@@ -178,6 +180,7 @@ export type Database = {
           cv_link_id?: string
           id?: string
           job_id?: string
+          job_name?: string | null
           link_for_cv?: string | null
         }
         Relationships: [
@@ -314,57 +317,6 @@ export type Database = {
           full_name?: string | null
           id?: string
           updated_at?: string | null
-        }
-        Relationships: []
-      }
-      screencandidates: {
-        Row: {
-          aicontent: string | null
-          certification: string | null
-          created_at: string | null
-          education: string | null
-          email: string | null
-          experience: string | null
-          firstname: string | null
-          id: string
-          lastname: string | null
-          phone: string | null
-          projects: string | null
-          rating: number | null
-          skills: string | null
-          summary: string | null
-        }
-        Insert: {
-          aicontent?: string | null
-          certification?: string | null
-          created_at?: string | null
-          education?: string | null
-          email?: string | null
-          experience?: string | null
-          firstname?: string | null
-          id?: string
-          lastname?: string | null
-          phone?: string | null
-          projects?: string | null
-          rating?: number | null
-          skills?: string | null
-          summary?: string | null
-        }
-        Update: {
-          aicontent?: string | null
-          certification?: string | null
-          created_at?: string | null
-          education?: string | null
-          email?: string | null
-          experience?: string | null
-          firstname?: string | null
-          id?: string
-          lastname?: string | null
-          phone?: string | null
-          projects?: string | null
-          rating?: number | null
-          skills?: string | null
-          summary?: string | null
         }
         Relationships: []
       }
