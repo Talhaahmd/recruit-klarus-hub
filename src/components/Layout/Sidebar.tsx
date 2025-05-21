@@ -5,7 +5,6 @@ import {
   LayoutDashboard, 
   Briefcase, 
   Users, 
-  Calendar, 
   FileEdit, 
   Settings, 
   LogOut 
@@ -19,7 +18,6 @@ const Sidebar: React.FC = () => {
     { icon: LayoutDashboard, name: 'Dashboard', path: '/dashboard' },
     { icon: Briefcase, name: 'Active Jobs', path: '/jobs' },
     { icon: Users, name: 'Candidates', path: '/candidates' },
-    { icon: Calendar, name: 'Calendar', path: '/calendar' },
     { icon: FileEdit, name: 'Build Profile', path: '/build-profile' },
     { icon: Settings, name: 'Settings', path: '/settings' },
   ];
