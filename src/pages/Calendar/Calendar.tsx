@@ -17,10 +17,7 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
-import { CalendarIcon } from "lucide-react"
 import { format } from "date-fns"
-import { cn } from "@/lib/utils"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 // Rename the import to prevent naming conflict
 import { Calendar as CalendarUI } from "@/components/ui/calendar"
 import { useForm } from "react-hook-form";
