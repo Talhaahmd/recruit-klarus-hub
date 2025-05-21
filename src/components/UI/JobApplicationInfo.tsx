@@ -37,8 +37,10 @@ const JobApplicationInfo: React.FC<JobApplicationInfoProps> = ({ resumeUrl, cand
           console.log("Found job_id in submission:", submission.job_id);
           const jobData = await jobsService.getJobById(submission.job_id);
           console.log("Job data from submission.job_id:", jobData);
-          setJob(jobData);
-          return;
+          if (jobData) {
+            setJob(jobData);
+            return;
+          }
         }
         
         // Try getting the job application record if submission doesn't have job_id
@@ -49,7 +51,9 @@ const JobApplicationInfo: React.FC<JobApplicationInfoProps> = ({ resumeUrl, cand
           console.log("Found job_id in job_application:", jobApplication.job_id);
           const jobData = await jobsService.getJobById(jobApplication.job_id);
           console.log("Job data from job_application.job_id:", jobData);
-          setJob(jobData);
+          if (jobData) {
+            setJob(jobData);
+          }
         }
       } catch (error) {
         console.error('Error fetching job details:', error);

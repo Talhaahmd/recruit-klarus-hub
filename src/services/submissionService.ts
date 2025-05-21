@@ -89,5 +89,70 @@ export const submissionService = {
       toast.error('Failed to load submission');
       return null;
     }
+  },
+  
+  // Get all job applications
+  getAllJobApplications: async (): Promise<{submission: Submission, jobId: string}[]> => {
+    try {
+      // First try to get applications from job_applications table
+      const { data: jobAppData, error: jobAppError } = await supabase
+        .from('job_applications')
+        .select('*');
+      
+      if (jobAppError) {
+        console.error("Error fetching job applications:", jobAppError);
+        throw jobAppError;
+      }
+      
+      // Also get submissions that might have job_id directly
+      const { data: cvData, error: cvError } = await supabase
+        .from('cv_links')
+        .select('*')
+        .not('job_id', 'is', null);
+        
+      if (cvError) {
+        console.error("Error fetching cv links with job_id:", cvError);
+        throw cvError;
+      }
+      
+      const result: {submission: Submission, jobId: string}[] = [];
+      
+      // Process job applications
+      if (jobAppData && jobAppData.length > 0) {
+        for (const app of jobAppData) {
+          const { data: submission } = await supabase
+            .from('cv_links')
+            .select('*')
+            .eq('id', app.cv_link_id)
+            .single();
+            
+          if (submission) {
+            result.push({
+              submission,
+              jobId: app.job_id
+            });
+          }
+        }
+      }
+      
+      // Process direct cv_links with job_id
+      if (cvData && cvData.length > 0) {
+        for (const cv of cvData) {
+          // Check if we already added this submission via job_applications
+          const exists = result.some(r => r.submission.id === cv.id);
+          if (!exists && cv.job_id) {
+            result.push({
+              submission: cv,
+              jobId: cv.job_id
+            });
+          }
+        }
+      }
+      
+      return result;
+    } catch (err: any) {
+      console.error('Error fetching all job applications:', err.message);
+      return [];
+    }
   }
 };

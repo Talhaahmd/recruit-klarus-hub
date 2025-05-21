@@ -1,8 +1,8 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Header } from '@/components/Layout/MainLayout';
 import { 
-  PlusCircle, 
   Search, 
   Mail, 
   Edit, 
@@ -13,12 +13,10 @@ import {
   Star,
   MapPin,
   Briefcase,
-  ChevronDown,
   X
 } from 'lucide-react';
 import { toast } from 'sonner';
 import CandidateCard from '@/components/UI/CandidateCard';
-import AddCandidateModal from '@/components/UI/AddCandidateModal';
 import { Candidate, candidatesService } from '@/services/candidatesService';
 import { 
   Table,
@@ -50,7 +48,6 @@ const Candidates: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid');
-  const [showAddModal, setShowAddModal] = useState(false);
   
   // Filter states
   const [ratingFilter, setRatingFilter] = useState<number | null>(null);
@@ -113,12 +110,6 @@ const Candidates: React.FC = () => {
 
   const handleView = (id: string) => {
     navigate(`/candidates/${id}`);
-  };
-
-  const handleSaveCandidate = async (data: any) => {
-    toast.success('CV uploaded. Candidate will appear once processed.');
-    setShowAddModal(false);
-    fetchCandidates();
   };
 
   const resetFilters = () => {
@@ -288,14 +279,6 @@ const Candidates: React.FC = () => {
                 <List size={18} />
               </Button>
             </div>
-
-            <Button
-              onClick={() => setShowAddModal(true)}
-              className="px-4 py-2 gap-2"
-            >
-              <PlusCircle size={18} />
-              <span className="hidden sm:inline">Add Candidate</span>
-            </Button>
           </div>
         </div>
         
@@ -438,12 +421,6 @@ const Candidates: React.FC = () => {
           </Table>
         </div>
       )}
-
-      <AddCandidateModal
-        isOpen={showAddModal}
-        onClose={() => setShowAddModal(false)}
-        onSave={handleSaveCandidate}
-      />
     </div>
   );
 };
