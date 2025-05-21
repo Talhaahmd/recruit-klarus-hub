@@ -120,11 +120,11 @@ const Candidates: React.FC = () => {
   };
 
   const filteredCandidates = candidates.filter(candidate => {
-    // Search filter
-    const matchesSearch =
-      candidate.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      candidate.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (candidate.skills || '').toLowerCase().includes(searchTerm.toLowerCase());
+    // Search filter - add null checks before calling toLowerCase()
+    const nameMatch = candidate.name?.toLowerCase().includes(searchTerm.toLowerCase()) || false;
+    const emailMatch = candidate.email?.toLowerCase().includes(searchTerm.toLowerCase()) || false;
+    const skillsMatch = candidate.skills?.toLowerCase().includes(searchTerm.toLowerCase()) || false;
+    const matchesSearch = searchTerm === '' || nameMatch || emailMatch || skillsMatch;
     
     // Rating filter
     const matchesRating = ratingFilter === null || candidate.rating >= ratingFilter;
@@ -133,10 +133,10 @@ const Candidates: React.FC = () => {
     const matchesJob = !jobFilter || (candidate.current_job_title && candidate.current_job_title === jobFilter);
     
     // Skills filter
-    const matchesSkills = !skillsFilter || (candidate.skills && candidate.skills.toLowerCase().includes(skillsFilter.toLowerCase()));
+    const matchesSkills = !skillsFilter || (candidate.skills?.toLowerCase().includes(skillsFilter.toLowerCase()) || false);
     
     // Location filter
-    const matchesLocation = !locationFilter || (candidate.location && candidate.location === locationFilter);
+    const matchesLocation = !locationFilter || (candidate.location === locationFilter);
     
     return matchesSearch && matchesRating && matchesJob && matchesSkills && matchesLocation;
   });

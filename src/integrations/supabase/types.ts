@@ -164,18 +164,21 @@ export type Database = {
           cv_link_id: string
           id: string
           job_id: string
+          link_for_cv: string | null
         }
         Insert: {
           created_at?: string | null
           cv_link_id: string
           id?: string
           job_id: string
+          link_for_cv?: string | null
         }
         Update: {
           created_at?: string | null
           cv_link_id?: string
           id?: string
           job_id?: string
+          link_for_cv?: string | null
         }
         Relationships: [
           {
