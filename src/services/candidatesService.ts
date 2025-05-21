@@ -5,6 +5,7 @@ import { toast } from 'sonner';
 export type Candidate = {
   id: string;
   full_name: string;
+  name?: string; // Adding name as an alias for full_name
   email: string;
   phone: string;
   location: string;
@@ -19,12 +20,17 @@ export type Candidate = {
   graduation_years: string;
   institutions: string;
   ai_rating: number;
+  rating?: number; // Adding rating as an alias for ai_rating
   ai_content: string;
   ai_summary: string;
   experience_level: string;
   suitable_role: string;
   timestamp: string;
   source: string;
+  notes?: string; // Adding notes property
+  status?: string; // Adding status property 
+  applied_date?: string; // Adding applied date property
+  resume_url?: string; // Adding resume URL property
 };
 
 export type CandidateInput = Omit<Candidate, 'id' | 'timestamp'>;
@@ -42,7 +48,14 @@ export const candidatesService = {
         throw error;
       }
       
-      return data || [];
+      // Normalize data: ensure name and rating are available as aliases
+      const normalizedData = data?.map(candidate => ({
+        ...candidate,
+        name: candidate.full_name,
+        rating: candidate.ai_rating
+      })) || [];
+      
+      return normalizedData;
     } catch (err: any) {
       console.error('Error fetching candidates:', err.message);
       toast.error('Failed to load candidates');
@@ -63,7 +76,16 @@ export const candidatesService = {
         throw error;
       }
       
-      return data;
+      // Normalize data: ensure name and rating are available
+      if (data) {
+        return {
+          ...data,
+          name: data.full_name, 
+          rating: data.ai_rating
+        };
+      }
+      
+      return null;
     } catch (err: any) {
       console.error('Error fetching candidate:', err.message);
       toast.error('Failed to load candidate');
@@ -90,8 +112,15 @@ export const candidatesService = {
         throw error;
       }
       
+      // Normalize the returned data
+      const normalizedData = {
+        ...data,
+        name: data.full_name,
+        rating: data.ai_rating
+      };
+      
       toast.success('Candidate created successfully');
-      return data;
+      return normalizedData;
     } catch (err: any) {
       console.error('Error creating candidate:', err.message);
       toast.error('Failed to create candidate');
@@ -117,8 +146,15 @@ export const candidatesService = {
         throw error;
       }
       
+      // Normalize the returned data
+      const normalizedData = {
+        ...data,
+        name: data.full_name,
+        rating: data.ai_rating
+      };
+      
       toast.success('Candidate updated successfully');
-      return data;
+      return normalizedData;
     } catch (err: any) {
       console.error('Error updating candidate:', err.message);
       toast.error('Failed to update candidate');
@@ -196,7 +232,14 @@ export const candidatesService = {
         return lowercaseSkills.some(skill => candidateSkills.includes(skill));
       });
       
-      return filteredCandidates;
+      // Normalize data
+      const normalizedData = filteredCandidates.map(candidate => ({
+        ...candidate,
+        name: candidate.full_name,
+        rating: candidate.ai_rating
+      }));
+      
+      return normalizedData;
     } catch (err: any) {
       console.error('Error filtering candidates:', err.message);
       toast.error('Failed to filter candidates');
@@ -216,7 +259,14 @@ export const candidatesService = {
         throw error;
       }
       
-      return data || [];
+      // Normalize data
+      const normalizedData = (data || []).map(candidate => ({
+        ...candidate,
+        name: candidate.full_name,
+        rating: candidate.ai_rating
+      }));
+      
+      return normalizedData;
     } catch (err: any) {
       console.error('Error searching candidates:', err.message);
       toast.error('Failed to search candidates');
@@ -236,7 +286,14 @@ export const candidatesService = {
         throw error;
       }
       
-      return data || [];
+      // Normalize data
+      const normalizedData = (data || []).map(candidate => ({
+        ...candidate,
+        name: candidate.full_name,
+        rating: candidate.ai_rating
+      }));
+      
+      return normalizedData;
     } catch (err: any) {
       console.error('Error fetching candidates by experience:', err.message);
       toast.error('Failed to load candidates');
@@ -257,7 +314,14 @@ export const candidatesService = {
         throw error;
       }
       
-      return data || [];
+      // Normalize data
+      const normalizedData = (data || []).map(candidate => ({
+        ...candidate,
+        name: candidate.full_name,
+        rating: candidate.ai_rating
+      }));
+      
+      return normalizedData;
     } catch (err: any) {
       console.error('Error fetching top rated candidates:', err.message);
       toast.error('Failed to load top candidates');
@@ -278,7 +342,14 @@ export const candidatesService = {
         throw error;
       }
       
-      return data || [];
+      // Normalize data
+      const normalizedData = (data || []).map(candidate => ({
+        ...candidate,
+        name: candidate.full_name,
+        rating: candidate.ai_rating
+      }));
+      
+      return normalizedData;
     } catch (err: any) {
       console.error('Error fetching recent candidates:', err.message);
       toast.error('Failed to load recent candidates');
