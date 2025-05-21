@@ -432,6 +432,7 @@ const Candidates: React.FC = () => {
           candidateId={selectedCandidate.id}
           candidateName={selectedCandidate.name || selectedCandidate.full_name || "Candidate"}
           candidateEmail={selectedCandidate.email}
+          jobTitle={selectedCandidate.current_job_title || ""}
           open={emailModalOpen}
           onClose={() => {
             setEmailModalOpen(false);

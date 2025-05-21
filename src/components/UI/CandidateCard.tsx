@@ -205,6 +205,7 @@ const CandidateCard: React.FC<CandidateCardProps> = ({
         candidateId={candidate.id}
         candidateName={candidate.name || candidate.full_name || "Candidate"}
         candidateEmail={candidate.email}
+        jobTitle={candidate.current_job_title || appliedJob || jobTitle}
         open={emailModalOpen}
         onClose={() => setEmailModalOpen(false)}
       />

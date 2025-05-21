@@ -44,28 +44,37 @@ export type Database = {
       }
       candidate_interviews: {
         Row: {
+          candidate_email: string | null
           candidate_id: string
+          candidate_name: string | null
           created_at: string | null
           email_sent: boolean | null
           id: string
           interview_date: string
           interview_notes: string | null
+          job_name: string | null
         }
         Insert: {
+          candidate_email?: string | null
           candidate_id: string
+          candidate_name?: string | null
           created_at?: string | null
           email_sent?: boolean | null
           id?: string
           interview_date: string
           interview_notes?: string | null
+          job_name?: string | null
         }
         Update: {
+          candidate_email?: string | null
           candidate_id?: string
+          candidate_name?: string | null
           created_at?: string | null
           email_sent?: boolean | null
           id?: string
           interview_date?: string
           interview_notes?: string | null
+          job_name?: string | null
         }
         Relationships: [
           {
@@ -333,28 +342,37 @@ export type Database = {
       }
       offer_letters: {
         Row: {
+          candidate_email: string | null
           candidate_id: string
+          candidate_name: string | null
           created_at: string | null
           document_name: string | null
           document_url: string | null
           email_sent: boolean | null
           id: string
+          job_name: string | null
         }
         Insert: {
+          candidate_email?: string | null
           candidate_id: string
+          candidate_name?: string | null
           created_at?: string | null
           document_name?: string | null
           document_url?: string | null
           email_sent?: boolean | null
           id?: string
+          job_name?: string | null
         }
         Update: {
+          candidate_email?: string | null
           candidate_id?: string
+          candidate_name?: string | null
           created_at?: string | null
           document_name?: string | null
           document_url?: string | null
           email_sent?: boolean | null
           id?: string
+          job_name?: string | null
         }
         Relationships: [
           {

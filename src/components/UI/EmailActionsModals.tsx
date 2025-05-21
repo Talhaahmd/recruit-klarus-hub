@@ -18,6 +18,7 @@ type EmailActionsModalProps = {
   candidateEmail: string;
   open: boolean;
   onClose: () => void;
+  jobTitle?: string;
 };
 
 export const EmailActionsModal = ({ 
@@ -25,7 +26,8 @@ export const EmailActionsModal = ({
   candidateName, 
   candidateEmail, 
   open, 
-  onClose 
+  onClose,
+  jobTitle
 }: EmailActionsModalProps) => {
   const [action, setAction] = useState<'none' | 'interview' | 'offer'>('none');
   
@@ -80,6 +82,7 @@ export const EmailActionsModal = ({
           candidateId={candidateId}
           candidateName={candidateName} 
           candidateEmail={candidateEmail}
+          jobTitle={jobTitle}
           onClose={() => {
             setAction('none');
             onClose();
@@ -91,7 +94,8 @@ export const EmailActionsModal = ({
         <OfferLetterModal 
           candidateId={candidateId}
           candidateName={candidateName} 
-          candidateEmail={candidateEmail} 
+          candidateEmail={candidateEmail}
+          jobTitle={jobTitle}
           onClose={() => {
             setAction('none');
             onClose();
@@ -106,6 +110,7 @@ type InterviewScheduleModalProps = {
   candidateId: string;
   candidateName: string;
   candidateEmail: string;
+  jobTitle?: string;
   onClose: () => void;
 };
 
@@ -113,6 +118,7 @@ export const InterviewScheduleModal = ({
   candidateId,
   candidateName,
   candidateEmail,
+  jobTitle,
   onClose
 }: InterviewScheduleModalProps) => {
   const [date, setDate] = useState<Date | undefined>(undefined);
@@ -136,7 +142,10 @@ export const InterviewScheduleModal = ({
       const success = await submissionService.scheduleInterview(
         candidateId,
         interviewDate,
-        notes
+        notes,
+        candidateName,
+        candidateEmail,
+        jobTitle
       );
       
       if (success) {
@@ -157,6 +166,7 @@ export const InterviewScheduleModal = ({
           <SheetTitle>Schedule Interview</SheetTitle>
           <SheetDescription>
             Send an interview invitation email to {candidateName} ({candidateEmail})
+            {jobTitle && <span className="block text-sm text-primary-100 mt-1">Position: {jobTitle}</span>}
           </SheetDescription>
         </SheetHeader>
         
@@ -231,6 +241,7 @@ type OfferLetterModalProps = {
   candidateId: string;
   candidateName: string;
   candidateEmail: string;
+  jobTitle?: string;
   onClose: () => void;
 };
 
@@ -238,6 +249,7 @@ export const OfferLetterModal = ({
   candidateId,
   candidateName,
   candidateEmail,
+  jobTitle,
   onClose
 }: OfferLetterModalProps) => {
   const [file, setFile] = useState<File | null>(null);
@@ -275,7 +287,10 @@ export const OfferLetterModal = ({
       const success = await submissionService.sendOfferLetter(
         candidateId,
         uploadedUrl || undefined,
-        file?.name
+        file?.name,
+        candidateName,
+        candidateEmail,
+        jobTitle
       );
       
       if (success) {
@@ -296,6 +311,7 @@ export const OfferLetterModal = ({
           <SheetTitle>Send Offer Letter</SheetTitle>
           <SheetDescription>
             Upload an offer letter to send to {candidateName} ({candidateEmail})
+            {jobTitle && <span className="block text-sm text-primary-100 mt-1">Position: {jobTitle}</span>}
           </SheetDescription>
         </SheetHeader>
         

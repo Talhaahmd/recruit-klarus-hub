@@ -28,6 +28,9 @@ export type Interview = {
   interview_notes?: string;
   email_sent: boolean;
   created_at: string;
+  candidate_name?: string | null;
+  candidate_email?: string | null;
+  job_name?: string | null;
 };
 
 export type OfferLetter = {
@@ -37,6 +40,9 @@ export type OfferLetter = {
   document_name?: string;
   email_sent: boolean;
   created_at: string;
+  candidate_name?: string | null;
+  candidate_email?: string | null;
+  job_name?: string | null;
 };
 
 export const submissionService = {
@@ -176,7 +182,14 @@ export const submissionService = {
   },
 
   // Schedule an interview
-  scheduleInterview: async (candidateId: string, interviewDate: Date, notes?: string): Promise<boolean> => {
+  scheduleInterview: async (
+    candidateId: string, 
+    interviewDate: Date, 
+    notes?: string, 
+    candidateName?: string,
+    candidateEmail?: string,
+    jobName?: string
+  ): Promise<boolean> => {
     try {
       const { data, error } = await supabase
         .from('candidate_interviews')
@@ -184,7 +197,10 @@ export const submissionService = {
           candidate_id: candidateId,
           interview_date: interviewDate.toISOString(),
           interview_notes: notes || null,
-          email_sent: true
+          email_sent: true,
+          candidate_name: candidateName || null,
+          candidate_email: candidateEmail || null,
+          job_name: jobName || null
         });
 
       if (error) {
@@ -203,7 +219,14 @@ export const submissionService = {
   },
 
   // Send offer letter
-  sendOfferLetter: async (candidateId: string, documentUrl?: string, documentName?: string): Promise<boolean> => {
+  sendOfferLetter: async (
+    candidateId: string, 
+    documentUrl?: string, 
+    documentName?: string,
+    candidateName?: string,
+    candidateEmail?: string,
+    jobName?: string
+  ): Promise<boolean> => {
     try {
       const { data, error } = await supabase
         .from('offer_letters')
@@ -211,7 +234,10 @@ export const submissionService = {
           candidate_id: candidateId,
           document_url: documentUrl || null,
           document_name: documentName || null,
-          email_sent: true
+          email_sent: true,
+          candidate_name: candidateName || null,
+          candidate_email: candidateEmail || null,
+          job_name: jobName || null
         });
 
       if (error) {
