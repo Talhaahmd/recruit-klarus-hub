@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -47,7 +46,6 @@ const jobFormSchema = z.object({
   type: z.enum(['Full-time', 'Part-time', 'Contract'], { message: "Invalid job type" }),
   description: z.string().min(10, { message: "Description must be at least 10 characters" }),
   activeDays: z.coerce.number().min(1, { message: "Active days must be at least 1" }),
-  applyLink: z.string().url({ message: "Please enter a valid URL" }).optional().or(z.literal('')),
 });
 
 const technologiesSchema = z.object({
@@ -79,7 +77,6 @@ const AddJobModal: React.FC<AddJobModalProps> = ({ isOpen, onClose, onSave }) =>
       type: 'Full-time',
       description: '',
       activeDays: 30,
-      applyLink: '',
     }
   });
 
@@ -304,51 +301,27 @@ const AddJobModal: React.FC<AddJobModalProps> = ({ isOpen, onClose, onSave }) =>
                   )}
                 />
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                  <FormField
-                    control={jobForm.control}
-                    name="applyLink"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="font-medium flex items-center gap-2">
-                          <LinkIcon size={16} className="text-primary-100" />
-                          Application Link
-                        </FormLabel>
-                        <FormControl>
-                          <Input 
-                            type="url" 
-                            placeholder="https://www.example.com/apply" 
-                            className="border-gray-300 focus:border-primary-100 focus:ring-primary-100"
-                            {...field} 
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={jobForm.control}
-                    name="activeDays"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="font-medium flex items-center gap-2">
-                          <CalendarIcon className="h-4 w-4 text-primary-100" />
-                          Job Active Duration (days)
-                        </FormLabel>
-                        <FormControl>
-                          <Input 
-                            type="number" 
-                            min={1} 
-                            className="border-gray-300 focus:border-primary-100 focus:ring-primary-100" 
-                            {...field} 
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
+                <FormField
+                  control={jobForm.control}
+                  name="activeDays"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="font-medium flex items-center gap-2">
+                        <CalendarIcon className="h-4 w-4 text-primary-100" />
+                        Job Active Duration (days)
+                      </FormLabel>
+                      <FormControl>
+                        <Input 
+                          type="number" 
+                          min={1} 
+                          className="border-gray-300 focus:border-primary-100 focus:ring-primary-100" 
+                          {...field} 
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
                 <DialogFooter className="pt-2">
                   <Button 

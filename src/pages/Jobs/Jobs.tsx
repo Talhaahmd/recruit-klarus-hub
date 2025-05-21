@@ -38,6 +38,7 @@ const Jobs = () => {
     setIsLoading(true);
     try {
       const fetchedJobs = await jobsService.getJobs();
+      console.log('Fetched jobs:', fetchedJobs);
       setJobs(fetchedJobs);
     } catch (error) {
       console.error('Error fetching jobs:', error);
