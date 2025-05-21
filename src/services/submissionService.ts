@@ -43,6 +43,7 @@ export const submissionService = {
   // Get job application details by cv_link_id
   getJobApplicationByCvLinkId: async (cvLinkId: string): Promise<JobApplication | null> => {
     try {
+      console.log("Fetching job application for cv_link_id:", cvLinkId);
       const { data, error } = await supabase
         .from('job_applications')
         .select('*')
@@ -50,6 +51,7 @@ export const submissionService = {
         .single();
         
       if (error) {
+        console.log("Error fetching job application:", error.message);
         if (error.code === 'PGRST116') {
           // No data found
           return null;
@@ -57,6 +59,7 @@ export const submissionService = {
         throw error;
       }
       
+      console.log("Found job application:", data);
       return data;
     } catch (err: any) {
       console.error('Error fetching job application:', err.message);
@@ -67,6 +70,7 @@ export const submissionService = {
   // Get submission by id
   getSubmissionById: async (id: string): Promise<Submission | null> => {
     try {
+      console.log("Fetching submission for id:", id);
       const { data, error } = await supabase
         .from('cv_links')
         .select('*')
@@ -74,9 +78,11 @@ export const submissionService = {
         .single();
         
       if (error) {
+        console.log("Error fetching submission:", error.message);
         throw error;
       }
       
+      console.log("Found submission:", data);
       return data;
     } catch (err: any) {
       console.error('Error fetching submission:', err.message);

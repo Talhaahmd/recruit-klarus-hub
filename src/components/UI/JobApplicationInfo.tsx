@@ -27,21 +27,30 @@ const JobApplicationInfo: React.FC<JobApplicationInfoProps> = ({ resumeUrl, cand
         const submissionId = extractSubmissionIdFromUrl(resumeUrl);
         if (!submissionId) return;
         
+        console.log("Found submission ID:", submissionId);
+        
         // Fetch the submission to get job ID
         const submission = await submissionService.getSubmissionById(submissionId);
-        if (!submission?.job_id) {
-          // Try getting the job application record
-          const jobApplication = await submissionService.getJobApplicationByCvLinkId(submissionId);
-          if (jobApplication?.job_id) {
-            const jobData = await jobsService.getJobById(jobApplication.job_id);
-            setJob(jobData);
-          }
+        console.log("Submission data:", submission);
+        
+        if (submission?.job_id) {
+          console.log("Found job_id in submission:", submission.job_id);
+          const jobData = await jobsService.getJobById(submission.job_id);
+          console.log("Job data from submission.job_id:", jobData);
+          setJob(jobData);
           return;
         }
         
-        // Fetch the job details
-        const jobData = await jobsService.getJobById(submission.job_id);
-        setJob(jobData);
+        // Try getting the job application record if submission doesn't have job_id
+        const jobApplication = await submissionService.getJobApplicationByCvLinkId(submissionId);
+        console.log("Job application data:", jobApplication);
+        
+        if (jobApplication?.job_id) {
+          console.log("Found job_id in job_application:", jobApplication.job_id);
+          const jobData = await jobsService.getJobById(jobApplication.job_id);
+          console.log("Job data from job_application.job_id:", jobData);
+          setJob(jobData);
+        }
       } catch (error) {
         console.error('Error fetching job details:', error);
       } finally {
