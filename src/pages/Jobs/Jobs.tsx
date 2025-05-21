@@ -72,6 +72,7 @@ const Jobs = () => {
         active_days: data.activeDays,
         technologies: data.technologies,
         workplace_type: data.workplaceType,
+        apply_link: data.applyLink || null,
         applicants: 0,
         user_id: user.id
       };
@@ -131,7 +132,7 @@ const Jobs = () => {
           <h2 className="text-lg font-medium">All Jobs ({jobs.length})</h2>
           <p className="text-sm text-gray-500">Manage your active and closed job postings</p>
         </div>
-        <Button onClick={handleAddJobClick} className="flex items-center gap-2">
+        <Button onClick={handleAddJobClick} className="flex items-center gap-2 bg-primary-100 hover:bg-primary-100/90">
           <PlusCircle size={16} />
           Post New Job
         </Button>

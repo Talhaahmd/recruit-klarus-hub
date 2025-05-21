@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { X } from 'lucide-react';
+import { X, Link as LinkIcon } from 'lucide-react';
 import { 
   Dialog, 
   DialogContent, 
@@ -23,8 +23,16 @@ import {
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const JOB_TYPE_OPTIONS = ['Full-time', 'Part-time', 'Contract'];
+const WORKPLACE_TYPE_OPTIONS = ['Remote', 'Hybrid', 'On-site'];
 
 const jobFormSchema = z.object({
   title: z.string().min(1, { message: "Job title is required" }),
@@ -32,7 +40,8 @@ const jobFormSchema = z.object({
   location: z.string().min(1, { message: "Job location is required" }),
   type: z.enum(['Full-time', 'Part-time', 'Contract'], { message: "Invalid job type" }),
   description: z.string().min(10, { message: "Description must be at least 10 characters" }),
-  activeDays: z.coerce.number().min(1, { message: "Active days must be at least 1" })
+  activeDays: z.coerce.number().min(1, { message: "Active days must be at least 1" }),
+  applyLink: z.string().url({ message: "Please enter a valid URL" }).optional().or(z.literal('')),
 });
 
 const technologiesSchema = z.object({
@@ -59,11 +68,12 @@ const AddJobModal: React.FC<AddJobModalProps> = ({ isOpen, onClose, onSave }) =>
     resolver: zodResolver(jobFormSchema),
     defaultValues: {
       title: '',
-      workplaceType: '',
+      workplaceType: 'Remote',
       location: '',
       type: 'Full-time',
       description: '',
       activeDays: 30,
+      applyLink: '',
     }
   });
 
@@ -104,7 +114,10 @@ const AddJobModal: React.FC<AddJobModalProps> = ({ isOpen, onClose, onSave }) =>
 
   const onSubmitSecondStep = (data: TechnologiesFormValues) => {
     if (jobData) {
-      onSave({ ...jobData, ...data });
+      onSave({ 
+        ...jobData, 
+        ...data 
+      });
       setStep(1);
       setJobData(null);
       setTags([]);
@@ -127,23 +140,23 @@ const AddJobModal: React.FC<AddJobModalProps> = ({ isOpen, onClose, onSave }) =>
       {step === 1 ? (
         <DialogContent className="sm:max-w-2xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Add New Job - Basic Details</DialogTitle>
-            <DialogDescription>
+            <DialogTitle className="text-xl font-semibold text-primary-100">Add New Job - Basic Details</DialogTitle>
+            <DialogDescription className="text-gray-500">
               Fill in the basic information about the job position.
             </DialogDescription>
           </DialogHeader>
 
           <Form {...jobForm}>
-            <form onSubmit={jobForm.handleSubmit(onSubmitFirstStep)} className="space-y-4">
+            <form onSubmit={jobForm.handleSubmit(onSubmitFirstStep)} className="space-y-5">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormField
                   control={jobForm.control}
                   name="title"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Job Title</FormLabel>
+                      <FormLabel className="font-medium">Job Title</FormLabel>
                       <FormControl>
-                        <Input placeholder="e.g. Software Engineer" {...field} />
+                        <Input placeholder="e.g. Software Engineer" className="border-gray-300" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -155,10 +168,22 @@ const AddJobModal: React.FC<AddJobModalProps> = ({ isOpen, onClose, onSave }) =>
                   name="workplaceType"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Workplace Type</FormLabel>
-                      <FormControl>
-                        <Input placeholder="e.g. Remote, Hybrid, On-site" {...field} />
-                      </FormControl>
+                      <FormLabel className="font-medium">Workplace Type</FormLabel>
+                      <Select 
+                        onValueChange={field.onChange} 
+                        defaultValue={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger className="border-gray-300">
+                            <SelectValue placeholder="Select workplace type" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {WORKPLACE_TYPE_OPTIONS.map(type => (
+                            <SelectItem key={type} value={type}>{type}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -171,9 +196,9 @@ const AddJobModal: React.FC<AddJobModalProps> = ({ isOpen, onClose, onSave }) =>
                   name="location"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Job Location</FormLabel>
+                      <FormLabel className="font-medium">Job Location</FormLabel>
                       <FormControl>
-                        <Input placeholder="e.g. New York, NY" {...field} />
+                        <Input placeholder="e.g. New York, NY" className="border-gray-300" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -185,15 +210,22 @@ const AddJobModal: React.FC<AddJobModalProps> = ({ isOpen, onClose, onSave }) =>
                   name="type"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Job Type</FormLabel>
-                      <FormControl>
-                        <select {...field} className="w-full border rounded p-2">
-                          <option value="">Select job type</option>
+                      <FormLabel className="font-medium">Job Type</FormLabel>
+                      <Select 
+                        onValueChange={field.onChange} 
+                        defaultValue={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger className="border-gray-300">
+                            <SelectValue placeholder="Select job type" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
                           {JOB_TYPE_OPTIONS.map(type => (
-                            <option key={type} value={type}>{type}</option>
+                            <SelectItem key={type} value={type}>{type}</SelectItem>
                           ))}
-                        </select>
-                      </FormControl>
+                        </SelectContent>
+                      </Select>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -205,12 +237,34 @@ const AddJobModal: React.FC<AddJobModalProps> = ({ isOpen, onClose, onSave }) =>
                 name="description"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Job Description Prompt</FormLabel>
+                    <FormLabel className="font-medium">Job Description</FormLabel>
                     <FormControl>
                       <Textarea
                         placeholder="Describe the role, responsibilities, requirements, and any screening questions."
-                        className="min-h-[150px]"
+                        className="min-h-[150px] border-gray-300"
                         {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={jobForm.control}
+                name="applyLink"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="font-medium flex items-center gap-1">
+                      <LinkIcon size={16} className="text-primary-100" />
+                      Application Link
+                    </FormLabel>
+                    <FormControl>
+                      <Input 
+                        type="url" 
+                        placeholder="https://www.example.com/apply" 
+                        className="border-gray-300"
+                        {...field} 
                       />
                     </FormControl>
                     <FormMessage />
@@ -223,18 +277,18 @@ const AddJobModal: React.FC<AddJobModalProps> = ({ isOpen, onClose, onSave }) =>
                 name="activeDays"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Job Active Duration (days)</FormLabel>
+                    <FormLabel className="font-medium">Job Active Duration (days)</FormLabel>
                     <FormControl>
-                      <Input type="number" min={1} {...field} />
+                      <Input type="number" min={1} className="border-gray-300" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
 
-              <DialogFooter>
+              <DialogFooter className="pt-2">
                 <Button type="button" variant="outline" onClick={handleClose}>Cancel</Button>
-                <Button type="submit">Next</Button>
+                <Button type="submit" className="bg-primary-100 hover:bg-primary-100/90">Next</Button>
               </DialogFooter>
             </form>
           </Form>
@@ -242,31 +296,31 @@ const AddJobModal: React.FC<AddJobModalProps> = ({ isOpen, onClose, onSave }) =>
       ) : (
         <DialogContent className="sm:max-w-2xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Add New Job - Technologies</DialogTitle>
-            <DialogDescription>
+            <DialogTitle className="text-xl font-semibold text-primary-100">Add New Job - Technologies</DialogTitle>
+            <DialogDescription className="text-gray-500">
               Specify the required technologies for this position.
             </DialogDescription>
           </DialogHeader>
 
           <Form {...technologiesForm}>
-            <form onSubmit={technologiesForm.handleSubmit(onSubmitSecondStep)} className="space-y-4">
+            <form onSubmit={technologiesForm.handleSubmit(onSubmitSecondStep)} className="space-y-5">
               <FormField
                 control={technologiesForm.control}
                 name="technologies"
                 render={() => (
                   <FormItem>
-                    <FormLabel>Required Technologies</FormLabel>
-                    <div className="space-y-2">
-                      <div className="flex flex-wrap gap-2 p-2 border rounded-md bg-background min-h-10">
+                    <FormLabel className="font-medium">Required Technologies</FormLabel>
+                    <div className="space-y-3">
+                      <div className="flex flex-wrap gap-2 p-3 border rounded-md border-gray-300 bg-background min-h-12">
                         {tags.map((tag, i) => (
                           <div
                             key={i}
-                            className="flex items-center gap-1 px-2 py-1 text-sm rounded-md bg-primary-200 text-white"
+                            className="flex items-center gap-1 px-3 py-1.5 text-sm rounded-full bg-primary-100 text-white"
                           >
                             {tag}
                             <X
                               size={14}
-                              className="cursor-pointer hover:text-red-500"
+                              className="cursor-pointer hover:text-red-200 ml-1"
                               onClick={() => handleRemoveTag(tag)}
                             />
                           </div>
@@ -278,13 +332,14 @@ const AddJobModal: React.FC<AddJobModalProps> = ({ isOpen, onClose, onSave }) =>
                           onChange={(e) => setTagInput(e.target.value)}
                           onKeyDown={handleKeyDown}
                           placeholder="Type and press Enter to add technology"
-                          className="flex-grow"
+                          className="flex-grow border-gray-300"
                         />
                         <Button
                           type="button"
                           onClick={handleAddTag}
                           variant="secondary"
                           size="sm"
+                          className="whitespace-nowrap"
                         >
                           Add
                         </Button>
@@ -295,9 +350,21 @@ const AddJobModal: React.FC<AddJobModalProps> = ({ isOpen, onClose, onSave }) =>
                 )}
               />
 
-              <DialogFooter>
-                <Button type="button" variant="outline" onClick={() => setStep(1)}>Back</Button>
-                <Button type="submit">Save Job</Button>
+              <DialogFooter className="pt-2">
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  onClick={() => setStep(1)}
+                  className="border-gray-300"
+                >
+                  Back
+                </Button>
+                <Button 
+                  type="submit" 
+                  className="bg-primary-100 hover:bg-primary-100/90"
+                >
+                  Save Job
+                </Button>
               </DialogFooter>
             </form>
           </Form>

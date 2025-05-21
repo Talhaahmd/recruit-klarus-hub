@@ -142,6 +142,7 @@ export type Database = {
         Row: {
           active_days: number
           applicants: number
+          apply_link: string | null
           created_at: string | null
           description: string
           id: string
@@ -157,6 +158,7 @@ export type Database = {
         Insert: {
           active_days?: number
           applicants?: number
+          apply_link?: string | null
           created_at?: string | null
           description: string
           id?: string
@@ -172,6 +174,7 @@ export type Database = {
         Update: {
           active_days?: number
           applicants?: number
+          apply_link?: string | null
           created_at?: string | null
           description?: string
           id?: string

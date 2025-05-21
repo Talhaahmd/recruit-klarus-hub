@@ -14,8 +14,11 @@ import {
   Calendar, 
   Briefcase, 
   Tag, 
-  Building
+  Building,
+  Link as LinkIcon,
+  ExternalLink
 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 interface JobDetailsModalProps {
   job: Job;
@@ -32,7 +35,7 @@ const JobDetailsModal: React.FC<JobDetailsModalProps> = ({ job, isOpen, onClose 
         </DialogHeader>
 
         <div className="space-y-6 pt-4">
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="flex items-center gap-2 text-sm">
               <MapPin size={16} className="text-primary-100" />
               <span className="font-medium">Location:</span> {job.location}
@@ -86,10 +89,42 @@ const JobDetailsModal: React.FC<JobDetailsModalProps> = ({ job, isOpen, onClose 
             </div>
           </div>
 
+          {job.apply_link && (
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <LinkIcon size={16} className="text-primary-100" />
+                <h3 className="text-base font-semibold">Application Link</h3>
+              </div>
+              <div className="flex items-center gap-2">
+                <a 
+                  href={job.apply_link} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-primary-100 hover:underline flex items-center gap-1 text-sm"
+                >
+                  {job.apply_link}
+                  <ExternalLink size={14} />
+                </a>
+              </div>
+            </div>
+          )}
+
           <div className="flex items-center gap-2 text-sm">
             <Calendar size={16} className="text-primary-100" />
             <span className="font-medium">Active for:</span> {job.active_days} days
           </div>
+
+          {job.apply_link && (
+            <div className="mt-4 pt-4 border-t border-gray-200 flex justify-end">
+              <Button 
+                className="bg-primary-100 hover:bg-primary-100/90"
+                onClick={() => window.open(job.apply_link, '_blank')}
+              >
+                Apply Now
+                <ExternalLink size={16} className="ml-2" />
+              </Button>
+            </div>
+          )}
         </div>
       </DialogContent>
     </Dialog>

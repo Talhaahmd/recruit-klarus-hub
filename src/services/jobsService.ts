@@ -14,6 +14,7 @@ export type Job = {
   applicants: number;
   technologies: string[];
   workplace_type: string;
+  apply_link?: string; // Added the apply_link field
   user_id?: string;
 };
 
