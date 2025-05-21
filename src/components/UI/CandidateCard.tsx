@@ -27,6 +27,12 @@ const CandidateCard: React.FC<CandidateCardProps> = ({
     onView(candidate.id);
   };
 
+  const handleDelete = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    // Use an empty string if job_id is undefined
+    onDelete(candidate.id);
+  };
+
   const getAnalysisColor = (score: number) => {
     if (score >= 8) return 'bg-green-100 text-green-800';
     if (score >= 5) return 'bg-yellow-100 text-yellow-800';
@@ -71,10 +77,7 @@ const CandidateCard: React.FC<CandidateCardProps> = ({
             <Edit size={15} className="text-gray-500" />
           </Button>
           <Button 
-            onClick={(e) => {
-              e.stopPropagation();
-              onDelete(candidate.id);
-            }}
+            onClick={handleDelete}
             variant="ghost"
             size="icon"
             className="h-8 w-8"

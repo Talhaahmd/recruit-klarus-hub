@@ -4,7 +4,7 @@ import { toast } from 'sonner';
 
 export type Candidate = {
   id: string;
-  job_id: string;
+  job_id?: string;
   name: string;
   email: string;
   phone: string;
@@ -163,20 +163,20 @@ export const candidatesService = {
       
       const candidateData = {
         user_id: user.id,
-        job_id: candidate.job_id,
+        job_id: candidate.job_id || null,
         full_name: candidate.name,
         email: candidate.email,
         phone: candidate.phone,
-        resume_url: candidate.resume_url || '',
+        resume_url: candidate.resume_url || null,
         timestamp: new Date().toISOString(),
-        status: candidate.status,
-        ai_summary: candidate.notes || '',
+        status: candidate.status || 'Screening',
+        ai_summary: candidate.notes || null,
         ai_rating: candidate.rating || 0,
-        location: candidate.location || '',
-        skills: candidate.skills || '',
-        current_job_title: candidate.current_job_title || '',
-        experience_level: candidate.experience_level || '',
-        linkedin: candidate.linkedin || ''
+        location: candidate.location || null,
+        skills: candidate.skills || null,
+        current_job_title: candidate.current_job_title || null,
+        experience_level: candidate.experience_level || null,
+        linkedin: candidate.linkedin || null
       };
       
       const { data, error } = await supabase
@@ -301,7 +301,9 @@ export const candidatesService = {
       }
       
       // Decrement the job's applicant count
-      await supabase.rpc('decrement_job_applicants', { job_id: jobId });
+      if (jobId) {
+        await supabase.rpc('decrement_job_applicants', { job_id: jobId });
+      }
       
       toast.success('Candidate deleted successfully');
       return true;
