@@ -29,7 +29,6 @@ const CandidateCard: React.FC<CandidateCardProps> = ({
 
   const handleDelete = (e: React.MouseEvent) => {
     e.stopPropagation();
-    // Use an empty string if job_id is undefined
     onDelete(candidate.id);
   };
 
@@ -46,7 +45,7 @@ const CandidateCard: React.FC<CandidateCardProps> = ({
     >
       <div className="flex justify-between items-start">
         <div>
-          <h3 className="font-semibold text-text-100 truncate max-w-[200px]">{candidate.name}</h3>
+          <h3 className="font-semibold text-text-100 truncate max-w-[200px]">{candidate.name || candidate.full_name}</h3>
           <p className="text-sm text-text-200 mt-1 flex items-center gap-1 truncate max-w-[180px]">
             {candidate.current_job_title || jobTitle}
           </p>

@@ -9,13 +9,15 @@ import {
   CheckCircle, 
   Clock,
   ArrowUpRight,
-  Loader2
+  Loader2,
+  Upload
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { jobsService } from '@/services/jobsService';
 import { candidatesService } from '@/services/candidatesService';
 import { Job } from '@/services/jobsService';
 import { Candidate } from '@/services/candidatesService';
+import { Button } from '@/components/ui/button';
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
@@ -116,6 +118,16 @@ const Dashboard: React.FC = () => {
         title="Dashboard" 
         subtitle="Welcome back! Here's an overview of your hiring activities."
       />
+      
+      <div className="flex justify-end mb-6">
+        <Button 
+          onClick={() => navigate('/submission')}
+          className="flex items-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-white"
+        >
+          <Upload size={16} />
+          View Submissions
+        </Button>
+      </div>
       
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         {statCards.map((card, index) => (

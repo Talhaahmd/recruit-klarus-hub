@@ -14,9 +14,7 @@ import {
   Calendar, 
   Briefcase, 
   Tag, 
-  Building,
-  Link as LinkIcon,
-  ExternalLink
+  Building
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -136,40 +134,17 @@ const JobDetailsModal: React.FC<JobDetailsModalProps> = ({ job, isOpen, onClose 
               <h3 className="text-base font-semibold mb-3">Job Description</h3>
               <p className="text-sm text-gray-700 whitespace-pre-line">{job.description}</p>
             </div>
-            
-            {job.apply_link && (
-              <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-                <div className="flex items-center gap-2 mb-2">
-                  <LinkIcon size={18} className="text-primary-100" />
-                  <h3 className="font-medium">Application Link</h3>
-                </div>
-                <div className="flex items-center gap-2">
-                  <a 
-                    href={job.apply_link} 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="text-primary-100 hover:underline flex items-center gap-1 text-sm"
-                  >
-                    {job.apply_link}
-                    <ExternalLink size={14} />
-                  </a>
-                </div>
-              </div>
-            )}
           </TabsContent>
         </Tabs>
 
-        {job.apply_link && (
-          <div className="mt-6 pt-4 border-t border-gray-200 flex justify-end">
-            <Button 
-              className="bg-primary-100 hover:bg-primary-100/90 flex items-center gap-2"
-              onClick={() => window.open(job.apply_link, '_blank')}
-            >
-              Apply Now
-              <ExternalLink size={16} />
-            </Button>
-          </div>
-        )}
+        <div className="mt-6 pt-4 border-t border-gray-200 flex justify-end">
+          <Button 
+            className="bg-primary-100 hover:bg-primary-100/90 flex items-center gap-2"
+            onClick={() => window.open("/submission", '_blank')}
+          >
+            Apply Now
+          </Button>
+        </div>
       </DialogContent>
     </Dialog>
   );

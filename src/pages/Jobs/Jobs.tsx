@@ -72,7 +72,6 @@ const Jobs = () => {
         active_days: data.activeDays,
         technologies: data.technologies,
         workplace_type: data.workplaceType,
-        apply_link: data.applyLink || null,
         applicants: 0,
         user_id: user.id
       };

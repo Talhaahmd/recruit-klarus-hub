@@ -6,10 +6,10 @@ export type CVSubmission = {
   id: string;
   file_name: string;
   file_url: string;
-  file_type?: string;
-  file_size?: number;
+  file_size: number;
+  file_type: string;
+  status: 'new' | 'reviewed' | 'contacted' | 'rejected' | string;
   created_at: string;
-  status: "new" | "reviewed" | "contacted" | "rejected";
 };
 
 export const submissionService = {
@@ -25,17 +25,8 @@ export const submissionService = {
         throw error;
       }
       
-      const submissions: CVSubmission[] = data.map(submission => ({
-        id: submission.id,
-        file_name: submission.file_name,
-        file_url: submission.file_url,
-        file_type: submission.file_type || '',
-        file_size: submission.file_size || 0,
-        created_at: submission.created_at || new Date().toISOString(),
-        status: (submission.status || 'new') as "new" | "reviewed" | "contacted" | "rejected"
-      }));
-      
-      return submissions;
+      // Type assertion to ensure the data matches our CVSubmission type
+      return data as CVSubmission[];
     } catch (err: any) {
       console.error('Error fetching CV submissions:', err.message);
       toast.error('Failed to load CV submissions');
@@ -43,7 +34,7 @@ export const submissionService = {
     }
   },
   
-  // Get a CV submission by ID
+  // Get a single submission by ID
   getSubmissionById: async (id: string): Promise<CVSubmission | null> => {
     try {
       const { data, error } = await supabase
@@ -56,17 +47,8 @@ export const submissionService = {
         throw error;
       }
       
-      const submission: CVSubmission = {
-        id: data.id,
-        file_name: data.file_name,
-        file_url: data.file_url,
-        file_type: data.file_type || '',
-        file_size: data.file_size || 0,
-        created_at: data.created_at || new Date().toISOString(),
-        status: (data.status || 'new') as "new" | "reviewed" | "contacted" | "rejected"
-      };
-      
-      return submission;
+      // Type assertion to match our CVSubmission type
+      return data as CVSubmission;
     } catch (err: any) {
       console.error('Error fetching CV submission:', err.message);
       toast.error('Failed to load CV submission');
@@ -74,20 +56,13 @@ export const submissionService = {
     }
   },
   
-  // Create a new CV submission
-  createSubmission: async (file: File, fileUrl: string): Promise<CVSubmission | null> => {
+  // Update a CV submission status
+  updateSubmissionStatus: async (id: string, status: string): Promise<CVSubmission | null> => {
     try {
-      const submission = {
-        file_name: file.name,
-        file_url: fileUrl,
-        file_type: file.type,
-        file_size: file.size,
-        status: 'new'
-      };
-      
       const { data, error } = await supabase
         .from('cv_links')
-        .insert([submission])
+        .update({ status })
+        .eq('id', id)
         .select()
         .single();
         
@@ -95,48 +70,39 @@ export const submissionService = {
         throw error;
       }
       
-      const newSubmission: CVSubmission = {
-        id: data.id,
-        file_name: data.file_name,
-        file_url: data.file_url,
-        file_type: data.file_type || '',
-        file_size: data.file_size || 0,
-        created_at: data.created_at || new Date().toISOString(),
-        status: (data.status || 'new') as "new" | "reviewed" | "contacted" | "rejected"
-      };
-      
-      return newSubmission;
+      toast.success(`Submission status updated to ${status}`);
+      // Type assertion to match our CVSubmission type
+      return data as CVSubmission;
     } catch (err: any) {
-      console.error('Error creating CV submission:', err.message);
-      toast.error('Failed to create CV submission');
+      console.error('Error updating CV submission:', err.message);
+      toast.error('Failed to update submission status');
       return null;
-    }
-  },
-  
-  // Update the status of a CV submission
-  updateSubmissionStatus: async (id: string, status: "new" | "reviewed" | "contacted" | "rejected"): Promise<boolean> => {
-    try {
-      const { error } = await supabase
-        .from('cv_links')
-        .update({ status })
-        .eq('id', id);
-        
-      if (error) {
-        throw error;
-      }
-      
-      toast.success('CV submission status updated');
-      return true;
-    } catch (err: any) {
-      console.error('Error updating CV submission status:', err.message);
-      toast.error('Failed to update CV submission status');
-      return false;
     }
   },
   
   // Delete a CV submission
   deleteSubmission: async (id: string): Promise<boolean> => {
     try {
+      // First get the file path
+      const { data: submission } = await supabase
+        .from('cv_links')
+        .select('file_url')
+        .eq('id', id)
+        .single();
+      
+      if (submission) {
+        // Try to extract the file path from the URL
+        const url = new URL(submission.file_url);
+        const pathMatch = url.pathname.match(/\/storage\/v1\/object\/public\/candidate-files\/(.+)$/);
+        
+        if (pathMatch && pathMatch[1]) {
+          const filePath = pathMatch[1];
+          // Delete the file from storage
+          await supabase.storage.from('candidate-files').remove([filePath]);
+        }
+      }
+      
+      // Delete the database record
       const { error } = await supabase
         .from('cv_links')
         .delete()
@@ -146,7 +112,7 @@ export const submissionService = {
         throw error;
       }
       
-      toast.success('CV submission deleted');
+      toast.success('CV submission deleted successfully');
       return true;
     } catch (err: any) {
       console.error('Error deleting CV submission:', err.message);
