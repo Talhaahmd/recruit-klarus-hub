@@ -76,9 +76,7 @@ const CVSubmission = () => {
         .from('candidate-files')
         .upload(filePath, file);
 
-      if (error) {
-        throw error;
-      }
+      if (error) throw error;
 
       const { data: urlData } = supabase
         .storage
@@ -100,24 +98,25 @@ const CVSubmission = () => {
         .select()
         .single();
 
-      if (insertError) {
-        throw insertError;
-      }
+      if (insertError) throw insertError;
 
-      // ✅ INSERT INTO job_applications WITH public link
+      // Get job title from selected ID
+      const selectedJob = jobs.find(job => job.id === selectedJobId);
+      const jobName = selectedJob ? selectedJob.title : 'Unknown Job';
+
+      // Insert job application including job_name and link_for_cv
       const { error: applicationError } = await supabase
         .from('job_applications')
         .insert([
           {
             cv_link_id: cvLinkData.id,
             job_id: selectedJobId,
-            link_for_cv: urlData.publicUrl // ✅ new field added here
+            link_for_cv: urlData.publicUrl,
+            job_name: jobName
           }
         ]);
 
-      if (applicationError) {
-        throw applicationError;
-      }
+      if (applicationError) throw applicationError;
 
       toast.success('Your CV has been successfully uploaded');
       setUploadComplete(true);
@@ -176,8 +175,7 @@ const CVSubmission = () => {
             {/* CV Upload Area */}
             <div 
               onClick={() => document.getElementById('cv-upload')?.click()}
-              className={`
-                border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-all
+              className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-all
                 ${file ? 'bg-primary-100/10 border-primary-100' : 'hover:bg-slate-50 hover:border-primary-100/50'}
               `}
             >
