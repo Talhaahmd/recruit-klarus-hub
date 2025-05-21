@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Header } from '@/components/Layout/MainLayout';
@@ -99,9 +98,9 @@ const Candidates: React.FC = () => {
     toast.info(`Edit candidate with ID: ${id}`);
   };
 
-  const handleDelete = async (id: string, jobId: string) => {
+  const handleDelete = async (id: string) => {
     try {
-      const success = await candidatesService.deleteCandidate(id, jobId);
+      const success = await candidatesService.deleteCandidate(id);
       if (success) {
         setCandidates(candidates.filter(c => c.id !== id));
         toast.success('Candidate deleted successfully');
@@ -362,18 +361,19 @@ const Candidates: React.FC = () => {
         </div>
       ) : viewMode === 'grid' ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredCandidates.map(candidate => (
+            <CandidateCard
+              key={candidate.id}
+              candidate={candidate}
+              onEdit={handleEdit}
+              onDelete={handleDelete}
+              onView={() => handleView(candidate.id)}
+              onEmail={() => handleEmail(candidate.email)}
+              jobTitle={candidate.current_job_title || "Candidate"}
+            />
+          ))}
           {filteredCandidates.length > 0 ? (
-            filteredCandidates.map(candidate => (
-              <CandidateCard
-                key={candidate.id}
-                candidate={candidate}
-                onEdit={handleEdit}
-                onDelete={() => handleDelete(candidate.id, candidate.job_id)}
-                onView={() => handleView(candidate.id)}
-                onEmail={() => handleEmail(candidate.email)}
-                jobTitle={candidate.current_job_title || "Candidate"}
-              />
-            ))
+            null
           ) : (
             <div className="col-span-full text-center py-10">
               <div className="text-4xl mb-4 opacity-30">🔍</div>
@@ -417,7 +417,7 @@ const Candidates: React.FC = () => {
                         <Button size="icon" variant="ghost" onClick={() => handleEdit(candidate.id)} title="Edit">
                           <Edit size={16} className="text-gray-500" />
                         </Button>
-                        <Button size="icon" variant="ghost" onClick={() => handleDelete(candidate.id, candidate.job_id)} title="Delete">
+                        <Button size="icon" variant="ghost" onClick={() => handleDelete(candidate.id)} title="Delete">
                           <Trash2 size={16} className="text-gray-500" />
                         </Button>
                       </div>

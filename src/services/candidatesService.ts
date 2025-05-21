@@ -67,13 +67,13 @@ export const candidatesService = {
         name: item.full_name,
         email: item.email,
         phone: item.phone,
-        resume_url: item.resume_url,
+        resume_url: item.resume_url || undefined,
         applied_date: item.timestamp,
-        status: item.status,
-        notes: item.notes,
+        status: item.status || undefined,
+        notes: item.notes || undefined,
         rating: item.ai_rating || 0,
-        user_id: item.user_id,
-        job_id: item.job_id,
+        user_id: item.user_id || undefined,
+        job_id: item.job_id || undefined,
         ai_rating: item.ai_rating,
         ai_summary: item.ai_summary,
         ai_content: item.ai_content,
@@ -122,13 +122,13 @@ export const candidatesService = {
           name: data.full_name,
           email: data.email,
           phone: data.phone,
-          resume_url: data.resume_url,
+          resume_url: data.resume_url || undefined,
           applied_date: data.timestamp,
-          status: data.status,
-          notes: data.notes,
+          status: data.status || undefined,
+          notes: data.notes || undefined,
           rating: data.ai_rating || 0,
-          user_id: data.user_id,
-          job_id: data.job_id,
+          user_id: data.user_id || undefined,
+          job_id: data.job_id || undefined,
           ai_rating: data.ai_rating,
           ai_summary: data.ai_summary,
           ai_content: data.ai_content,
@@ -223,13 +223,13 @@ export const candidatesService = {
           name: data.full_name,
           email: data.email,
           phone: data.phone,
-          resume_url: data.resume_url,
+          resume_url: data.resume_url || undefined,
           applied_date: data.timestamp,
-          status: data.status,
-          notes: data.notes,
+          status: data.status || undefined,
+          notes: data.notes || undefined,
           rating: data.ai_rating || 0,
-          user_id: data.user_id,
-          job_id: data.job_id,
+          user_id: data.user_id || undefined,
+          job_id: data.job_id || undefined,
           ai_rating: data.ai_rating,
           ai_summary: data.ai_summary,
           ai_content: data.ai_content,
@@ -337,13 +337,13 @@ export const candidatesService = {
           name: data.full_name,
           email: data.email,
           phone: data.phone,
-          resume_url: data.resume_url,
+          resume_url: data.resume_url || undefined,
           applied_date: data.timestamp,
-          status: data.status,
-          notes: data.notes,
+          status: data.status || undefined,
+          notes: data.notes || undefined,
           rating: data.ai_rating || 0,
-          user_id: data.user_id,
-          job_id: data.job_id,
+          user_id: data.user_id || undefined,
+          job_id: data.job_id || undefined,
           ai_rating: data.ai_rating,
           ai_summary: data.ai_summary,
           ai_content: data.ai_content,
@@ -381,7 +381,7 @@ export const candidatesService = {
       // Get the candidate first to get the job_id if any
       const { data: candidate } = await supabase
         .from('candidates')
-        .select('job_id')
+        .select('*')
         .eq('id', id)
         .single();
         
@@ -405,6 +405,31 @@ export const candidatesService = {
       console.error('Error deleting candidate:', err.message);
       toast.error('Failed to delete candidate');
       return false;
+    }
+  },
+
+  // Upload resume file
+  uploadResume: async (file: File): Promise<string | null> => {
+    try {
+      const fileName = `${Date.now()}-${file.name}`;
+      const { data, error } = await supabase.storage
+        .from('resumes')
+        .upload(fileName, file);
+        
+      if (error) {
+        throw error;
+      }
+
+      // Get the public URL for the file
+      const { data: { publicUrl } } = supabase.storage
+        .from('resumes')
+        .getPublicUrl(data.path);
+      
+      return publicUrl;
+    } catch (err: any) {
+      console.error('Error uploading resume:', err.message);
+      toast.error('Failed to upload resume');
+      return null;
     }
   }
 };
