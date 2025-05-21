@@ -25,6 +25,7 @@ export type Interview = {
   id: string;
   candidate_id: string;
   interview_date: string;
+  interview_time?: string | null;
   interview_notes?: string;
   email_sent: boolean;
   created_at: string;
@@ -184,7 +185,8 @@ export const submissionService = {
   // Schedule an interview
   scheduleInterview: async (
     candidateId: string, 
-    interviewDate: Date, 
+    interviewDate: Date,
+    interviewTime: string,
     notes?: string, 
     candidateName?: string,
     candidateEmail?: string,
@@ -196,6 +198,7 @@ export const submissionService = {
         .insert({
           candidate_id: candidateId,
           interview_date: interviewDate.toISOString(),
+          interview_time: interviewTime,
           interview_notes: notes || null,
           email_sent: true,
           candidate_name: candidateName || null,

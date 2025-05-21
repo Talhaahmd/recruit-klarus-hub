@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Candidate } from '@/services/candidatesService';
 import { Mail, Phone, Edit, Trash2, MapPin, Star, Briefcase } from 'lucide-react';
@@ -139,7 +138,7 @@ const CandidateCard: React.FC<CandidateCardProps> = ({
               variant="ghost"
               size="icon"
               className="h-8 w-8"
-              title="Email"
+              title="Schedule Interview"
             >
               <Mail size={15} className="text-gray-500" />
             </Button>

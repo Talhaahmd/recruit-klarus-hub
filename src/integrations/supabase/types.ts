@@ -52,6 +52,7 @@ export type Database = {
           id: string
           interview_date: string
           interview_notes: string | null
+          interview_time: string | null
           job_name: string | null
         }
         Insert: {
@@ -63,6 +64,7 @@ export type Database = {
           id?: string
           interview_date: string
           interview_notes?: string | null
+          interview_time?: string | null
           job_name?: string | null
         }
         Update: {
@@ -74,6 +76,7 @@ export type Database = {
           id?: string
           interview_date?: string
           interview_notes?: string | null
+          interview_time?: string | null
           job_name?: string | null
         }
         Relationships: [
