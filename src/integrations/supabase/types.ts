@@ -44,46 +44,76 @@ export type Database = {
       }
       candidates: {
         Row: {
-          applied_date: string | null
-          created_at: string | null
-          email: string
+          ai_content: string | null
+          ai_rating: number | null
+          ai_summary: string | null
+          certifications: string | null
+          companies: string | null
+          current_job_title: string | null
+          degrees: string | null
+          email: string | null
+          experience_level: string | null
+          full_name: string | null
+          graduation_years: string | null
           id: string
-          job_id: string | null
-          name: string
-          notes: string | null
-          phone: string
-          rating: number
-          resume_url: string | null
-          status: string | null
-          user_id: string | null
+          institutions: string | null
+          job_titles: string | null
+          linkedin: string | null
+          location: string | null
+          phone: string | null
+          skills: string | null
+          source: string | null
+          suitable_role: string | null
+          timestamp: string | null
+          years_experience: string | null
         }
         Insert: {
-          applied_date?: string | null
-          created_at?: string | null
-          email: string
+          ai_content?: string | null
+          ai_rating?: number | null
+          ai_summary?: string | null
+          certifications?: string | null
+          companies?: string | null
+          current_job_title?: string | null
+          degrees?: string | null
+          email?: string | null
+          experience_level?: string | null
+          full_name?: string | null
+          graduation_years?: string | null
           id?: string
-          job_id?: string | null
-          name: string
-          notes?: string | null
-          phone: string
-          rating: number
-          resume_url?: string | null
-          status?: string | null
-          user_id?: string | null
+          institutions?: string | null
+          job_titles?: string | null
+          linkedin?: string | null
+          location?: string | null
+          phone?: string | null
+          skills?: string | null
+          source?: string | null
+          suitable_role?: string | null
+          timestamp?: string | null
+          years_experience?: string | null
         }
         Update: {
-          applied_date?: string | null
-          created_at?: string | null
-          email?: string
+          ai_content?: string | null
+          ai_rating?: number | null
+          ai_summary?: string | null
+          certifications?: string | null
+          companies?: string | null
+          current_job_title?: string | null
+          degrees?: string | null
+          email?: string | null
+          experience_level?: string | null
+          full_name?: string | null
+          graduation_years?: string | null
           id?: string
-          job_id?: string | null
-          name?: string
-          notes?: string | null
-          phone?: string
-          rating?: number
-          resume_url?: string | null
-          status?: string | null
-          user_id?: string | null
+          institutions?: string | null
+          job_titles?: string | null
+          linkedin?: string | null
+          location?: string | null
+          phone?: string | null
+          skills?: string | null
+          source?: string | null
+          suitable_role?: string | null
+          timestamp?: string | null
+          years_experience?: string | null
         }
         Relationships: []
       }

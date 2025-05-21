@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Header } from '@/components/Layout/MainLayout';
@@ -14,10 +15,11 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Candidate, candidatesService } from '@/services/candidatesService';
 
 const Candidates: React.FC = () => {
   const navigate = useNavigate();
-  const [candidates, setCandidates] = useState<any[]>([]);
+  const [candidates, setCandidates] = useState<Candidate[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [analysisFilter, setAnalysisFilter] = useState<number | null>(null);
@@ -38,12 +40,16 @@ const Candidates: React.FC = () => {
       } else if (data) {
         const formatted = data.map(c => ({
           id: c.id,
-          name: c.full_name,
-          email: c.email,
-          phone: c.phone,
-          rating: c.ai_rating || 0,
-          education: c.degrees,
-          summary: c.ai_summary || '',
+          job_id: c.job_id || '00000000-0000-0000-0000-000000000000', // Default job_id
+          name: c.full_name || '',
+          email: c.email || '',
+          phone: c.phone || '',
+          rating: c.ai_rating || c.rating || 0,
+          resume_url: '',
+          applied_date: new Date().toISOString().split('T')[0], // Today's date as default
+          status: 'Screening',
+          notes: c.ai_summary || '',
+          user_id: '', // This field might need to be populated differently
         }));
         setCandidates(formatted);
       }
@@ -66,6 +72,13 @@ const Candidates: React.FC = () => {
   };
 
   const handleDelete = async (id: string) => {
+    // Get the candidate to find the job_id
+    const candidate = candidates.find(c => c.id === id);
+    if (!candidate) {
+      toast.error('Candidate not found');
+      return;
+    }
+
     const { error } = await supabase.from('candidates').delete().eq('id', id);
     if (error) {
       toast.error('Failed to delete candidate');
@@ -151,14 +164,7 @@ const Candidates: React.FC = () => {
           {filteredCandidates.map(candidate => (
             <CandidateCard
               key={candidate.id}
-              candidate={{
-                id: candidate.id,
-                name: candidate.name,
-                email: candidate.email,
-                phone: candidate.phone,
-                rating: candidate.rating,
-                summary: candidate.summary,
-              }}
+              candidate={candidate}
               onEdit={handleEdit}
               onDelete={() => handleDelete(candidate.id)}
               onView={() => handleView(candidate.id)}
@@ -175,7 +181,7 @@ const Candidates: React.FC = () => {
                 <TableHead>Name</TableHead>
                 <TableHead>Email</TableHead>
                 <TableHead>Phone</TableHead>
-                <TableHead>Education</TableHead>
+                <TableHead>Status</TableHead>
                 <TableHead>Rating</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
@@ -186,7 +192,7 @@ const Candidates: React.FC = () => {
                   <TableCell>{candidate.name}</TableCell>
                   <TableCell>{candidate.email}</TableCell>
                   <TableCell>{candidate.phone}</TableCell>
-                  <TableCell>{candidate.education}</TableCell>
+                  <TableCell>{candidate.status}</TableCell>
                   <TableCell>
                     <span className={`inline-block px-2 py-1 text-xs rounded-full ${getAnalysisColor(candidate.rating)}`}>
                       {candidate.rating}/10
