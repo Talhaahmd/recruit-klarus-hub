@@ -1,5 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { calendarService, CalendarEvent } from '@/services/calendarService';
 import { candidatesService, CandidateInput } from '@/services/candidatesService';
@@ -14,37 +15,30 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
 import { format } from "date-fns"
-// Rename the import to prevent naming conflict
 import { Calendar as CalendarUI } from "@/components/ui/calendar"
-import { useForm } from "react-hook-form";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-
-interface CandidateFormValues {
-  firstName: string;
-  lastName: string;
-  email: string;
-  phone: string;
-  location?: string;
-  currentJobTitle?: string;
-  skills?: string;
-  experienceLevel?: string;
-  linkedin?: string;
-  reset?: () => void;
-}
+import { 
+  ContextMenu,
+  ContextMenuContent,
+  ContextMenuItem,
+  ContextMenuTrigger,
+} from "@/components/ui/context-menu"
+import { Calendar as CalendarIcon, Briefcase, UserPlus, Linkedin, Plus } from "lucide-react"
+import AddCandidateModal from '@/components/UI/AddCandidateModal';
+import { JobsComponents } from '@/components/UI/JobsComponents/AddJobModal';
+import { InterviewScheduleModal } from '@/components/UI/EmailActionsModals';
+import { cn } from '@/lib/utils';
 
 const CalendarPage = () => {
+  const navigate = useNavigate();
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
-  const [date, setDate] = useState<Date | undefined>();
-  const [range, setRange] = useState<Date | undefined>();
-
-  const { register, handleSubmit, reset, formState: { errors } } = useForm<CandidateFormValues>();
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [actionMenuOpen, setActionMenuOpen] = useState(false);
+  const [showJobModal, setShowJobModal] = useState(false);
+  const [showCandidateModal, setShowCandidateModal] = useState(false);
+  const [showInterviewModal, setShowInterviewModal] = useState(false);
 
   useEffect(() => {
     refetchEvents();
@@ -64,168 +58,171 @@ const CalendarPage = () => {
   };
 
   const handleDateClick = (arg: any) => {
-    setDate(arg.date);
-    setIsModalOpen(true);
+    setSelectedDate(arg.date);
+    setActionMenuOpen(true);
   };
 
-  const closeModal = () => {
-    setIsModalOpen(false);
-    setSelectedEvent(null);
+  const handleAddJob = () => {
+    setShowJobModal(true);
+    setActionMenuOpen(false);
   };
 
-  const onSubmit = async (formData: CandidateFormValues) => {
-    await createCandidate(formData);
+  const handleAddCandidate = () => {
+    setShowCandidateModal(true);
+    setActionMenuOpen(false);
   };
 
-  const createCandidate = async (formData: any) => {
-    try {
-      // Create a complete candidate object with all required properties
-      const candidateData: CandidateInput = {
-        full_name: `${formData.firstName} ${formData.lastName}`,
-        email: formData.email,
-        phone: formData.phone,
-        location: formData.location || '',
-        current_job_title: formData.currentJobTitle || '',
-        skills: formData.skills || '',
-        experience_level: formData.experienceLevel || '',
-        linkedin: formData.linkedin || '',
-        source: 'Calendar',
-        // Add all the required properties with default values
-        years_experience: '',
-        certifications: '',
-        companies: '',
-        job_titles: '',
-        degrees: '',
-        graduation_years: '',
-        institutions: '',
-        ai_rating: 0,
-        ai_content: '',
-        ai_summary: '',
-        suitable_role: '',
-        name: `${formData.firstName} ${formData.lastName}`,
-        rating: 0,
-        notes: '',
-        status: 'New',
-        applied_date: new Date().toISOString(),
-        resume_url: ''
-      };
+  const handleScheduleInterview = () => {
+    setShowInterviewModal(true);
+    setActionMenuOpen(false);
+  };
 
-      const savedCandidate = await candidatesService.createCandidate(candidateData);
-      
-      if (savedCandidate) {
-        toast.success('Candidate created successfully');
-        // Reset form and close modal
-        reset();
-        closeModal();
-      }
-    } catch (error) {
-      console.error('Error creating candidate:', error);
-      toast.error('Failed to create candidate');
-    }
+  const handlePostLinkedin = () => {
+    navigate('/build-profile');
+  };
+
+  const closeModals = () => {
+    setShowJobModal(false);
+    setShowCandidateModal(false);
+    setShowInterviewModal(false);
   };
 
   return (
     <div className="container mx-auto p-6">
-      <h1 className="text-3xl font-bold mb-6">Calendar</h1>
+      <div className="mb-6">
+        <h1 className="text-3xl font-bold">Calendar</h1>
+        <p className="text-muted-foreground mt-2">
+          Manage your recruitment activities and events
+        </p>
+      </div>
 
-      <FullCalendar
-        plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
-        initialView="dayGridMonth"
-        headerToolbar={{
-          left: 'prev,next today',
-          center: 'title',
-          right: 'dayGridMonth,timeGridWeek,timeGridDay'
-        }}
-        weekends={true}
-        events={events.map(event => ({
-          id: event.id,
-          title: event.title,
-          start: event.startDate,
-          end: event.endDate,
-        }))}
-        dateClick={handleDateClick}
-      />
+      <div className="bg-white p-6 rounded-lg shadow-sm border">
+        <ContextMenu open={actionMenuOpen} onOpenChange={setActionMenuOpen}>
+          <ContextMenuTrigger>
+            <FullCalendar
+              plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
+              initialView="dayGridMonth"
+              headerToolbar={{
+                left: 'prev,next today',
+                center: 'title',
+                right: 'dayGridMonth,timeGridWeek,timeGridDay'
+              }}
+              height="auto"
+              aspectRatio={1.8}
+              weekends={true}
+              events={events.map(event => ({
+                id: event.id,
+                title: event.title,
+                start: event.startDate,
+                end: event.endDate,
+                backgroundColor: '#0077C2',
+                borderColor: '#0077C2'
+              }))}
+              dateClick={handleDateClick}
+              eventContent={(eventInfo) => {
+                return (
+                  <div className="p-1 text-xs">
+                    <div className="font-semibold">{eventInfo.event.title}</div>
+                    <div>{format(eventInfo.event.start!, 'h:mm a')}</div>
+                  </div>
+                );
+              }}
+              dayCellContent={(info) => {
+                return (
+                  <div className="flex flex-col h-full">
+                    <span className="text-sm font-medium">{info.dayNumberText}</span>
+                  </div>
+                );
+              }}
+              dayHeaderContent={(info) => {
+                return (
+                  <div className="text-xs font-semibold p-1">
+                    {info.text}
+                  </div>
+                );
+              }}
+            />
+          </ContextMenuTrigger>
+          <ContextMenuContent className="w-56 bg-white shadow-lg rounded-md border z-50">
+            {selectedDate && (
+              <div className="px-2 py-1.5 text-sm font-medium text-muted-foreground border-b mb-1">
+                {format(selectedDate, 'EEEE, MMMM d, yyyy')}
+              </div>
+            )}
+            <ContextMenuItem 
+              onClick={handleAddJob}
+              className="flex items-center cursor-pointer"
+            >
+              <BriefCase className="mr-2 h-4 w-4" />
+              <span>Add Job</span>
+            </ContextMenuItem>
+            <ContextMenuItem 
+              onClick={handleAddCandidate}
+              className="flex items-center cursor-pointer"
+            >
+              <UserPlus className="mr-2 h-4 w-4" />
+              <span>Add Candidate</span>
+            </ContextMenuItem>
+            <ContextMenuItem 
+              onClick={handleScheduleInterview}
+              className="flex items-center cursor-pointer"
+            >
+              <CalendarIcon className="mr-2 h-4 w-4" />
+              <span>Schedule Interview</span>
+            </ContextMenuItem>
+            <ContextMenuItem 
+              onClick={handlePostLinkedin}
+              className="flex items-center cursor-pointer"
+            >
+              <Linkedin className="mr-2 h-4 w-4" />
+              <span>Post on LinkedIn</span>
+            </ContextMenuItem>
+          </ContextMenuContent>
+        </ContextMenu>
+      </div>
 
-      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="sm:max-w-[425px]">
-          <DialogHeader>
-            <DialogTitle>Add Candidate</DialogTitle>
-            <DialogDescription>
-              {date ? format(date, "PPP") : 'No date selected'}
-            </DialogDescription>
-          </DialogHeader>
-          <form onSubmit={handleSubmit(onSubmit)} className="grid gap-4 py-4">
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="firstName" className="text-right">
-                First Name
-              </Label>
-              <Input id="firstName"  className="col-span-3" {...register("firstName", { required: true })} />
+      {/* Job Modal */}
+      {showJobModal && (
+        <JobsComponents.AddJobModal 
+          open={showJobModal} 
+          onClose={closeModals} 
+          onSuccess={() => {
+            closeModals();
+            toast.success('Job added successfully');
+          }} 
+        />
+      )}
+
+      {/* Candidate Modal */}
+      {showCandidateModal && (
+        <AddCandidateModal 
+          open={showCandidateModal} 
+          onClose={closeModals} 
+          onSuccess={() => {
+            closeModals();
+            toast.success('Candidate added successfully');
+          }} 
+        />
+      )}
+
+      {/* Interview Schedule Modal - This is a placeholder since we don't have candidate data yet */}
+      {showInterviewModal && (
+        <Dialog open={showInterviewModal} onOpenChange={setShowInterviewModal}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>Schedule an Interview</DialogTitle>
+              <DialogDescription>
+                Please select a candidate from the candidates page to schedule an interview.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="flex justify-end mt-6">
+              <Button onClick={() => navigate('/candidates')}>
+                Go to Candidates
+              </Button>
             </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="lastName" className="text-right">
-                Last Name
-              </Label>
-              <Input id="lastName"  className="col-span-3" {...register("lastName", { required: true })} />
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="email" className="text-right">
-                Email
-              </Label>
-              <Input id="email" type="email" className="col-span-3" {...register("email", { required: true })} />
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="phone" className="text-right">
-                Phone
-              </Label>
-              <Input id="phone" type="tel" className="col-span-3" {...register("phone", { required: true })} />
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="location" className="text-right">
-                Location
-              </Label>
-              <Input id="location" className="col-span-3" {...register("location")} />
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="currentJobTitle" className="text-right">
-                Current Job Title
-              </Label>
-              <Input id="currentJobTitle" className="col-span-3" {...register("currentJobTitle")} />
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="skills" className="text-right">
-                Skills
-              </Label>
-              <Input id="skills" className="col-span-3" {...register("skills")} />
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="experienceLevel" className="text-right">
-                Experience Level
-              </Label>
-              <Select>
-                <SelectTrigger className="col-span-3">
-                  <SelectValue placeholder="Select experience level" {...register("experienceLevel")} />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Entry Level">Entry Level</SelectItem>
-                  <SelectItem value="Mid Level">Mid Level</SelectItem>
-                  <SelectItem value="Senior Level">Senior Level</SelectItem>
-                  <SelectItem value="Lead">Lead</SelectItem>
-                  <SelectItem value="Manager">Manager</SelectItem>
-                  <SelectItem value="Director">Director</SelectItem>
-                  <SelectItem value="Executive">Executive</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="linkedin" className="text-right">
-                LinkedIn
-              </Label>
-              <Input id="linkedin" type="url" className="col-span-3" {...register("linkedin")} />
-            </div>
-            <Button type="submit">Add Candidate</Button>
-          </form>
-        </DialogContent>
-      </Dialog>
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   );
 };
