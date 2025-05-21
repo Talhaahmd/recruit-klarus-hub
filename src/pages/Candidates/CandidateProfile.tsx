@@ -1,83 +1,52 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { 
   User, Mail, Phone, MapPin, Briefcase, FileText, Linkedin, 
-  Tag, Award, ArrowLeft 
+  Tag, Award, ArrowLeft, Calendar, Star, MessageCircle
 } from 'lucide-react';
-import { mockCandidates, CandidateType } from '@/data/mockData';
+import { candidatesService, Candidate } from '@/services/candidatesService';
 import { Header } from '@/components/Layout/MainLayout';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Button } from '@/components/ui/button';
+import { toast } from 'sonner';
 import {
   HoverCard,
   HoverCardContent,
   HoverCardTrigger,
 } from "@/components/ui/hover-card";
 import { Card, CardContent } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const CandidateProfile: React.FC = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<string>('details');
+  const [candidate, setCandidate] = useState<Candidate | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
   
-  // Find the candidate by ID
-  const candidate = mockCandidates.find(c => c.id === id);
-  
-  if (!candidate) {
-    return (
-      <div className="p-8 text-center">
-        <p className="text-lg font-medium">Candidate not found</p>
-        <button 
-          onClick={() => navigate('/candidates')}
-          className="mt-4 bg-primary-100 text-white px-4 py-2 rounded-lg"
-        >
-          Return to Candidates
-        </button>
-      </div>
-    );
-  }
-  
-  // Sample extended data (in a real app this would come from the database)
-  const extendedData = {
-    firstName: candidate.name.split(' ')[0],
-    lastName: candidate.name.split(' ')[1] || '',
-    location: 'San Francisco, CA',
-    experience: '5 years',
-    professionalSummary: 'Experienced software developer with a passion for creating innovative solutions. Proven track record of delivering high-quality projects on time and within budget.',
-    education: [
-      { degree: 'BSc Computer Science', institution: 'Stanford University', year: '2018' },
-      { degree: 'MSc Software Engineering', institution: 'MIT', year: '2020' }
-    ],
-    expertise: ['React', 'TypeScript', 'Node.js', 'GraphQL', 'AWS', 'Docker', 'CI/CD', 'Agile'],
-    jobHistory: [
-      { title: 'Senior Software Engineer', company: 'Tech Solutions Inc.', duration: '2020 - Present' },
-      { title: 'Full Stack Developer', company: 'WebDev Co.', duration: '2018 - 2020' }
-    ],
-    achievements: [
-      'Led a team of 5 developers to deliver a major product update',
-      'Reduced application loading time by 40%',
-      'Published 3 technical articles on modern web development'
-    ],
-    certifications: [
-      'AWS Certified Developer',
-      'Google Cloud Professional Developer'
-    ],
-    linkedinUrl: 'https://linkedin.com/in/johndoe',
-    aiScore: candidate.rating * 2, // Convert 5-scale to 10-scale
-    aiSummary: 'This candidate demonstrates strong technical expertise in modern web development technologies, particularly in the React ecosystem. Their experience spans both frontend and backend development, with a solid foundation in cloud services. The candidate\'s educational background in computer science and software engineering provides a strong theoretical base that complements their practical skills. Their achievements indicate leadership potential and a focus on performance optimization. Overall, this candidate appears to be a well-rounded full stack developer with the potential to contribute significantly to technical teams.'
-  };
+  useEffect(() => {
+    const fetchCandidate = async () => {
+      if (!id) return;
+      
+      try {
+        setLoading(true);
+        const data = await candidatesService.getCandidateById(id);
+        setCandidate(data);
+      } catch (error) {
+        console.error("Error fetching candidate:", error);
+        toast.error("Failed to load candidate profile");
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchCandidate();
+  }, [id]);
   
   const handleGoBack = () => {
     navigate('/candidates');
-  };
-  
-  const renderExpertiseTags = () => {
-    return extendedData.expertise.map((skill, index) => (
-      <Badge key={index} variant="outline" className="mr-2 mb-2">
-        {skill}
-      </Badge>
-    ));
   };
 
   const getAnalysisColor = (score: number) => {
@@ -86,274 +55,358 @@ const CandidateProfile: React.FC = () => {
     return 'bg-red-100 text-red-800';
   };
 
+  // Parse skills as array 
+  const skills = candidate?.skills ? candidate.skills.split(',').map(skill => skill.trim()) : [];
+
+  if (!id) {
+    return (
+      <div className="p-8 text-center">
+        <p className="text-lg font-medium">Invalid candidate ID</p>
+        <Button 
+          onClick={() => navigate('/candidates')}
+          className="mt-4"
+        >
+          Return to Candidates
+        </Button>
+      </div>
+    );
+  }
+
+  const renderSkillTags = () => {
+    return skills.map((skill, index) => (
+      <Badge key={index} variant="outline" className="mr-2 mb-2">
+        {skill}
+      </Badge>
+    ));
+  };
+
   return (
-    <div className="overflow-auto">
+    <div className="overflow-auto animate-fade-in">
       <div className="sticky top-0 z-10 bg-background pb-4">
         <Header 
           title="Candidate Profile" 
-          subtitle="View detailed candidate information"
+          subtitle={loading ? "Loading candidate information..." : `Viewing profile for ${candidate?.name || 'Unknown candidate'}`}
         />
         <div className="ml-4 mt-2">
-          <button 
+          <Button 
             onClick={handleGoBack}
-            className="flex items-center gap-2 p-2 rounded-full hover:bg-gray-100"
+            variant="ghost"
+            className="flex items-center gap-2"
           >
             <ArrowLeft size={20} />
             <span>Back to Candidates</span>
-          </button>
+          </Button>
         </div>
       </div>
       
-      <div className="p-6 bg-background">
-        <div className="flex flex-col md:flex-row gap-6">
-          {/* Left column - Basic info */}
-          <div className="w-full md:w-1/3 space-y-6">
-            <Card>
-              <CardContent className="p-6">
-                <div className="flex items-start justify-between">
-                  <div>
-                    <h2 className="text-2xl font-bold">{extendedData.firstName} {extendedData.lastName}</h2>
-                    <p className="text-gray-500">{extendedData.jobHistory[0]?.title || 'Job Seeker'}</p>
+      {loading ? (
+        <div className="p-6 bg-background">
+          <div className="flex flex-col md:flex-row gap-6">
+            {/* Left column skeleton */}
+            <div className="w-full md:w-1/3 space-y-6">
+              <Card>
+                <CardContent className="p-6">
+                  <Skeleton className="h-8 w-3/4 mb-2" />
+                  <Skeleton className="h-4 w-1/2 mb-6" />
+                  <div className="space-y-4">
+                    <Skeleton className="h-4 w-full" />
+                    <Skeleton className="h-4 w-full" />
+                    <Skeleton className="h-4 w-full" />
                   </div>
-                  <div className={`px-3 py-1 rounded-full text-sm font-medium ${getAnalysisColor(extendedData.aiScore)}`}>
-                    {extendedData.aiScore}/10
-                  </div>
-                </div>
-                
-                <div className="mt-6 space-y-4">
-                  <div className="flex items-center">
-                    <Mail className="w-5 h-5 mr-3 text-gray-400" />
-                    <a href={`mailto:${candidate.email}`} className="text-primary-100 hover:underline">
-                      {candidate.email}
-                    </a>
-                  </div>
-                  
-                  <div className="flex items-center">
-                    <Phone className="w-5 h-5 mr-3 text-gray-400" />
-                    <span>{candidate.phone}</span>
-                  </div>
-                  
-                  <div className="flex items-center">
-                    <MapPin className="w-5 h-5 mr-3 text-gray-400" />
-                    <span>{extendedData.location}</span>
-                  </div>
-                  
-                  {extendedData.linkedinUrl && (
-                    <div className="flex items-center">
-                      <Linkedin className="w-5 h-5 mr-3 text-gray-400" />
-                      <a 
-                        href={extendedData.linkedinUrl} 
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        className="text-primary-100 hover:underline"
-                      >
-                        LinkedIn Profile
-                      </a>
-                    </div>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="p-6">
+                  <Skeleton className="h-6 w-1/3 mb-4" />
+                  <Skeleton className="h-4 w-full" />
+                </CardContent>
+              </Card>
+            </div>
             
-            <Card>
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-semibold">Application Status</h3>
-                  <span className={`px-2 py-1 text-xs rounded-full 
-                    ${candidate.status === 'New' ? 'bg-blue-100 text-blue-800' : 
-                      candidate.status === 'Screening' ? 'bg-purple-100 text-purple-800' :
-                      candidate.status === 'Interview' ? 'bg-yellow-100 text-yellow-800' :
-                      candidate.status === 'Assessment' ? 'bg-orange-100 text-orange-800' :
-                      candidate.status === 'Offer' ? 'bg-green-100 text-green-800' :
-                      candidate.status === 'Hired' ? 'bg-green-200 text-green-900' :
-                      'bg-red-100 text-red-800'
-                    }`}
-                  >
-                    {candidate.status}
-                  </span>
-                </div>
-                <p className="text-sm text-gray-500">Applied on: {candidate.appliedDate}</p>
-              </CardContent>
-            </Card>
-            
-            <Card>
-              <CardContent className="p-6">
-                <h3 className="text-lg font-semibold mb-4">AI Analysis</h3>
-                <div className="flex items-center mb-4">
-                  <div className="w-full bg-gray-200 rounded-full h-2.5">
-                    <div 
-                      className={`h-2.5 rounded-full ${
-                        extendedData.aiScore >= 8 ? 'bg-green-500' :
-                        extendedData.aiScore >= 5 ? 'bg-yellow-500' : 'bg-red-500'
-                      }`}
-                      style={{ width: `${(extendedData.aiScore / 10) * 100}%` }}
-                    ></div>
-                  </div>
-                  <span className={`ml-3 font-medium ${
-                    extendedData.aiScore >= 8 ? 'text-green-700' :
-                    extendedData.aiScore >= 5 ? 'text-yellow-700' : 'text-red-700'
-                  }`}>
-                    {extendedData.aiScore}/10
-                  </span>
-                </div>
-                <button
-                  onClick={() => setActiveTab('ai')}
-                  className="w-full mt-2 px-4 py-2 text-sm bg-gray-100 hover:bg-gray-200 rounded-lg flex items-center justify-center"
-                >
-                  <FileText size={16} className="mr-2" />
-                  View AI Analysis
-                </button>
-              </CardContent>
-            </Card>
-          </div>
-          
-          {/* Right column - Detailed info */}
-          <div className="w-full md:w-2/3">
-            <Tabs 
-              defaultValue="details"
-              value={activeTab}
-              onValueChange={setActiveTab}
-              className="w-full"
-            >
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="details">Profile Details</TabsTrigger>
-                <TabsTrigger value="ai">AI Analysis</TabsTrigger>
-              </TabsList>
-              
-              <TabsContent value="details" className="mt-6 space-y-6">
-                <Card>
-                  <CardContent className="p-6">
-                    <h3 className="text-lg font-semibold mb-4">Professional Summary</h3>
-                    <p className="text-gray-700">{extendedData.professionalSummary}</p>
-                  </CardContent>
-                </Card>
-                
-                <Card>
-                  <CardContent className="p-6">
-                    <h3 className="text-lg font-semibold mb-4">Expertise</h3>
-                    <div className="flex flex-wrap">{renderExpertiseTags()}</div>
-                  </CardContent>
-                </Card>
-                
-                <Card>
-                  <CardContent className="p-6">
-                    <h3 className="text-lg font-semibold mb-4">Work Experience</h3>
-                    <div className="space-y-4">
-                      {extendedData.jobHistory.map((job, index) => (
-                        <div key={index} className="border-l-2 border-gray-200 pl-4 pb-4">
-                          <h4 className="font-medium text-primary-100">{job.title}</h4>
-                          <p className="text-gray-600">{job.company}</p>
-                          <p className="text-sm text-gray-500">{job.duration}</p>
-                        </div>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
-                
-                <Card>
-                  <CardContent className="p-6">
-                    <h3 className="text-lg font-semibold mb-4">Education</h3>
-                    <div className="space-y-4">
-                      {extendedData.education.map((edu, index) => (
-                        <div key={index} className="border-l-2 border-gray-200 pl-4 pb-4">
-                          <h4 className="font-medium text-primary-100">{edu.degree}</h4>
-                          <p className="text-gray-600">{edu.institution}</p>
-                          <p className="text-sm text-gray-500">{edu.year}</p>
-                        </div>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
-                
-                {extendedData.achievements.length > 0 && (
-                  <Card>
-                    <CardContent className="p-6">
-                      <h3 className="text-lg font-semibold mb-4">Achievements</h3>
-                      <ul className="list-disc list-inside space-y-2">
-                        {extendedData.achievements.map((achievement, index) => (
-                          <li key={index} className="text-gray-700">{achievement}</li>
-                        ))}
-                      </ul>
-                    </CardContent>
-                  </Card>
-                )}
-                
-                {extendedData.certifications.length > 0 && (
-                  <Card>
-                    <CardContent className="p-6">
-                      <h3 className="text-lg font-semibold mb-4">Certifications</h3>
-                      <ul className="list-disc list-inside space-y-2">
-                        {extendedData.certifications.map((cert, index) => (
-                          <li key={index} className="text-gray-700">{cert}</li>
-                        ))}
-                      </ul>
-                    </CardContent>
-                  </Card>
-                )}
-                
-                <Card>
-                  <CardContent className="p-6">
-                    <h3 className="text-lg font-semibold mb-4">Notes</h3>
-                    <p className="text-gray-700">{candidate.notes}</p>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-              
-              <TabsContent value="ai" className="mt-6">
-                <Card>
-                  <CardContent className="p-6">
-                    <div className="flex items-center justify-between mb-6">
-                      <h3 className="text-lg font-semibold">AI Analysis</h3>
-                      <HoverCard>
-                        <HoverCardTrigger asChild>
-                          <div className={`flex items-center cursor-help px-3 py-1 rounded-full ${getAnalysisColor(extendedData.aiScore)}`}>
-                            <span className="text-lg font-bold">{extendedData.aiScore}</span>
-                            <span className="text-sm ml-1">/10</span>
-                          </div>
-                        </HoverCardTrigger>
-                        <HoverCardContent className="w-80">
-                          <div className="space-y-2">
-                            <h4 className="font-medium">AI Analysis Score Explained</h4>
-                            <p className="text-sm text-gray-500">
-                              The AI Analysis score evaluates the candidate's fit based on skills, experience, 
-                              education, and overall match to the job requirements. A score above 7 
-                              indicates a strong candidate.
-                            </p>
-                          </div>
-                        </HoverCardContent>
-                      </HoverCard>
-                    </div>
-                    
-                    <div className="space-y-4">
-                      <div>
-                        <h4 className="font-medium mb-2">Analysis Summary</h4>
-                        <p className="text-gray-700">{extendedData.aiSummary}</p>
-                      </div>
-                      
-                      <div className="mt-6">
-                        <h4 className="font-medium mb-2">Strengths</h4>
-                        <ul className="list-disc list-inside space-y-2">
-                          <li className="text-gray-700">Strong technical background in web development</li>
-                          <li className="text-gray-700">Experience with modern frameworks and cloud services</li>
-                          <li className="text-gray-700">Leadership potential and proven track record</li>
-                        </ul>
-                      </div>
-                      
-                      <div className="mt-6">
-                        <h4 className="font-medium mb-2">Improvement Areas</h4>
-                        <ul className="list-disc list-inside space-y-2">
-                          <li className="text-gray-700">Could benefit from more experience with mobile development</li>
-                          <li className="text-gray-700">Limited exposure to enterprise-scale applications</li>
-                        </ul>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-            </Tabs>
+            {/* Right column skeleton */}
+            <div className="w-full md:w-2/3">
+              <Card>
+                <CardContent className="p-6">
+                  <Skeleton className="h-8 w-1/4 mb-4" />
+                  <Skeleton className="h-4 w-full mb-2" />
+                  <Skeleton className="h-4 w-full mb-2" />
+                  <Skeleton className="h-4 w-3/4" />
+                </CardContent>
+              </Card>
+            </div>
           </div>
         </div>
-      </div>
+      ) : candidate ? (
+        <div className="p-6 bg-background">
+          <div className="flex flex-col md:flex-row gap-6">
+            {/* Left column - Basic info */}
+            <div className="w-full md:w-1/3 space-y-6">
+              <Card className="border-none shadow-md hover:shadow-lg transition-shadow">
+                <CardContent className="p-6">
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <h2 className="text-2xl font-bold">{candidate.name}</h2>
+                      <p className="text-gray-500">{candidate.current_job_title || 'Job Seeker'}</p>
+                    </div>
+                    <div className={`px-3 py-1 rounded-full text-sm font-medium ${getAnalysisColor(candidate.rating)}`}>
+                      {candidate.rating}/10
+                    </div>
+                  </div>
+                  
+                  <div className="mt-6 space-y-4">
+                    <div className="flex items-center">
+                      <Mail className="w-5 h-5 mr-3 text-gray-400" />
+                      <a href={`mailto:${candidate.email}`} className="text-primary-100 hover:underline">
+                        {candidate.email}
+                      </a>
+                    </div>
+                    
+                    {candidate.phone && (
+                      <div className="flex items-center">
+                        <Phone className="w-5 h-5 mr-3 text-gray-400" />
+                        <span>{candidate.phone}</span>
+                      </div>
+                    )}
+                    
+                    {candidate.location && (
+                      <div className="flex items-center">
+                        <MapPin className="w-5 h-5 mr-3 text-gray-400" />
+                        <span>{candidate.location}</span>
+                      </div>
+                    )}
+                    
+                    {candidate.linkedin && (
+                      <div className="flex items-center">
+                        <Linkedin className="w-5 h-5 mr-3 text-gray-400" />
+                        <a 
+                          href={candidate.linkedin.startsWith('http') ? candidate.linkedin : `https://${candidate.linkedin}`} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="text-primary-100 hover:underline"
+                        >
+                          LinkedIn Profile
+                        </a>
+                      </div>
+                    )}
+                    
+                    {candidate.applied_date && (
+                      <div className="flex items-center">
+                        <Calendar className="w-5 h-5 mr-3 text-gray-400" />
+                        <span>Applied: {new Date(candidate.applied_date).toLocaleDateString()}</span>
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+              
+              <Card className="border-none shadow-md">
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-lg font-semibold">Application Status</h3>
+                    <span className={`px-2 py-1 text-xs rounded-full 
+                      ${candidate.status === 'New' ? 'bg-blue-100 text-blue-800' : 
+                        candidate.status === 'Screening' ? 'bg-purple-100 text-purple-800' :
+                        candidate.status === 'Interview' ? 'bg-yellow-100 text-yellow-800' :
+                        candidate.status === 'Assessment' ? 'bg-orange-100 text-orange-800' :
+                        candidate.status === 'Offer' ? 'bg-green-100 text-green-800' :
+                        candidate.status === 'Hired' ? 'bg-green-200 text-green-900' :
+                        'bg-red-100 text-red-800'
+                      }`}
+                    >
+                      {candidate.status || 'New'}
+                    </span>
+                  </div>
+                  {candidate.applied_date && (
+                    <p className="text-sm text-gray-500">
+                      Applied on: {new Date(candidate.applied_date).toLocaleDateString()}
+                    </p>
+                  )}
+                </CardContent>
+              </Card>
+              
+              <Card className="border-none shadow-md">
+                <CardContent className="p-6">
+                  <h3 className="text-lg font-semibold mb-4">AI Analysis</h3>
+                  <div className="flex items-center mb-4">
+                    <div className="w-full bg-gray-200 rounded-full h-2.5">
+                      <div 
+                        className={`h-2.5 rounded-full ${
+                          candidate.rating >= 8 ? 'bg-green-500' :
+                          candidate.rating >= 5 ? 'bg-yellow-500' : 'bg-red-500'
+                        }`}
+                        style={{ width: `${(candidate.rating / 10) * 100}%` }}
+                      ></div>
+                    </div>
+                    <span className={`ml-3 font-medium ${
+                      candidate.rating >= 8 ? 'text-green-700' :
+                      candidate.rating >= 5 ? 'text-yellow-700' : 'text-red-700'
+                    }`}>
+                      {candidate.rating}/10
+                    </span>
+                  </div>
+                  <Button
+                    onClick={() => setActiveTab('ai')}
+                    variant="outline"
+                    className="w-full mt-2 gap-2"
+                  >
+                    <FileText size={16} />
+                    View AI Analysis
+                  </Button>
+                </CardContent>
+              </Card>
+            </div>
+            
+            {/* Right column - Detailed info */}
+            <div className="w-full md:w-2/3">
+              <Tabs 
+                defaultValue="details"
+                value={activeTab}
+                onValueChange={setActiveTab}
+                className="w-full"
+              >
+                <TabsList className="grid w-full grid-cols-2">
+                  <TabsTrigger value="details" className="flex items-center gap-2">
+                    <User size={16} /> Profile Details
+                  </TabsTrigger>
+                  <TabsTrigger value="ai" className="flex items-center gap-2">
+                    <Star size={16} /> AI Analysis
+                  </TabsTrigger>
+                </TabsList>
+                
+                <TabsContent value="details" className="mt-6 space-y-6">
+                  {/* Professional Summary */}
+                  {candidate.notes && (
+                    <Card className="border-none shadow-sm hover:shadow-md transition-shadow">
+                      <CardContent className="p-6">
+                        <h3 className="text-lg font-semibold mb-4">Professional Summary</h3>
+                        <p className="text-gray-700">{candidate.notes}</p>
+                      </CardContent>
+                    </Card>
+                  )}
+                  
+                  {/* Expertise/Skills */}
+                  {skills.length > 0 && (
+                    <Card className="border-none shadow-sm hover:shadow-md transition-shadow">
+                      <CardContent className="p-6">
+                        <h3 className="text-lg font-semibold mb-4">Skills & Expertise</h3>
+                        <div className="flex flex-wrap">{renderSkillTags()}</div>
+                      </CardContent>
+                    </Card>
+                  )}
+                  
+                  {/* Experience Level */}
+                  {candidate.experience_level && (
+                    <Card className="border-none shadow-sm hover:shadow-md transition-shadow">
+                      <CardContent className="p-6">
+                        <h3 className="text-lg font-semibold mb-4">Experience Level</h3>
+                        <div className="flex items-center gap-2">
+                          <Briefcase className="text-primary-100" size={18} />
+                          <span className="text-gray-700">{candidate.experience_level}</span>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )}
+                  
+                  {/* Notes */}
+                  <Card className="border-none shadow-sm hover:shadow-md transition-shadow">
+                    <CardContent className="p-6">
+                      <div className="flex justify-between items-center mb-4">
+                        <h3 className="text-lg font-semibold">Notes</h3>
+                        <Button variant="outline" size="sm">Add Note</Button>
+                      </div>
+                      <div className="bg-gray-50 rounded-lg p-4 border">
+                        {candidate.notes ? (
+                          <div className="text-gray-700">{candidate.notes}</div>
+                        ) : (
+                          <div className="text-gray-400 italic">No notes have been added yet.</div>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+                
+                <TabsContent value="ai" className="mt-6">
+                  <Card className="border-none shadow-md overflow-hidden">
+                    <CardContent className="p-6">
+                      <div className="flex items-center justify-between mb-6">
+                        <h3 className="text-lg font-semibold flex items-center gap-2">
+                          <Star className="text-primary-100" size={18} />
+                          AI Analysis
+                        </h3>
+                        <HoverCard>
+                          <HoverCardTrigger asChild>
+                            <div className={`flex items-center cursor-help px-3 py-1 rounded-full ${getAnalysisColor(candidate.rating)}`}>
+                              <span className="text-lg font-bold">{candidate.rating}</span>
+                              <span className="text-sm ml-1">/10</span>
+                            </div>
+                          </HoverCardTrigger>
+                          <HoverCardContent className="w-80">
+                            <div className="space-y-2">
+                              <h4 className="font-medium">AI Analysis Score Explained</h4>
+                              <p className="text-sm text-gray-500">
+                                The AI Analysis score evaluates the candidate's fit based on skills, experience, 
+                                education, and overall match to the job requirements. A score above 7 
+                                indicates a strong candidate.
+                              </p>
+                            </div>
+                          </HoverCardContent>
+                        </HoverCard>
+                      </div>
+                      
+                      <div className="space-y-6">
+                        {/* AI Summary */}
+                        {candidate.ai_summary && (
+                          <div>
+                            <h4 className="font-medium mb-2 flex items-center gap-2">
+                              <MessageCircle size={16} className="text-primary-100" />
+                              Summary Analysis
+                            </h4>
+                            <div className="bg-gray-50 rounded-lg p-4 border">
+                              <p className="text-gray-700 whitespace-pre-line">{candidate.ai_summary}</p>
+                            </div>
+                          </div>
+                        )}
+                        
+                        {/* AI Content (full analysis) */}
+                        {candidate.ai_content && (
+                          <div className="mt-6">
+                            <h4 className="font-medium mb-2 flex items-center gap-2">
+                              <FileText size={16} className="text-primary-100" />
+                              Detailed Analysis
+                            </h4>
+                            <div className="bg-gray-50 rounded-lg p-4 border max-h-96 overflow-y-auto">
+                              <pre className="text-gray-700 whitespace-pre-line font-sans">{candidate.ai_content}</pre>
+                            </div>
+                          </div>
+                        )}
+                        
+                        {/* Placeholder if no AI data */}
+                        {!candidate.ai_summary && !candidate.ai_content && (
+                          <div className="text-center py-10">
+                            <div className="text-4xl mb-4 opacity-30">🤖</div>
+                            <h3 className="text-lg font-medium mb-2">No AI analysis available</h3>
+                            <p className="text-gray-500 mb-6">This candidate hasn't been analyzed by the AI system yet.</p>
+                          </div>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+              </Tabs>
+            </div>
+          </div>
+        </div>
+      ) : (
+        <div className="p-8 text-center">
+          <p className="text-lg font-medium">Candidate not found</p>
+          <Button 
+            onClick={() => navigate('/candidates')}
+            className="mt-4"
+          >
+            Return to Candidates
+          </Button>
+        </div>
+      )}
     </div>
   );
 };
