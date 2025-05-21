@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Upload, Check, X, FileType } from 'lucide-react';
 import { toast } from 'sonner';
@@ -26,7 +25,6 @@ const CVSubmission = () => {
     try {
       setIsLoadingJobs(true);
       const jobsList = await jobsService.getJobs();
-      // Filter active jobs only
       const activeJobs = jobsList.filter(job => job.status === 'Active');
       setJobs(activeJobs);
     } catch (error) {
@@ -40,18 +38,16 @@ const CVSubmission = () => {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
       const selectedFile = e.target.files[0];
-      // Check file type
       const validTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
       if (!validTypes.includes(selectedFile.type)) {
         toast.error('Please upload a PDF or Word document');
         return;
       }
-      // Check file size (max 5MB)
       if (selectedFile.size > 5 * 1024 * 1024) {
         toast.error('File size should not exceed 5MB');
         return;
       }
-      
+
       setFile(selectedFile);
       setUploadComplete(false);
     }
@@ -69,30 +65,26 @@ const CVSubmission = () => {
     }
 
     setUploading(true);
-    
+
     try {
-      // Create a unique file name with timestamp
       const fileExt = file.name.split('.').pop();
       const fileName = `${Date.now()}-${Math.random().toString(36).substring(2, 15)}.${fileExt}`;
       const filePath = `${fileName}`;
-      
-      // Upload to 'candidate-files' bucket
+
       const { data, error } = await supabase
         .storage
         .from('candidate-files')
         .upload(filePath, file);
-        
+
       if (error) {
         throw error;
       }
-      
-      // Get public URL for the file
+
       const { data: urlData } = supabase
         .storage
         .from('candidate-files')
         .getPublicUrl(filePath);
-      
-      // Save metadata to 'cv_links' table
+
       const { data: cvLinkData, error: insertError } = await supabase
         .from('cv_links')
         .insert([
@@ -107,35 +99,33 @@ const CVSubmission = () => {
         ])
         .select()
         .single();
-      
+
       if (insertError) {
         throw insertError;
       }
-      
-      // Create record in job_applications table
+
+      // ✅ INSERT INTO job_applications WITH public link
       const { error: applicationError } = await supabase
         .from('job_applications')
         .insert([
           {
             cv_link_id: cvLinkData.id,
-            job_id: selectedJobId
+            job_id: selectedJobId,
+            link_for_cv: urlData.publicUrl // ✅ new field added here
           }
         ]);
-        
+
       if (applicationError) {
         throw applicationError;
       }
-      
+
       toast.success('Your CV has been successfully uploaded');
       setUploadComplete(true);
       setFile(null);
       setSelectedJobId(null);
-      
-      // Reset the file input
+
       const fileInput = document.getElementById('cv-upload') as HTMLInputElement;
-      if (fileInput) {
-        fileInput.value = '';
-      }
+      if (fileInput) fileInput.value = '';
     } catch (error: any) {
       console.error('Error uploading CV:', error.message);
       toast.error('Failed to upload your CV. Please try again.');
@@ -153,7 +143,7 @@ const CVSubmission = () => {
             Please upload your CV below. We accept PDF and Word documents.
           </CardDescription>
         </CardHeader>
-        
+
         <CardContent>
           <div className="space-y-4">
             {/* Job Selection Dropdown */}
@@ -183,6 +173,7 @@ const CVSubmission = () => {
               </Select>
             </div>
 
+            {/* CV Upload Area */}
             <div 
               onClick={() => document.getElementById('cv-upload')?.click()}
               className={`
@@ -226,7 +217,7 @@ const CVSubmission = () => {
                   <p className="text-sm text-slate-500 mt-1">PDF or Word files (max 5MB)</p>
                 </div>
               )}
-              
+
               <Input 
                 type="file" 
                 id="cv-upload" 
@@ -237,7 +228,7 @@ const CVSubmission = () => {
             </div>
           </div>
         </CardContent>
-        
+
         <CardFooter>
           <Button 
             className="w-full" 
