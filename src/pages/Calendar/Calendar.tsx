@@ -26,7 +26,7 @@ import {
 } from "@/components/ui/context-menu"
 import { Calendar as CalendarIcon, Briefcase, UserPlus, Linkedin, Plus } from "lucide-react"
 import AddCandidateModal from '@/components/UI/AddCandidateModal';
-import { JobsComponents } from '@/components/UI/JobsComponents/AddJobModal';
+import AddJobModal from '@/components/UI/JobsComponents/AddJobModal';
 import { InterviewScheduleModal } from '@/components/UI/EmailActionsModals';
 import { cn } from '@/lib/utils';
 
@@ -97,7 +97,7 @@ const CalendarPage = () => {
       </div>
 
       <div className="bg-white p-6 rounded-lg shadow-sm border">
-        <ContextMenu open={actionMenuOpen} onOpenChange={setActionMenuOpen}>
+        <ContextMenu>
           <ContextMenuTrigger>
             <FullCalendar
               plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
@@ -153,7 +153,7 @@ const CalendarPage = () => {
               onClick={handleAddJob}
               className="flex items-center cursor-pointer"
             >
-              <BriefCase className="mr-2 h-4 w-4" />
+              <Briefcase className="mr-2 h-4 w-4" />
               <span>Add Job</span>
             </ContextMenuItem>
             <ContextMenuItem 
@@ -183,10 +183,10 @@ const CalendarPage = () => {
 
       {/* Job Modal */}
       {showJobModal && (
-        <JobsComponents.AddJobModal 
-          open={showJobModal} 
+        <AddJobModal 
+          isOpen={showJobModal} 
           onClose={closeModals} 
-          onSuccess={() => {
+          onSave={() => {
             closeModals();
             toast.success('Job added successfully');
           }} 
@@ -196,9 +196,9 @@ const CalendarPage = () => {
       {/* Candidate Modal */}
       {showCandidateModal && (
         <AddCandidateModal 
-          open={showCandidateModal} 
+          isOpen={showCandidateModal} 
           onClose={closeModals} 
-          onSuccess={() => {
+          onSave={() => {
             closeModals();
             toast.success('Candidate added successfully');
           }} 
