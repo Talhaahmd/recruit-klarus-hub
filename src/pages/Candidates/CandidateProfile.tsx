@@ -81,14 +81,12 @@ const CandidateProfile: React.FC = () => {
       // If not, try to get it from job_applications table
       const jobApplication = await submissionService.getJobApplicationByCvLinkId(submissionId);
       if (jobApplication?.job_id) {
-        const jobData = await jobsService.getJobById(jobApplication.job_id);
-        if (jobData) {
-          setAppliedJob({
-            id: jobData.id,
-            title: jobData.title
-          });
-        }
-      }
+  setAppliedJob({
+    id: jobApplication.job_id,
+    title: jobApplication.job_name || 'Untitled Job'
+  });
+}
+
     } catch (error) {
       console.error("Error fetching job application info:", error);
     }
