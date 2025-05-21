@@ -42,9 +42,9 @@ const Candidates: React.FC = () => {
         const formattedCandidates: Candidate[] = data.map(candidate => ({
           id: candidate.id,
           job_id: '', // Default empty string for required fields
-          name: `${candidate.Firstname || ''} ${candidate.Lastname || ''}`,
+          name: `${candidate.firstname || ''} ${candidate.lastname || ''}`,
           email: candidate.email || '',
-          phone: candidate.Phone || '',
+          phone: candidate.phone || '',
           resume_url: '',
           applied_date: new Date().toISOString(),
           status: 'Screened',
