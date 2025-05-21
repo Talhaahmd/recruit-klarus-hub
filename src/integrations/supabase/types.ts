@@ -42,6 +42,41 @@ export type Database = {
         }
         Relationships: []
       }
+      candidate_interviews: {
+        Row: {
+          candidate_id: string
+          created_at: string | null
+          email_sent: boolean | null
+          id: string
+          interview_date: string
+          interview_notes: string | null
+        }
+        Insert: {
+          candidate_id: string
+          created_at?: string | null
+          email_sent?: boolean | null
+          id?: string
+          interview_date: string
+          interview_notes?: string | null
+        }
+        Update: {
+          candidate_id?: string
+          created_at?: string | null
+          email_sent?: boolean | null
+          id?: string
+          interview_date?: string
+          interview_notes?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "candidate_interviews_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "candidates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       candidates: {
         Row: {
           ai_content: string | null
@@ -295,6 +330,41 @@ export type Database = {
           link?: string | null
         }
         Relationships: []
+      }
+      offer_letters: {
+        Row: {
+          candidate_id: string
+          created_at: string | null
+          document_name: string | null
+          document_url: string | null
+          email_sent: boolean | null
+          id: string
+        }
+        Insert: {
+          candidate_id: string
+          created_at?: string | null
+          document_name?: string | null
+          document_url?: string | null
+          email_sent?: boolean | null
+          id?: string
+        }
+        Update: {
+          candidate_id?: string
+          created_at?: string | null
+          document_name?: string | null
+          document_url?: string | null
+          email_sent?: boolean | null
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "offer_letters_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "candidates"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {

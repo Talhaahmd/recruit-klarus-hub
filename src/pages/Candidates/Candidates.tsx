@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Header } from '@/components/Layout/MainLayout';
@@ -35,6 +34,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Slider } from "@/components/ui/slider";
+import { EmailActionsModal } from '@/components/UI/EmailActionsModals';
 
 // Helper to get unique values from an array of objects for a specific property
 const getUniqueValues = (data: any[], property: string): string[] => {
@@ -59,6 +59,10 @@ const Candidates: React.FC = () => {
   const [jobsList, setJobsList] = useState<string[]>([]);
   const [skillsList, setSkillsList] = useState<string[]>([]);
   const [locationsList, setLocationsList] = useState<string[]>([]);
+  
+  // Email modal state
+  const [emailModalOpen, setEmailModalOpen] = useState(false);
+  const [selectedCandidate, setSelectedCandidate] = useState<Candidate | null>(null);
 
   useEffect(() => {
     fetchCandidates();
@@ -87,8 +91,9 @@ const Candidates: React.FC = () => {
     setSearchTerm(e.target.value);
   };
 
-  const handleEmail = (email: string) => {
-    toast.info(`Send email to: ${email}`);
+  const handleEmail = (candidate: Candidate) => {
+    setSelectedCandidate(candidate);
+    setEmailModalOpen(true);
   };
 
   const handleEdit = (id: string) => {
@@ -351,7 +356,7 @@ const Candidates: React.FC = () => {
               onEdit={handleEdit}
               onDelete={handleDelete}
               onView={() => handleView(candidate.id)}
-              onEmail={() => handleEmail(candidate.email)}
+              onEmail={() => handleEmail(candidate)}
               jobTitle={candidate.current_job_title || "Candidate"}
             />
           ))}
@@ -383,7 +388,7 @@ const Candidates: React.FC = () => {
               {filteredCandidates.length > 0 ? (
                 filteredCandidates.map(candidate => (
                   <TableRow key={candidate.id} onClick={() => handleView(candidate.id)} className="cursor-pointer hover:bg-gray-50">
-                    <TableCell className="font-medium">{candidate.name}</TableCell>
+                    <TableCell className="font-medium">{candidate.name || candidate.full_name}</TableCell>
                     <TableCell>{candidate.email}</TableCell>
                     <TableCell className="hidden md:table-cell">{candidate.phone}</TableCell>
                     <TableCell className="hidden sm:table-cell">{candidate.current_job_title || "-"}</TableCell>
@@ -394,7 +399,7 @@ const Candidates: React.FC = () => {
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2" onClick={e => e.stopPropagation()}>
-                        <Button size="icon" variant="ghost" onClick={() => handleEmail(candidate.email)} title="Email">
+                        <Button size="icon" variant="ghost" onClick={() => handleEmail(candidate)} title="Email">
                           <Mail size={16} className="text-gray-500" />
                         </Button>
                         <Button size="icon" variant="ghost" onClick={() => handleEdit(candidate.id)} title="Edit">
@@ -420,6 +425,19 @@ const Candidates: React.FC = () => {
             </TableBody>
           </Table>
         </div>
+      )}
+
+      {selectedCandidate && (
+        <EmailActionsModal
+          candidateId={selectedCandidate.id}
+          candidateName={selectedCandidate.name || selectedCandidate.full_name || "Candidate"}
+          candidateEmail={selectedCandidate.email}
+          open={emailModalOpen}
+          onClose={() => {
+            setEmailModalOpen(false);
+            setSelectedCandidate(null);
+          }}
+        />
       )}
     </div>
   );

@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
@@ -17,6 +18,24 @@ export type JobApplication = {
   cv_link_id: string;
   job_id: string;
   job_name?: string | null;
+  created_at: string;
+};
+
+export type Interview = {
+  id: string;
+  candidate_id: string;
+  interview_date: string;
+  interview_notes?: string;
+  email_sent: boolean;
+  created_at: string;
+};
+
+export type OfferLetter = {
+  id: string;
+  candidate_id: string;
+  document_url?: string;
+  document_name?: string;
+  email_sent: boolean;
   created_at: string;
 };
 
@@ -152,6 +171,127 @@ export const submissionService = {
       return result;
     } catch (err: any) {
       console.error('Error fetching all job applications:', err.message);
+      return [];
+    }
+  },
+
+  // Schedule an interview
+  scheduleInterview: async (candidateId: string, interviewDate: Date, notes?: string): Promise<boolean> => {
+    try {
+      const { data, error } = await supabase
+        .from('candidate_interviews')
+        .insert({
+          candidate_id: candidateId,
+          interview_date: interviewDate.toISOString(),
+          interview_notes: notes || null,
+          email_sent: true
+        });
+
+      if (error) {
+        console.error('Error scheduling interview:', error);
+        toast.error('Failed to schedule interview');
+        return false;
+      }
+
+      toast.success('Interview scheduled successfully');
+      return true;
+    } catch (err: any) {
+      console.error('Error scheduling interview:', err.message);
+      toast.error('Failed to schedule interview');
+      return false;
+    }
+  },
+
+  // Send offer letter
+  sendOfferLetter: async (candidateId: string, documentUrl?: string, documentName?: string): Promise<boolean> => {
+    try {
+      const { data, error } = await supabase
+        .from('offer_letters')
+        .insert({
+          candidate_id: candidateId,
+          document_url: documentUrl || null,
+          document_name: documentName || null,
+          email_sent: true
+        });
+
+      if (error) {
+        console.error('Error sending offer letter:', error);
+        toast.error('Failed to send offer letter');
+        return false;
+      }
+
+      toast.success('Offer letter sent successfully');
+      return true;
+    } catch (err: any) {
+      console.error('Error sending offer letter:', err.message);
+      toast.error('Failed to send offer letter');
+      return false;
+    }
+  },
+
+  // Upload offer letter document
+  uploadOfferDocument: async (file: File): Promise<string | null> => {
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Math.random().toString(36).substring(2)}.${fileExt}`;
+      const filePath = `offer-letters/${fileName}`;
+
+      const { data, error } = await supabase.storage
+        .from('candidate-files')
+        .upload(filePath, file);
+
+      if (error) {
+        throw error;
+      }
+
+      const { data: urlData } = supabase.storage
+        .from('candidate-files')
+        .getPublicUrl(filePath);
+
+      return urlData.publicUrl;
+    } catch (err: any) {
+      console.error('Error uploading document:', err.message);
+      toast.error('Failed to upload document');
+      return null;
+    }
+  },
+
+  // Get interviews by candidate ID
+  getInterviewsByCandidateId: async (candidateId: string): Promise<Interview[]> => {
+    try {
+      const { data, error } = await supabase
+        .from('candidate_interviews')
+        .select('*')
+        .eq('candidate_id', candidateId)
+        .order('interview_date', { ascending: false });
+
+      if (error) {
+        throw error;
+      }
+
+      return data || [];
+    } catch (err: any) {
+      console.error('Error fetching interviews:', err.message);
+      return [];
+    }
+  },
+
+  // Get offer letters by candidate ID
+  getOfferLettersByCandidateId: async (candidateId: string): Promise<OfferLetter[]> => {
+    try {
+      const { data, error } = await supabase
+        .from('offer_letters')
+        .select('*')
+        .eq('candidate_id', candidateId)
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        throw error;
+      }
+
+      return data || [];
+    } catch (err: any) {
+      console.error('Error fetching offer letters:', err.message);
       return [];
     }
   }
