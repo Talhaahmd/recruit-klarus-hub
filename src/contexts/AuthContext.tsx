@@ -18,7 +18,6 @@ type AuthContextType = {
   session: Session | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  authReady: boolean; // Add this new property
   login: (email: string, password: string) => Promise<void>;
   signup: (name: string, email: string, password: string) => Promise<void>;
   loginWithGoogle: () => Promise<void>;
@@ -48,11 +47,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const fetchProfile = async (userId: string) => {
     try {
-      console.log('🔍 Fetching profile for user:', userId);
       const { data, error } = await supabase.from('profiles').select('*').eq('id', userId).single();
 
       if (error || !data) {
-        console.warn('ℹ️ No profile found, attempting to create...');
         const userMeta = session?.user?.user_metadata || {};
         const { error: insertError } = await supabase.from('profiles').insert({
           id: userId,
@@ -60,9 +57,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           avatar_url: userMeta.avatar_url ?? '',
           company: null,
         });
-        if (insertError) {
-          console.error('❌ Profile creation failed:', insertError);
-        } else {
+        if (!insertError) {
           const { data: newProfile } = await supabase.from('profiles').select('*').eq('id', userId).single();
           if (newProfile) setProfile(newProfile);
         }
@@ -70,135 +65,45 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setProfile(data);
       }
     } catch (error) {
-      console.error('❌ Unexpected error fetching profile:', error);
+      console.error('Error fetching profile:', error);
     }
   };
 
   useEffect(() => {
-    console.log('🔄 AuthContext initialized');
-    let mounted = true;
-    
-    // First set up the auth state change listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, currentSession) => {
-        if (!mounted) return;
-        
-        console.log('🔔 Auth state change:', event);
-        
-        // Update state immediately with synchronous operations
         if (currentSession) {
           setSession(currentSession);
           setUser(currentSession.user);
-          console.log('✅ Session updated from auth state change:', currentSession.user.email);
-          
-          // Check for OAuth redirect completion
-          const oauthRedirectProcessed = sessionStorage.getItem('oauth_redirect_processed');
-          if (oauthRedirectProcessed && event === 'SIGNED_IN') {
-            console.log('🎉 OAuth sign-in completed successfully');
-            toast.success('Successfully signed in with ' + (currentSession.user?.app_metadata?.provider || 'OAuth'));
+
+          if (event === 'SIGNED_IN') {
+            sessionStorage.removeItem('oauth_redirect_processed');
+            toast.success('Signed in successfully');
+            await fetchProfile(currentSession.user.id);
           }
         } else if (event === 'SIGNED_OUT') {
           setSession(null);
           setUser(null);
           setProfile(null);
-          console.log('👋 User signed out');
         }
-        
-        // Use setTimeout to avoid potential auth state deadlocks
-        if (currentSession?.user && event === 'SIGNED_IN') {
-          setTimeout(() => {
-            if (mounted) {
-              fetchProfile(currentSession.user.id).finally(() => {
-                if (mounted) {
-                  setIsLoading(false);
-                  setInitialSessionChecked(true);
-                }
-              });
-            }
-          }, 0);
-        } else {
-          if (mounted) {
-            setIsLoading(false);
-            setInitialSessionChecked(true);
-          }
-        }
+
+        setIsLoading(false);
+        setInitialSessionChecked(true);
       }
     );
 
-    // Then check for an existing session
-    const checkForExistingSession = async () => {
-      try {
-        console.log('🔍 Checking for existing session...');
-        const { data: { session: currentSession } } = await supabase.auth.getSession();
-        
-        if (currentSession?.user) {
-          console.log('✅ Found existing session for:', currentSession.user.email);
-          if (mounted) {
-            setSession(currentSession);
-            setUser(currentSession.user);
-            
-            // Fetch profile after obtaining session
-            fetchProfile(currentSession.user.id).finally(() => {
-              if (mounted) {
-                setIsLoading(false);
-                setInitialSessionChecked(true);
-              }
-            });
-          }
-        } else {
-          console.log('ℹ️ No existing session found');
-          if (mounted) {
-            setIsLoading(false);
-            setInitialSessionChecked(true);
-          }
-        }
-      } catch (error) {
-        console.error('❌ Error checking session:', error);
-        if (mounted) {
-          setIsLoading(false);
-          setInitialSessionChecked(true);
-        }
+    supabase.auth.getSession().then(({ data: { session: currentSession } }) => {
+      if (currentSession?.user) {
+        setSession(currentSession);
+        setUser(currentSession.user);
+        fetchProfile(currentSession.user.id);
       }
-    };
-    
-    // Check for existing session with a slight delay to ensure
-    // onAuthStateChange is registered first
-    setTimeout(() => {
-      checkForExistingSession();
-    }, 10);
+      setIsLoading(false);
+      setInitialSessionChecked(true);
+    });
 
-    return () => {
-      mounted = false;
-      subscription.unsubscribe();
-    };
+    return () => subscription.unsubscribe();
   }, []);
-
-  // Check for access_token in URL hash on initial load and session refresh
-  useEffect(() => {
-    if (initialSessionChecked) {
-      const hash = window.location.hash;
-      
-      // If we have an access_token but no user yet, try refreshing the session
-      if (hash && hash.includes('access_token') && !user) {
-        console.log('🔄 Found access_token in URL, refreshing session state...');
-        
-        // Give supabase time to process the token
-        setTimeout(() => {
-          supabase.auth.getSession().then(({ data: { session: currentSession } }) => {
-            if (currentSession?.user) {
-              console.log('✅ Session refreshed after access_token detected');
-              setSession(currentSession);
-              setUser(currentSession.user);
-              fetchProfile(currentSession.user.id);
-              
-              // OAuth login completed
-              toast.success('Successfully signed in!');
-            }
-          });
-        }, 100);
-      }
-    }
-  }, [initialSessionChecked, user]);
 
   const login = async (email: string, password: string) => {
     setIsLoading(true);
@@ -220,12 +125,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const { error } = await supabase.auth.signUp({
         email,
         password,
-        options: {
-          data: { name },
-        },
+        options: { data: { name } },
       });
       if (error) throw error;
-      toast.success('Registration successful! Check your email to verify.');
+      toast.success('Registration successful! Check your email.');
     } catch (error: any) {
       toast.error(error.message || 'Signup failed');
       throw error;
@@ -236,36 +139,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const loginWithGoogle = async () => {
     try {
-      console.log('🔄 Starting Google login...');
       sessionStorage.setItem('processing_oauth_login', 'true');
       await supabase.auth.signInWithOAuth({
         provider: 'google',
-        options: { 
-          redirectTo: REDIRECT_TO,
-          skipBrowserRedirect: false,
-        },
+        options: { redirectTo: REDIRECT_TO },
       });
     } catch (error: any) {
-      console.error('❌ Google login error:', error);
-      sessionStorage.removeItem('processing_oauth_login');
       toast.error(error.message || 'Google login failed');
     }
   };
 
   const loginWithLinkedIn = async () => {
     try {
-      console.log('🔄 Starting LinkedIn login...');
       sessionStorage.setItem('processing_oauth_login', 'true');
       await supabase.auth.signInWithOAuth({
         provider: 'linkedin_oidc',
-        options: { 
-          redirectTo: REDIRECT_TO,
-          skipBrowserRedirect: false,
-        },
+        options: { redirectTo: REDIRECT_TO },
       });
     } catch (error: any) {
-      console.error('❌ LinkedIn login error:', error);
-      sessionStorage.removeItem('processing_oauth_login');
       toast.error(error.message || 'LinkedIn login failed');
     }
   };
@@ -277,7 +168,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUser(null);
       setProfile(null);
       setSession(null);
-      toast.success('Logged out successfully');
+      toast.success('Logged out');
     } catch (error: any) {
       toast.error(error.message || 'Logout failed');
     }
@@ -303,7 +194,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         session,
         isAuthenticated: !!user,
         isLoading,
-        authReady: initialSessionChecked, // Map initialSessionChecked to authReady
         login,
         signup,
         loginWithGoogle,
