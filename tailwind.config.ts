@@ -85,6 +85,7 @@ export default {
 						DEFAULT: '#0F1C2E',
 					}
 				},
+				black: '#000000',
 				popover: {
 					DEFAULT: 'hsl(var(--popover))',
 					foreground: 'hsl(var(--popover-foreground))'

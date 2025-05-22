@@ -23,7 +23,7 @@ const Sidebar: React.FC = () => {
   ];
 
   return (
-    <div className="h-screen w-64 bg-white shadow-md flex flex-col glass-dark border-r border-gray-200">
+    <div className="h-screen w-64 bg-white shadow-md flex flex-col glass-dark border-r border-gray-200 dark:bg-black dark:border-dark-bg-300">
       <div className="p-5 flex justify-center">
         <img 
           src="/lovable-uploads/67d45eae-154d-4a02-a7a5-1f115188b97b.png" 
@@ -49,10 +49,10 @@ const Sidebar: React.FC = () => {
         </nav>
       </div>
       
-      <div className="p-4 border-t border-gray-200">
+      <div className="p-4 border-t border-gray-200 dark:border-dark-bg-300">
         <button 
           onClick={logout}
-          className="sidebar-item text-red-500 hover:bg-red-50 w-full"
+          className="sidebar-item text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 w-full"
         >
           <LogOut size={18} />
           <span>Logout</span>

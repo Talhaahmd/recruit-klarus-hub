@@ -46,7 +46,7 @@
   }
 
   .dark {
-    --background: 215 40% 12%;
+    --background: 0 0% 0%;
     --foreground: 0 0% 98%;
 
     --card: 215 28% 17%;
@@ -74,7 +74,7 @@
     --input: 215 28% 25%;
     --ring: 216 34% 17%;
 
-    --sidebar-background: 215 40% 12%;
+    --sidebar-background: 0 0% 0%;
     --sidebar-foreground: 0 0% 98%;
     --sidebar-primary: 216 34% 37%;
     --sidebar-primary-foreground: 0 0% 98%;
@@ -129,6 +129,6 @@
   }
 
   body {
-    @apply bg-bg-200 text-foreground dark:bg-dark-bg-200 dark:text-dark-text-100;
+    @apply bg-bg-200 text-foreground dark:bg-black dark:text-dark-text-100;
   }
 }

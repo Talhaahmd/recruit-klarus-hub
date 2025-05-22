@@ -12,8 +12,8 @@ interface HeaderProps {
 export const Header: React.FC<HeaderProps> = ({ title, subtitle }) => {
   return (
     <div className="mb-8">
-      <h1 className="text-2xl font-bold text-text-100">{title}</h1>
-      {subtitle && <p className="text-text-200 mt-1">{subtitle}</p>}
+      <h1 className="text-2xl font-bold text-text-100 dark:text-dark-text-100">{title}</h1>
+      {subtitle && <p className="text-text-200 mt-1 dark:text-dark-text-200">{subtitle}</p>}
     </div>
   );
 };
@@ -24,8 +24,8 @@ const MainLayout: React.FC = () => {
   // If still loading auth state, show loading
   if (isLoading) {
     return (
-      <div className="h-screen flex items-center justify-center">
-        <div className="animate-pulse-light">Loading...</div>
+      <div className="h-screen flex items-center justify-center dark:bg-black">
+        <div className="animate-pulse-light dark:text-dark-text-100">Loading...</div>
       </div>
     );
   }
@@ -36,7 +36,7 @@ const MainLayout: React.FC = () => {
   }
   
   return (
-    <div className="flex h-screen bg-bg-200 overflow-hidden">
+    <div className="flex h-screen bg-bg-200 overflow-hidden dark:bg-black">
       <Sidebar />
       
       <div className="flex-1 overflow-y-auto p-8">
