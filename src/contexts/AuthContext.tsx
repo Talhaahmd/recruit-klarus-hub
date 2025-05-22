@@ -82,16 +82,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     );
 
     // THEN check for existing session
-    supabase.auth.getSession().then(({ data: { session: currentSession } }) => {
-      setSession(currentSession);
-      setUser(currentSession?.user ?? null);
-      
-      if (currentSession?.user) {
-        fetchProfile(currentSession.user.id);
-      }
-      
-      setIsLoading(false);
-    });
+   supabase.auth.getSession().then(({ data: { session: currentSession } }) => {
+  console.log("🔍 Supabase getSession result:", currentSession);
+
+  setSession(currentSession);
+  setUser(currentSession?.user ?? null);
+  
+  if (currentSession?.user) {
+    console.log("👤 Logged in as:", currentSession.user.email);
+    fetchProfile(currentSession.user.id);
+  } else {
+    console.log("⚠️ No session found.");
+  }
+
+  setIsLoading(false);
+});
+
 
     return () => {
       subscription.unsubscribe();
