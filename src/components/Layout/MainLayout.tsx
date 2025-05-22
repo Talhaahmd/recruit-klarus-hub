@@ -23,15 +23,24 @@ const MainLayout: React.FC = () => {
   const location = useLocation();
   
   useEffect(() => {
-    console.log('🏠 MainLayout rendered, authenticated:', isAuthenticated, 'loading:', isLoading);
-  }, [isAuthenticated, isLoading]);
+    console.log('🏠 MainLayout rendered, authenticated:', isAuthenticated, 'loading:', isLoading, 'path:', location.pathname);
+    
+    // Check if we're processing an OAuth login that just completed
+    const oauthRedirectProcessed = sessionStorage.getItem('oauth_redirect_processed');
+    if (oauthRedirectProcessed && location.pathname === '/dashboard') {
+      console.log('✅ OAuth redirect to dashboard successful');
+    }
+  }, [isAuthenticated, isLoading, location.pathname]);
   
   // If still loading auth state, show loading
   if (isLoading) {
     return (
       <div className="h-screen flex items-center justify-center dark:bg-black">
-        <div className="animate-pulse text-lg font-medium dark:text-dark-text-100">
-          Loading your workspace...
+        <div className="flex flex-col items-center">
+          <div className="w-12 h-12 border-4 border-primary-100 border-t-transparent rounded-full animate-spin mb-4"></div>
+          <div className="text-lg font-medium dark:text-dark-text-100">
+            Loading your workspace...
+          </div>
         </div>
       </div>
     );
@@ -39,7 +48,7 @@ const MainLayout: React.FC = () => {
   
   // If not authenticated, redirect to login with the current path as the 'from' parameter
   if (!isAuthenticated) {
-    console.log('⚠️ User not authenticated, redirecting to login');
+    console.log('⚠️ User not authenticated, redirecting to login from:', location.pathname);
     return <Navigate to={`/login?from=${encodeURIComponent(location.pathname)}`} replace />;
   }
   

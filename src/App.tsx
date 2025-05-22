@@ -1,9 +1,10 @@
+
 import React, { useEffect } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate, useNavigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useNavigate, useLocation } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
 import { ThemeProvider } from "./contexts/ThemeContext";
 
@@ -33,23 +34,41 @@ const queryClient = new QueryClient();
 // 🔁 Handles Supabase OAuth redirect and processes access_token in URL hash
 const HashRedirectHandler = () => {
   const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
+    // Process OAuth redirects
     const hash = window.location.hash;
-
-    if (hash.includes('access_token')) {
+    const isProcessingOAuth = sessionStorage.getItem('processing_oauth_login');
+    
+    console.log('🔍 HashRedirectHandler checking URL:', location.pathname, 'Hash:', hash.substring(0, 20) + '...');
+    
+    // Check if we have an access_token in the URL (from OAuth redirect)
+    if (hash && hash.includes('access_token')) {
       console.log('🔐 OAuth access_token detected in hash, redirecting...');
-      sessionStorage.setItem('processing_oauth_login', 'true');
+      sessionStorage.setItem('oauth_redirect_processed', 'true');
+      
+      // Force a full page navigation to dashboard (not React Router)
+      // This ensures the token is properly processed by Supabase
       window.location.replace('/dashboard');
-    } else if (sessionStorage.getItem('processing_oauth_login')) {
-      console.log('✅ OAuth session complete');
+      return;
+    }
+    
+    // Check if we just completed an OAuth redirect
+    if (sessionStorage.getItem('oauth_redirect_processed')) {
+      console.log('✅ OAuth redirect processed, cleaning up');
+      sessionStorage.removeItem('oauth_redirect_processed');
+    }
+    
+    // Clear processing flag if we're not on the expected redirect path
+    if (isProcessingOAuth && location.pathname !== '/dashboard') {
+      console.log('🧹 Cleaning up stale OAuth processing flag');
       sessionStorage.removeItem('processing_oauth_login');
     }
-  }, []);
+  }, [location]);
 
   return null;
 };
-
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
