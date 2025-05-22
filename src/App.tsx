@@ -37,18 +37,19 @@ const HashRedirectHandler = () => {
   useEffect(() => {
     const hash = window.location.hash;
 
-    if (hash.includes("access_token")) {
-      console.log("🔐 OAuth token detected in URL, redirecting to /dashboard...");
-      sessionStorage.setItem("processing_oauth_login", "true");
-      window.location.replace("/dashboard");
-    } else if (sessionStorage.getItem("processing_oauth_login")) {
-      console.log("✅ OAuth login complete, clearing session flag.");
-      sessionStorage.removeItem("processing_oauth_login");
+    if (hash.includes('access_token')) {
+      console.log('🔐 OAuth access_token detected in hash, redirecting...');
+      sessionStorage.setItem('processing_oauth_login', 'true');
+      window.location.replace('/dashboard');
+    } else if (sessionStorage.getItem('processing_oauth_login')) {
+      console.log('✅ OAuth session complete');
+      sessionStorage.removeItem('processing_oauth_login');
     }
   }, []);
 
   return null;
 };
+
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
