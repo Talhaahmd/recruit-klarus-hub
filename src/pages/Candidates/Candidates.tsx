@@ -1,6 +1,3 @@
-
-// Fix the issue with deleteCandidate call in line 105
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Header } from '@/components/Layout/MainLayout';
