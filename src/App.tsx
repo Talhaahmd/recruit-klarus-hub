@@ -5,6 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from './contexts/AuthContext';
+import { ThemeProvider } from './contexts/ThemeContext';
 
 // Layout
 import MainLayout from "./components/Layout/MainLayout";
@@ -32,33 +33,35 @@ const queryClient = new QueryClient();
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <Routes>
-            {/* Public Routes (No Auth Required) */}
-            <Route path="/" element={<Index />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/signup" element={<Signup />} />
-            <Route path="/submission" element={<CVSubmission />} />
-            
-            {/* Protected Routes */}
-            <Route path="/" element={<MainLayout />}>
-              <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/jobs" element={<Jobs />} />
-              <Route path="/candidates" element={<Candidates />} />
-              <Route path="/candidates/:id" element={<CandidateProfile />} />
-              <Route path="/calendar" element={<Calendar />} />
-              <Route path="/build-profile" element={<BuildProfile />} />
-              <Route path="/settings" element={<Settings />} />
-            </Route>
-            
-            {/* 404 Route */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
-      </TooltipProvider>
+      <ThemeProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <Routes>
+              {/* Public Routes (No Auth Required) */}
+              <Route path="/" element={<Index />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/signup" element={<Signup />} />
+              <Route path="/submission" element={<CVSubmission />} />
+              
+              {/* Protected Routes */}
+              <Route path="/" element={<MainLayout />}>
+                <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/jobs" element={<Jobs />} />
+                <Route path="/candidates" element={<Candidates />} />
+                <Route path="/candidates/:id" element={<CandidateProfile />} />
+                <Route path="/calendar" element={<Calendar />} />
+                <Route path="/build-profile" element={<BuildProfile />} />
+                <Route path="/settings" element={<Settings />} />
+              </Route>
+              
+              {/* 404 Route */}
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </BrowserRouter>
+        </TooltipProvider>
+      </ThemeProvider>
     </AuthProvider>
   </QueryClientProvider>
 );

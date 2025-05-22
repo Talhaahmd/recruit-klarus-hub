@@ -44,11 +44,50 @@
     --sidebar-border: 220 13% 91%;
     --sidebar-ring: 217.2 91.2% 59.8%;
   }
+
+  .dark {
+    --background: 215 40% 12%;
+    --foreground: 0 0% 98%;
+
+    --card: 215 28% 17%;
+    --card-foreground: 0 0% 98%;
+
+    --popover: 215 28% 17%;
+    --popover-foreground: 0 0% 98%;
+
+    --primary: 217 33% 25%;
+    --primary-foreground: 0 0% 98%;
+
+    --secondary: 215 25% 27%;
+    --secondary-foreground: 0 0% 98%;
+
+    --muted: 215 25% 27%;
+    --muted-foreground: 240 5% 84.9%;
+
+    --accent: 216 34% 37%;
+    --accent-foreground: 0 0% 98%;
+
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 215 28% 25%;
+    --input: 215 28% 25%;
+    --ring: 216 34% 17%;
+
+    --sidebar-background: 215 40% 12%;
+    --sidebar-foreground: 0 0% 98%;
+    --sidebar-primary: 216 34% 37%;
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-accent: 215 25% 27%;
+    --sidebar-accent-foreground: 0 0% 98%;
+    --sidebar-border: 215 28% 25%;
+    --sidebar-ring: 216 34% 37%;
+  }
 }
 
 @layer components {
   .glass {
-    @apply backdrop-blur-md bg-white/30 border border-white/30 shadow-lg;
+    @apply backdrop-blur-md bg-white/30 border border-white/30 shadow-lg dark:bg-dark-bg-200/30 dark:border-dark-bg-300/30;
   }
   
   .glass-dark {
@@ -68,7 +107,7 @@
   }
   
   .glow::before {
-    @apply content-[''] absolute inset-0 bg-primary-200/30 blur-xl opacity-0 -z-10 transition-opacity duration-300 rounded-lg;
+    @apply content-[''] absolute inset-0 bg-primary-200/30 blur-xl opacity-0 -z-10 transition-opacity duration-300 rounded-lg dark:bg-dark-primary-200/30;
   }
   
   .glow:hover::before {
@@ -76,11 +115,11 @@
   }
 
   .sidebar-item {
-    @apply flex items-center gap-3 px-3 py-2 rounded-md transition-all duration-200 hover:bg-primary-100/10 text-text-100;
+    @apply flex items-center gap-3 px-3 py-2 rounded-md transition-all duration-200 hover:bg-primary-100/10 text-text-100 dark:hover:bg-dark-primary-100/10 dark:text-dark-text-100;
   }
   
   .sidebar-item.active {
-    @apply bg-primary-100 text-white hover:bg-primary-100/90;
+    @apply bg-primary-100 text-white hover:bg-primary-100/90 dark:bg-dark-primary-100 dark:hover:bg-dark-primary-100/90;
   }
 }
 
@@ -90,6 +129,6 @@
   }
 
   body {
-    @apply bg-bg-200 text-foreground;
+    @apply bg-bg-200 text-foreground dark:bg-dark-bg-200 dark:text-dark-text-100;
   }
 }
