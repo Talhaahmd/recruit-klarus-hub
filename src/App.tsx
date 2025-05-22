@@ -1,12 +1,12 @@
-
 import React, { useEffect } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { AuthProvider } from './contexts/AuthContext';
-import { ThemeProvider } from './contexts/ThemeContext';
+import { AuthProvider } from "./contexts/AuthContext";
+import { ThemeProvider } from "./contexts/ThemeContext";
+import { supabase } from "@/integrations/supabase/client";
 
 // Layout
 import MainLayout from "./components/Layout/MainLayout";
@@ -31,23 +31,22 @@ import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
-// Enhanced HashRedirectHandler with more robust hash detection
+// 🔁 Handles Supabase OAuth redirect hash and processes the access token
 const HashRedirectHandler = () => {
   useEffect(() => {
-    // Check if we have a hash with access_token
-    if (window.location.hash && window.location.hash.includes('access_token')) {
-      console.log('🔐 OAuth redirect detected with access_token');
-      
-      // Store the fact that we're processing a login to prevent infinite loops
-      sessionStorage.setItem('processing_oauth_login', 'true');
-      
-      // Force a full page reload to the dashboard route
-      // This ensures Supabase client properly processes the token
-      window.location.replace('/dashboard');
-    } else if (sessionStorage.getItem('processing_oauth_login')) {
-      // Clean up the processing flag after redirect is complete
-      console.log('✅ OAuth login process completed');
-      sessionStorage.removeItem('processing_oauth_login');
+    const hash = window.location.hash;
+
+    if (hash.includes("access_token")) {
+      console.log("🔐 OAuth redirect detected with access_token");
+
+      // Prevent infinite redirect loop
+      sessionStorage.setItem("processing_oauth_login", "true");
+
+      // Force reload to /dashboard to allow Supabase to handle the session from hash
+      window.location.replace("/dashboard");
+    } else if (sessionStorage.getItem("processing_oauth_login")) {
+      console.log("✅ OAuth login complete, cleaning up flag");
+      sessionStorage.removeItem("processing_oauth_login");
     }
   }, []);
 
@@ -62,7 +61,7 @@ const App = () => (
           <Toaster />
           <Sonner />
           <BrowserRouter>
-            {/* Place HashRedirectHandler at the top level so it runs on every route change */}
+            {/* This handles redirects from both Google and LinkedIn logins */}
             <HashRedirectHandler />
             <Routes>
               {/* Public Routes */}
@@ -71,7 +70,7 @@ const App = () => (
               <Route path="/signup" element={<Signup />} />
               <Route path="/submission" element={<CVSubmission />} />
 
-              {/* Protected Routes */}
+              {/* Protected Routes inside Main Layout */}
               <Route path="/" element={<MainLayout />}>
                 <Route path="dashboard" element={<Dashboard />} />
                 <Route path="jobs" element={<Jobs />} />
@@ -82,10 +81,10 @@ const App = () => (
                 <Route path="settings" element={<Settings />} />
               </Route>
 
-              {/* Redirect legacy route */}
+              {/* Redirect legacy /index to dashboard */}
               <Route path="/index" element={<Navigate to="/dashboard" />} />
 
-              {/* 404 Fallback */}
+              {/* Fallback route */}
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
