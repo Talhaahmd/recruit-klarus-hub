@@ -1,9 +1,9 @@
-
+import React, { useEffect } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useNavigate } from "react-router-dom";
 import { AuthProvider } from './contexts/AuthContext';
 import { ThemeProvider } from './contexts/ThemeContext';
 
@@ -30,6 +30,18 @@ import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
+const HashRedirectHandler = () => {
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (window.location.hash.includes('access_token')) {
+      navigate('/dashboard');
+    }
+  }, [navigate]);
+
+  return null;
+};
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
@@ -38,13 +50,14 @@ const App = () => (
           <Toaster />
           <Sonner />
           <BrowserRouter>
+            <HashRedirectHandler />
             <Routes>
-              {/* Public Routes (No Auth Required) */}
-              <Route path="/" element={<Home />} />
+              {/* Public Routes */}
+              <Route index element={<Home />} />
               <Route path="/login" element={<Login />} />
               <Route path="/signup" element={<Signup />} />
               <Route path="/submission" element={<CVSubmission />} />
-              
+
               {/* Protected Routes */}
               <Route path="/" element={<MainLayout />}>
                 <Route path="dashboard" element={<Dashboard />} />
@@ -55,11 +68,11 @@ const App = () => (
                 <Route path="build-profile" element={<BuildProfile />} />
                 <Route path="settings" element={<Settings />} />
               </Route>
-              
-              {/* Redirect /index to Dashboard for authenticated users */}
+
+              {/* Redirect legacy route */}
               <Route path="/index" element={<Navigate to="/dashboard" />} />
-              
-              {/* 404 Route */}
+
+              {/* 404 Fallback */}
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
