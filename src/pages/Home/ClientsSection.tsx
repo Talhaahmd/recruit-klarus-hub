@@ -1,46 +1,33 @@
 
 import React, { useRef } from 'react';
 import { LinkPreview } from '@/components/ui/link-preview';
-import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/components/ui/hover-card';
 
-// Our client companies from USA and Middle East
+// Our new client companies
 const clients = [
   {
-    name: 'Aramex', 
-    logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/2f/Aramex_logo.svg/1200px-Aramex_logo.svg.png',
-    url: 'https://www.aramex.com',
-    description: 'Helped streamline their talent acquisition process, reducing hiring time by 40% and increasing quality of hires by 25%.'
+    name: 'Five Pack Creative',
+    url: 'https://fivepackcreative.com/',
   },
   {
-    name: 'SABIC', 
-    logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d3/SABIC_logo.svg/2560px-SABIC_logo.svg.png',
-    url: 'https://www.sabic.com',
-    description: 'Implemented an AI-driven candidate screening solution that boosted their technical hiring pipeline efficiency by 35%.'
+    name: 'The Keenfolks',
+    url: 'https://www.thekeenfolks.com/',
   },
   {
-    name: 'Lucid Motors', 
-    logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/2c/Lucid_logo.svg/2560px-Lucid_logo.svg.png',
-    url: 'https://www.lucidmotors.com',
-    description: 'Developed a specialized engineering talent pool that helped them scale their R&D team by 60% in just 8 months.'
+    name: 'Klarus.io',
+    url: 'https://www.klarus.io/',
   },
   {
-    name: 'Palantir', 
-    logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/7/79/Palantir_Technologies_logo.svg/1200px-Palantir_Technologies_logo.svg.png',
-    url: 'https://www.palantir.com',
-    description: 'Created a secure, compliance-focused recruitment workflow that improved their sensitive position hiring by 45%.'
+    name: 'Kualitatem',
+    url: 'https://www.kualitatem.com/',
   },
   {
-    name: 'Mubadala', 
-    logo: 'https://upload.wikimedia.org/wikipedia/en/thumb/3/38/Mubadala_Investment_Company_logo.svg/1200px-Mubadala_Investment_Company_logo.svg.png',
-    url: 'https://www.mubadala.com',
-    description: 'Designed an executive search program that increased C-suite diversity by 40% while maintaining their strict qualification standards.'
+    name: 'Neptune Software',
+    url: 'https://www.neptune-software.com/',
   },
   {
-    name: 'Riot Games', 
-    logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/37/Riot_Games_logo.svg/1200px-Riot_Games_logo.svg.png',
-    url: 'https://www.riotgames.com',
-    description: 'Implemented a culture-first hiring approach that reduced turnover by 30% and increased team performance metrics by 25%.'
-  },
+    name: 'Chrono Innovation',
+    url: 'https://www.chronoinnovation.com/',
+  }
 ];
 
 const ClientsSection: React.FC = () => {
@@ -54,61 +41,46 @@ const ClientsSection: React.FC = () => {
             Success Stories
           </span>
           <h2 className="mt-4 text-4xl font-bold text-white md:text-5xl">Our Valued Clients</h2>
-          
-          <div className="mt-8 text-lg text-gray-300 max-w-4xl mx-auto leading-relaxed">
-            <p className="mb-4">
-              At Klarus HR, we've partnered with innovative organizations across the United States and Middle East 
-              to transform their talent acquisition strategies. Our AI-driven platform has helped our clients 
-              <LinkPreview url="https://blog.recruitee.com/recruitment-metrics/" className="font-semibold text-cyan-400 mx-1" width={300} height={180}>
-                reduce time-to-hire by up to 40%
-              </LinkPreview> 
-              while simultaneously improving candidate quality and team diversity.
-            </p>
-            <p>
-              We've enabled companies to build high-performing teams in competitive industries through our
-              <LinkPreview url="https://www.linkedin.com/pulse/ai-recruitment-transforming-hiring-process-matthew-warzel-cprw/" className="font-semibold text-purple-400 mx-1" width={300} height={180}>
-                advanced AI matching algorithms
-              </LinkPreview>
-              and deep talent pool, giving them the competitive edge in today's fast-paced market.
-            </p>
-          </div>
         </div>
 
+        {/* Client paragraph with link previews */}
+        <div className="max-w-5xl mx-auto mb-16 text-lg text-gray-200 leading-relaxed">
+          <p className="mb-6">
+            We've proudly supported companies like <LinkPreview url="https://fivepackcreative.com/" className="font-semibold text-cyan-400" width={320} height={200}>Five Pack Creative</LinkPreview> in scaling their teams by using Klarus HR to streamline technical hiring—while also enhancing their careers and hiring pages with the Acetrinity Link Reveal effect for a modern, interactive feel. With <LinkPreview url="https://www.thekeenfolks.com/" className="font-semibold text-purple-400" width={320} height={200}>The Keenfolks</LinkPreview>, we accelerated candidate screening for key digital roles, while ensuring their site interactions reflected their innovative spirit.
+          </p>
+          <p className="mb-6">
+            For <LinkPreview url="https://www.klarus.io/" className="font-semibold text-cyan-400" width={320} height={200}>Klarus.io</LinkPreview>, our own product, we applied our hiring engine internally—refining how candidates experience the brand through subtle yet impactful link previews. At <LinkPreview url="https://www.kualitatem.com/" className="font-semibold text-purple-400" width={320} height={200}>Kualitatem</LinkPreview>, we helped recruit skilled cybersecurity professionals and used link animations to signal trust and attention to detail.
+          </p>
+          <p className="mb-6">
+            We partnered with <LinkPreview url="https://www.neptune-software.com/" className="font-semibold text-cyan-400" width={320} height={200}>Neptune Software</LinkPreview> to fulfill enterprise software hiring needs, using Klarus HR's AI interviews to streamline evaluations. For <LinkPreview url="https://www.chronoinnovation.com/" className="font-semibold text-purple-400" width={320} height={200}>Chrono Innovation</LinkPreview>, we sourced top tech talent while elevating their user journey through link effects that reflect their forward-thinking identity. Each project blended hiring excellence with interactive design to deliver results that resonate.
+          </p>
+        </div>
+
+        {/* Client links gallery */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mt-16">
           {clients.map((client, index) => (
             <div key={index} className="relative transform transition-all duration-500 hover:scale-105">
               {/* Glow effect background */}
               <div className="absolute -inset-1 bg-gradient-to-r from-cyan-500/20 via-purple-500/20 to-cyan-500/20 rounded-xl blur opacity-75 group-hover:opacity-100 transition duration-1000"></div>
               
-              {/* Card content with glass effect */}
-              <div className="relative glass-dark rounded-xl p-6 h-full flex flex-col">
-                <div className="flex items-center mb-6">
-                  <div className="w-16 h-16 mr-4 flex-shrink-0 bg-white/10 rounded-lg p-2 flex items-center justify-center">
-                    <img 
-                      src={client.logo} 
-                      alt={client.name} 
-                      className="max-w-full max-h-full object-contain"
-                    />
-                  </div>
-                  <h3 className="text-xl font-semibold">
-                    <LinkPreview 
-                      url={client.url} 
-                      className="text-white hover:text-cyan-400 transition-colors"
-                      width={320}
-                      height={200}
-                    >
-                      {client.name}
-                    </LinkPreview>
-                  </h3>
-                </div>
-                
-                <p className="text-gray-300 flex-grow mb-4">{client.description}</p>
+              {/* Glass effect card */}
+              <div className="relative backdrop-blur-sm bg-black/40 border border-gray-800 rounded-xl p-8 h-full flex flex-col items-center justify-center">
+                <h3 className="text-2xl font-bold mb-6 text-center">
+                  <LinkPreview 
+                    url={client.url} 
+                    className="text-white hover:text-cyan-400 transition-colors"
+                    width={320}
+                    height={200}
+                  >
+                    {client.name}
+                  </LinkPreview>
+                </h3>
                 
                 <a 
                   href={client.url} 
                   target="_blank" 
                   rel="noopener noreferrer"
-                  className="inline-flex items-center text-cyan-400 hover:text-cyan-300 transition-colors"
+                  className="inline-flex items-center text-cyan-400 hover:text-cyan-300 transition-colors mt-4"
                 >
                   Visit website
                   <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
