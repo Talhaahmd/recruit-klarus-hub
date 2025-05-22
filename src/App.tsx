@@ -1,10 +1,16 @@
-
 import React, { useEffect } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate, useNavigate, useLocation } from "react-router-dom";
+import {
+  BrowserRouter,
+  Routes,
+  Route,
+  Navigate,
+  useNavigate,
+  useLocation,
+} from "react-router-dom";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import { ThemeProvider } from "./contexts/ThemeContext";
 
@@ -31,60 +37,55 @@ import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
-// 🔁 Handles Supabase OAuth redirect and processes access_token in URL hash
 const HashRedirectHandler = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { isAuthenticated } = useAuth();
 
   useEffect(() => {
-    // Process OAuth redirects
     const hash = window.location.hash;
-    
-    console.log('🔍 HashRedirectHandler checking URL:', location.pathname, 'Hash:', hash ? `${hash.substring(0, 20)}...` : 'none', 'Auth:', isAuthenticated);
-    
-    // Check if we have an access_token in the URL (from OAuth redirect)
-    if (hash && hash.includes('access_token')) {
-      console.log('🔐 OAuth access_token detected in hash, redirecting...');
-      sessionStorage.setItem('oauth_redirect_processed', 'true');
-      
-      // Force a full page navigation to dashboard (not React Router)
-      // This ensures the token is properly processed by Supabase
-      window.location.replace('/dashboard');
+
+    if (hash && hash.includes("access_token")) {
+      console.log("🔐 OAuth access_token detected in hash, redirecting...");
+      sessionStorage.setItem("oauth_redirect_processed", "true");
+      window.location.replace("/dashboard");
       return;
     }
-    
-    // Check if we just completed an OAuth redirect and are now on dashboard
-    if (sessionStorage.getItem('oauth_redirect_processed') && location.pathname === '/dashboard') {
-      console.log('✅ OAuth redirect to dashboard successful');
-      sessionStorage.removeItem('oauth_redirect_processed');
-      
-      if (!isAuthenticated) {
-        console.log('⚠️ Still not authenticated after OAuth redirect, waiting for session...');
-        // The auth context will handle authentication when the session is available
-      }
+
+    if (
+      sessionStorage.getItem("oauth_redirect_processed") &&
+      location.pathname === "/dashboard"
+    ) {
+      console.log("✅ OAuth redirect to dashboard successful");
+      sessionStorage.removeItem("oauth_redirect_processed");
     }
   }, [location, isAuthenticated]);
 
   return null;
 };
 
-// Authenticated route wrapper that handles redirect while auth is loading
-const ProtectedRouteHandler = ({ children }) => {
-  const { isAuthenticated, isLoading } = useAuth();
+const ProtectedRouteHandler = ({ children }: { children: React.ReactNode }) => {
+  const { isAuthenticated, isLoading, authReady } = useAuth();
   const location = useLocation();
 
-  // If we're processing an OAuth redirect, render children even if not yet authenticated
-  // This prevents redirect loops during OAuth processing
-  if (sessionStorage.getItem('oauth_redirect_processed') && location.pathname === '/dashboard') {
-    console.log('⏳ Allowing access to dashboard during OAuth processing...');
+  if (!authReady) {
+    return <div className="min-h-screen flex items-center justify-center bg-white text-gray-500">Loading session...</div>;
+  }
+
+  if (
+    sessionStorage.getItem("oauth_redirect_processed") &&
+    location.pathname === "/dashboard"
+  ) {
     return <>{children}</>;
   }
 
-  // For all other cases, normal auth check applies
   if (!isLoading && !isAuthenticated) {
-    console.log('🔒 Access to protected route denied, redirecting to login...');
-    return <Navigate to={`/login?from=${encodeURIComponent(location.pathname)}`} replace />;
+    return (
+      <Navigate
+        to={`/login?from=${encodeURIComponent(location.pathname)}`}
+        replace
+      />
+    );
   }
 
   return <>{children}</>;
@@ -98,22 +99,21 @@ const App = () => (
           <Toaster />
           <Sonner />
           <BrowserRouter>
-            {/* Handle Supabase OAuth redirect from Google/LinkedIn */}
             <HashRedirectHandler />
-
             <Routes>
-              {/* Public Routes */}
               <Route index element={<Home />} />
               <Route path="/login" element={<Login />} />
               <Route path="/signup" element={<Signup />} />
               <Route path="/submission" element={<CVSubmission />} />
 
-              {/* Protected Routes */}
-              <Route path="/" element={
-                <ProtectedRouteHandler>
-                  <MainLayout />
-                </ProtectedRouteHandler>
-              }>
+              <Route
+                path="/"
+                element={
+                  <ProtectedRouteHandler>
+                    <MainLayout />
+                  </ProtectedRouteHandler>
+                }
+              >
                 <Route path="dashboard" element={<Dashboard />} />
                 <Route path="jobs" element={<Jobs />} />
                 <Route path="candidates" element={<Candidates />} />
@@ -123,7 +123,6 @@ const App = () => (
                 <Route path="settings" element={<Settings />} />
               </Route>
 
-              {/* Legacy or fallback */}
               <Route path="/index" element={<Navigate to="/dashboard" />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
