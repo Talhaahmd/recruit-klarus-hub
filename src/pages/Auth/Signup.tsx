@@ -29,11 +29,11 @@ const Signup: React.FC = () => {
   const from = new URLSearchParams(location.search).get('from') || '/dashboard';
 
   useEffect(() => {
-    if (!isLoading && isAuthenticated) {
+    if (!isLoading && isAuthenticated && location.pathname === '/signup') {
       console.log('✅ Already authenticated, redirecting...');
       navigate(from, { replace: true });
     }
-  }, [isLoading, isAuthenticated, navigate, from]);
+  }, [isLoading, isAuthenticated, location.pathname, navigate, from]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -61,6 +61,7 @@ const Signup: React.FC = () => {
       navigate(`/login?from=${encodeURIComponent(from)}`, { replace: true });
     } catch (error) {
       console.error('❌ Signup failed');
+      // error handled in context
     } finally {
       setIsSubmitting(false);
     }
@@ -184,7 +185,10 @@ const Signup: React.FC = () => {
           <CardFooter>
             <p className="text-center text-sm text-muted-foreground w-full">
               Already have an account?{' '}
-              <Link to={`/login?from=${encodeURIComponent(from)}`} className="text-primary-100 hover:underline">
+              <Link
+                to={`/login?from=${encodeURIComponent(from)}`}
+                className="text-primary-100 hover:underline"
+              >
                 Sign in
               </Link>
             </p>
