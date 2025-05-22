@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { Session, User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -34,6 +35,7 @@ export const useAuth = () => {
   return context;
 };
 
+// Use full URL for OAuth redirects
 const REDIRECT_TO =
   import.meta.env.MODE === 'development'
     ? 'http://localhost:3000/dashboard'
@@ -48,6 +50,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Fetch or create user profile
   const fetchProfile = async (userId: string) => {
     try {
+      console.log('🔍 Fetching profile for user:', userId);
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
@@ -86,6 +89,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     console.log('🔄 AuthContext initialized');
 
+    // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, currentSession) => {
         console.log('🔔 Auth state change:', event);
@@ -94,9 +98,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
         if (currentSession?.user) {
           console.log('👤 User authenticated:', currentSession.user.email);
+          // Use setTimeout to prevent potential deadlocks with Supabase client
           setTimeout(() => {
             fetchProfile(currentSession.user.id);
           }, 0);
+          
+          // Show success toast for login events
+          if (event === 'SIGNED_IN') {
+            toast.success('Successfully signed in');
+          }
         } else {
           console.warn('⚠️ Auth event occurred but no user found.');
           setProfile(null);
@@ -104,7 +114,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     );
 
+    // THEN check for existing session
     supabase.auth.getSession().then(({ data: { session: currentSession } }) => {
+      console.log('🔍 Supabase getSession result:', currentSession ? 'Session found' : 'No session');
       setSession(currentSession);
       setUser(currentSession?.user ?? null);
 

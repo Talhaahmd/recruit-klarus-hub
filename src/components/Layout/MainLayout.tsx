@@ -23,25 +23,27 @@ const MainLayout: React.FC = () => {
   const location = useLocation();
   
   useEffect(() => {
-    console.log('MainLayout rendered, authenticated:', isAuthenticated, 'loading:', isLoading);
+    console.log('🏠 MainLayout rendered, authenticated:', isAuthenticated, 'loading:', isLoading);
   }, [isAuthenticated, isLoading]);
   
   // If still loading auth state, show loading
   if (isLoading) {
     return (
       <div className="h-screen flex items-center justify-center dark:bg-black">
-        <div className="animate-pulse-light dark:text-dark-text-100">Loading...</div>
+        <div className="animate-pulse text-lg font-medium dark:text-dark-text-100">
+          Loading your workspace...
+        </div>
       </div>
     );
   }
   
   // If not authenticated, redirect to login with the current path as the 'from' parameter
   if (!isAuthenticated) {
-    console.log('User not authenticated, redirecting to login');
+    console.log('⚠️ User not authenticated, redirecting to login');
     return <Navigate to={`/login?from=${encodeURIComponent(location.pathname)}`} replace />;
   }
   
-  console.log('User authenticated, showing protected content');
+  console.log('✅ User authenticated, showing protected content');
   return (
     <div className="flex h-screen bg-bg-200 overflow-hidden dark:bg-black">
       <Sidebar />
