@@ -11,6 +11,7 @@ interface PlanFeature {
 
 interface PricingPlan {
   title: string;
+  emoji: string;
   price: number;
   period: string;
   description: string;
@@ -22,56 +23,55 @@ interface PricingPlan {
 
 const plans: PricingPlan[] = [
   {
-    title: "Starter",
-    price: 29,
+    title: "Starter Plan",
+    emoji: "💼",
+    price: 19,
     period: "month",
-    description: "Perfect for small businesses and startups looking to streamline their hiring process.",
+    description: "Best for startups or small teams just beginning to scale hiring.",
     features: [
-      { text: "Up to 5 active job postings", available: true },
-      { text: "Basic candidate filtering", available: true },
-      { text: "Resume parsing", available: true },
-      { text: "Email templates", available: true },
-      { text: "Basic analytics", available: true },
-      { text: "AI candidate matching", available: false },
-      { text: "Custom workflows", available: false },
-      { text: "Premium support", available: false },
+      { text: "20 AI interviews/month", available: true },
+      { text: "2 active job role", available: true },
+      { text: "CV parsing + scoring", available: true },
+      { text: "Interview transcripts & summaries", available: true },
+      { text: "Email support", available: true },
+      { text: "Airtable or Google Sheets integration", available: true },
+      { text: "70 Candidates Registry", available: true },
     ],
     ctaText: "Start Free Trial",
     bgGradient: "bg-gradient-to-r from-cyan-500/10 to-cyan-500/5"
   },
   {
-    title: "Professional",
-    price: 99,
+    title: "Growth Plan",
+    emoji: "🚀",
+    price: 49,
     period: "month",
-    description: "Ideal for growing companies with advanced recruitment needs.",
+    description: "Ideal for growing companies managing multiple roles and moderate candidate volume.",
     features: [
-      { text: "Up to 15 active job postings", available: true },
-      { text: "Advanced candidate filtering", available: true },
-      { text: "Resume parsing and analysis", available: true },
-      { text: "Customizable email templates", available: true },
-      { text: "Full analytics dashboard", available: true },
-      { text: "AI candidate matching", available: true },
-      { text: "Custom workflows", available: true },
-      { text: "Premium support", available: false },
+      { text: "50 AI interviews/month", available: true },
+      { text: "Up to 5 active job roles", available: true },
+      { text: "Smart scoring + detailed evaluation", available: true },
+      { text: "Transcripts, summaries, and ratings", available: true },
+      { text: "250 Candidates Registry", available: true },
+      { text: "Priority support", available: true },
     ],
     ctaText: "Get Started",
     mostPopular: true,
     bgGradient: "bg-gradient-to-r from-purple-500/20 to-cyan-500/20"
   },
   {
-    title: "Enterprise",
-    price: 249,
+    title: "Enterprise Plan",
+    emoji: "🏢",
+    price: 79,
     period: "month",
-    description: "Comprehensive solution for large organizations with complex hiring processes.",
+    description: "Designed for HR teams or agencies with high-volume hiring and advanced needs.",
     features: [
-      { text: "Unlimited job postings", available: true },
-      { text: "Enterprise-grade filtering", available: true },
-      { text: "Advanced AI resume analysis", available: true },
-      { text: "Full email automation", available: true },
-      { text: "Custom analytics and reporting", available: true },
-      { text: "Advanced AI candidate matching", available: true },
-      { text: "Custom workflows & integrations", available: true },
-      { text: "24/7 dedicated support", available: true },
+      { text: "100 interviews/month", available: true },
+      { text: "25 job roles", available: true },
+      { text: "Custom AI prompts per role", available: true },
+      { text: "Advanced analytics & dashboard", available: true },
+      { text: "ATS/CRM integration (e.g. Greenhouse, Lever)", available: true },
+      { text: "Dedicated success manager", available: true },
+      { text: "API access & white-labeling option", available: true },
     ],
     ctaText: "Contact Sales",
     bgGradient: "bg-gradient-to-r from-blue-600/10 to-purple-500/10"
@@ -137,6 +137,7 @@ const PlansSection: React.FC = () => {
               )}
               
               <div className="text-center">
+                <div className="text-3xl mb-2">{plan.emoji}</div>
                 <h3 className="text-2xl font-bold text-white">{plan.title}</h3>
                 <div className="mt-4 flex items-baseline justify-center">
                   <span className="text-5xl font-extrabold text-white">
@@ -164,9 +165,9 @@ const PlansSection: React.FC = () => {
               
               <div className="mt-8">
                 <Button
-                  variant={plan.title === "Professional" ? "default" : "outline"}
+                  variant={plan.title === "Growth Plan" ? "default" : "outline"}
                   className={`w-full py-2 px-4 rounded-lg font-medium transition-all duration-200 ${
-                    plan.title === "Professional"
+                    plan.title === "Growth Plan"
                       ? "bg-gradient-to-r from-purple-500 to-cyan-500 text-white hover:from-purple-600 hover:to-cyan-600"
                       : "border border-gray-700 text-white hover:bg-gray-800"
                   }`}
@@ -183,7 +184,7 @@ const PlansSection: React.FC = () => {
         <div className="mt-20 text-center">
           <div className="inline-block p-6 rounded-2xl bg-gradient-to-r from-gray-900 to-gray-800 border border-gray-800">
             <p className="text-lg font-medium text-white">
-              Not sure which plan is right for you? Try risk-free with our 14-day money-back guarantee.
+              Not sure which plan is right for you? Try risk-free with our 7-day money-back guarantee.
             </p>
             <p className="mt-2 text-gray-400">
               Contact our team for a personalized demo and recommendations.
