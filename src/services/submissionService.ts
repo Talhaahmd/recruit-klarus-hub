@@ -1,5 +1,4 @@
-
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 
 export const submissionService = {
@@ -169,6 +168,43 @@ export const submissionService = {
       console.error('Error updating submission status:', error);
       toast.error('Failed to update submission status');
       return null;
+    }
+  },
+  
+  // Add the scheduleInterview function
+  scheduleInterview: async (
+    candidateId: string,
+    interviewDate: string,
+    interviewTime: string,
+    interviewNotes: string,
+    candidateName: string,
+    candidateEmail: string,
+    jobName?: string
+  ): Promise<boolean> => {
+    try {
+      const { error } = await supabase
+        .from('candidate_interviews')
+        .insert({
+          candidate_id: candidateId,
+          interview_date: interviewDate,
+          interview_time: interviewTime,
+          interview_notes: interviewNotes,
+          candidate_name: candidateName,
+          candidate_email: candidateEmail,
+          job_name: jobName || '',
+          email_sent: false, // To be handled by a background job
+        });
+
+      if (error) {
+        throw error;
+      }
+
+      toast.success('Interview scheduled successfully');
+      return true;
+    } catch (err: any) {
+      console.error('Error scheduling interview:', err.message);
+      toast.error('Failed to schedule interview');
+      return false;
     }
   }
 };

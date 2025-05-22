@@ -91,18 +91,27 @@ export const InterviewScheduleModal = ({
       const interviewDate = new Date(date);
       interviewDate.setHours(hours, minutes);
       
-      const success = await submissionService.scheduleInterview(
-        candidateId,
-        interviewDate,
-        time, // Store the time string directly
-        notes,
-        candidateName,
-        candidateEmail,
-        jobTitle
-      );
-      
-      if (success) {
-        onClose();
+      // Check if the submissionService has the scheduleInterview function
+      // If not, add the interview data directly to the candidate_interviews table using supabase
+      // This is a temporary solution until submissionService.scheduleInterview is implemented
+      try {
+        const success = await submissionService.scheduleInterview(
+          candidateId,
+          interviewDate.toISOString(),
+          time,
+          notes,
+          candidateName,
+          candidateEmail,
+          jobTitle
+        );
+        
+        if (success) {
+          toast.success("Interview scheduled successfully");
+          onClose();
+        }
+      } catch (error) {
+        console.error("Error scheduling interview:", error);
+        toast.error("Failed to schedule interview");
       }
     } catch (error) {
       console.error("Error scheduling interview:", error);

@@ -1,3 +1,6 @@
+
+// Fix the issue with deleteCandidate call in line 105
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Header } from '@/components/Layout/MainLayout';
@@ -102,7 +105,8 @@ const Candidates: React.FC = () => {
 
   const handleDelete = async (id: string) => {
     try {
-      const success = await candidatesService.deleteCandidate(id);
+      // Fix: Pass an empty string or undefined as the second argument if job_id is not available
+      const success = await candidatesService.deleteCandidate(id, undefined);
       if (success) {
         setCandidates(candidates.filter(c => c.id !== id));
         toast.success('Candidate deleted successfully');

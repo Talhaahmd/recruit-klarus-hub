@@ -1,19 +1,41 @@
 
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 
 export type Candidate = {
   id: string;
-  job_id: string;
-  name: string;
+  job_id?: string;
+  name?: string;
+  full_name?: string;  // Added for compatibility with existing UI
   email: string;
-  phone: string;
-  resume_url: string;
-  applied_date: string;
-  status: string;
-  notes: string;
+  phone?: string;
+  resume_url?: string;
+  applied_date?: string;
+  status?: string;
+  notes?: string;
   rating: number;
   user_id?: string;
+  created_by?: string;
+  
+  // Additional fields from the database schema
+  location?: string;
+  linkedin?: string;
+  current_job_title?: string;
+  years_experience?: string;
+  experience_level?: string;
+  skills?: string;
+  companies?: string;
+  job_titles?: string;
+  degrees?: string;
+  institutions?: string;
+  graduation_years?: string;
+  certifications?: string;
+  ai_summary?: string;
+  ai_content?: string;
+  ai_rating?: number;
+  timestamp?: string;
+  source?: string;
+  suitable_role?: string;
 };
 
 export type CandidateInput = Omit<Candidate, 'id'>;
@@ -31,7 +53,7 @@ export const candidatesService = {
         throw error;
       }
       
-      return data || [];
+      return data as Candidate[] || [];
     } catch (err: any) {
       console.error('Error fetching candidates:', err.message);
       toast.error('Failed to load candidates');
@@ -52,7 +74,7 @@ export const candidatesService = {
         throw error;
       }
       
-      return data || [];
+      return data as Candidate[] || [];
     } catch (err: any) {
       console.error('Error fetching candidates for job:', err.message);
       toast.error('Failed to load candidates for this job');
@@ -73,7 +95,7 @@ export const candidatesService = {
         throw error;
       }
       
-      return data;
+      return data as Candidate;
     } catch (err: any) {
       console.error('Error fetching candidate:', err.message);
       toast.error('Failed to load candidate');
@@ -93,7 +115,8 @@ export const candidatesService = {
       // Ensure user_id is set correctly
       const candidateData = {
         ...candidate,
-        user_id: user.id
+        user_id: user.id,
+        created_by: user.id
       };
       
       const { data, error } = await supabase
@@ -106,11 +129,13 @@ export const candidatesService = {
         throw error;
       }
       
-      // Update the job's applicant count
-      await supabase.rpc('increment_job_applicants', { job_id: candidate.job_id });
+      // Update the job's applicant count if job_id is provided
+      if (candidate.job_id) {
+        await supabase.rpc('increment_job_applicants', { job_id: candidate.job_id });
+      }
       
       toast.success('Candidate added successfully');
-      return data;
+      return data as Candidate;
     } catch (err: any) {
       console.error('Error creating candidate:', err.message);
       toast.error('Failed to add candidate');
@@ -133,7 +158,7 @@ export const candidatesService = {
       }
       
       toast.success('Candidate updated successfully');
-      return data;
+      return data as Candidate;
     } catch (err: any) {
       console.error('Error updating candidate:', err.message);
       toast.error('Failed to update candidate');
@@ -142,7 +167,7 @@ export const candidatesService = {
   },
   
   // Delete a candidate - also needs to update the job's applicant count
-  deleteCandidate: async (id: string, jobId: string): Promise<boolean> => {
+  deleteCandidate: async (id: string, jobId?: string): Promise<boolean> => {
     try {
       const { error } = await supabase
         .from('candidates')
@@ -153,8 +178,10 @@ export const candidatesService = {
         throw error;
       }
       
-      // Update the job's applicant count
-      await supabase.rpc('decrement_job_applicants', { job_id: jobId });
+      // Update the job's applicant count if jobId is provided
+      if (jobId) {
+        await supabase.rpc('decrement_job_applicants', { job_id: jobId });
+      }
       
       toast.success('Candidate deleted successfully');
       return true;
