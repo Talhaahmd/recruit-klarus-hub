@@ -34,13 +34,14 @@ const queryClient = new QueryClient();
 const HashRedirectHandler = () => {
   useEffect(() => {
     if (window.location.hash.includes('access_token')) {
-      console.log('Redirecting from hash to /dashboard');
-      window.location.replace('/dashboard');
+      console.log('🔁 Detected access_token in hash — redirecting to /dashboard');
+      window.location.replace('/dashboard'); // ✅ force full reload
     }
   }, []);
 
   return null;
 };
+
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
