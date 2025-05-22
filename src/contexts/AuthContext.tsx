@@ -33,10 +33,8 @@ export const useAuth = () => {
   return context;
 };
 
-const REDIRECT_TO =
-  import.meta.env.MODE === 'development'
-    ? 'http://localhost:3000/dashboard'
-    : `${window.location.origin}/dashboard`;
+const REDIRECT_TO = `${window.location.origin}/dashboard`;
+
 
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
