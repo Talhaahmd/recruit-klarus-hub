@@ -179,23 +179,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
 
   const loginWithLinkedIn = async () => {
-    try {
-      console.log('🌐 Initiating LinkedIn login');
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'linkedin_oidc',
-        options: {
-          redirectTo: window.location.origin + '/dashboard'
-        }
-      });
-      
-      if (error) {
-        throw error;
+  try {
+    console.log('🌐 Initiating LinkedIn login');
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'linkedin_oidc',
+      options: {
+        redirectTo: 'https://klarushr.com/dashboard' // ✅ production redirect
       }
-    } catch (error: any) {
-      console.error('❌ LinkedIn login failed:', error.message);
-      toast.error(error.message || 'Failed to login with LinkedIn');
+    });
+
+    if (error) {
+      throw error;
     }
-  };
+  } catch (error: any) {
+    console.error('❌ LinkedIn login failed:', error.message);
+    toast.error(error.message || 'Failed to login with LinkedIn');
+  }
+};
+
 
   const logout = async () => {
     try {
