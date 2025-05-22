@@ -45,6 +45,7 @@ const App = () => (
               <Route path="/login" element={<Login />} />
               <Route path="/signup" element={<Signup />} />
               <Route path="/submission" element={<CVSubmission />} />
+              <Route path="/index" element={<Index />} />
               
               {/* Protected Routes */}
               <Route path="/" element={<MainLayout />}>
