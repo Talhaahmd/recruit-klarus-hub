@@ -1,13 +1,11 @@
-
 import React, { useEffect } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useNavigate } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
 import { ThemeProvider } from "./contexts/ThemeContext";
-import { supabase } from "@/integrations/supabase/client";
 
 // Layout
 import MainLayout from "./components/Layout/MainLayout";
@@ -32,21 +30,19 @@ import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
-// 🔁 Handles Supabase OAuth redirect hash and processes the access token
+// 🔁 Handles Supabase OAuth redirect and processes access_token in URL hash
 const HashRedirectHandler = () => {
+  const navigate = useNavigate();
+
   useEffect(() => {
     const hash = window.location.hash;
 
     if (hash.includes("access_token")) {
-      console.log("🔐 OAuth redirect detected with access_token");
-
-      // Prevent infinite redirect loop
+      console.log("🔐 OAuth token detected in URL, redirecting to /dashboard...");
       sessionStorage.setItem("processing_oauth_login", "true");
-
-      // Force reload to /dashboard to allow Supabase to handle the session from hash
       window.location.replace("/dashboard");
     } else if (sessionStorage.getItem("processing_oauth_login")) {
-      console.log("✅ OAuth login complete, cleaning up flag");
+      console.log("✅ OAuth login complete, clearing session flag.");
       sessionStorage.removeItem("processing_oauth_login");
     }
   }, []);
@@ -62,8 +58,9 @@ const App = () => (
           <Toaster />
           <Sonner />
           <BrowserRouter>
-            {/* This handles redirects from both Google and LinkedIn logins */}
+            {/* Handle Supabase OAuth redirect from Google/LinkedIn */}
             <HashRedirectHandler />
+
             <Routes>
               {/* Public Routes */}
               <Route index element={<Home />} />
@@ -71,7 +68,7 @@ const App = () => (
               <Route path="/signup" element={<Signup />} />
               <Route path="/submission" element={<CVSubmission />} />
 
-              {/* Protected Routes inside Main Layout */}
+              {/* Protected Routes */}
               <Route path="/" element={<MainLayout />}>
                 <Route path="dashboard" element={<Dashboard />} />
                 <Route path="jobs" element={<Jobs />} />
@@ -82,10 +79,8 @@ const App = () => (
                 <Route path="settings" element={<Settings />} />
               </Route>
 
-              {/* Redirect legacy /index to dashboard */}
+              {/* Legacy or fallback */}
               <Route path="/index" element={<Navigate to="/dashboard" />} />
-
-              {/* Fallback route */}
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
