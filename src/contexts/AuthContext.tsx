@@ -36,7 +36,8 @@ export const useAuth = () => {
 const REDIRECT_TO =
   import.meta.env.MODE === 'development'
     ? 'http://localhost:3000/dashboard'
-    : 'https://klarushr.com/dashboard';
+    : `${window.location.origin}/dashboard`;
+
 
 
 
