@@ -4,6 +4,7 @@ import HeroSection from './HeroSection';
 import FeaturesSection from './FeaturesSection';
 import VideoSection from './VideoSection';
 import ClientsSection from './ClientsSection';
+import ReviewsSection from './ReviewsSection';
 import TeamSection from './TeamSection';
 import DemoSection from './DemoSection';
 import PlansSection from './PlansSection';
@@ -19,6 +20,7 @@ const Home: React.FC = () => {
       <FeaturesSection />
       <VideoSection />
       <ClientsSection />
+      <ReviewsSection />
       <TeamSection />
       <DemoSection />
       <PlansSection />
