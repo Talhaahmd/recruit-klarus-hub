@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import HeroSection from './HeroSection';
 import FeaturesSection from './FeaturesSection';
 import VideoSection from './VideoSection';

@@ -1,29 +1,6 @@
 
 import React, { useEffect, useRef } from 'react';
-import { Motion, Presence } from '@motionone/dom';
-
-const features = [
-  {
-    icon: "✨",
-    title: "AI-Powered Matching",
-    description: "Our sophisticated AI algorithms match candidates with your job requirements with unparalleled precision."
-  },
-  {
-    icon: "🔍",
-    title: "Smart Candidate Filtering",
-    description: "Filter and sort candidates based on skills, experience, and cultural fit to find your perfect match."
-  },
-  {
-    icon: "📈",
-    title: "Recruiting Analytics",
-    description: "Track your hiring pipeline with comprehensive analytics and reports to optimize your recruitment process."
-  },
-  {
-    icon: "📝",
-    title: "Automated Interview Scheduling",
-    description: "Streamline your interview process with automated scheduling and calendar integrations."
-  }
-];
+import LayoutGridDemo from '../../components/ui/layout-grid-demo';
 
 const FeaturesSection: React.FC = () => {
   const sectionRef = useRef<HTMLDivElement>(null);
@@ -67,7 +44,7 @@ const FeaturesSection: React.FC = () => {
   return (
     <section id="features" ref={sectionRef} className="py-24 bg-gradient-to-b from-black to-gray-900 transition-all duration-1000 transform opacity-0 translate-y-10">
       <div className="container mx-auto px-4">
-        <div className="text-center mb-20">
+        <div className="text-center mb-10">
           <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-500 to-purple-500 text-sm font-medium tracking-widest uppercase">
             Features
           </span>
@@ -77,23 +54,7 @@ const FeaturesSection: React.FC = () => {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10">
-          {features.map((feature, index) => (
-            <div
-              key={index}
-              ref={(el) => (featuresRef.current[index] = el)}
-              className="bg-gradient-to-br from-gray-900 to-gray-800 p-8 rounded-2xl transform transition-all duration-700 opacity-0 translate-y-10 hover:scale-105 border border-gray-700 hover:border-cyan-500/50 group"
-            >
-              <div className="text-4xl mb-6 bg-gradient-to-br from-cyan-500 to-purple-500 w-16 h-16 rounded-full flex items-center justify-center">
-                {feature.icon}
-              </div>
-              <h3 className="text-xl font-bold text-white mb-3 group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-cyan-500 group-hover:to-purple-500">
-                {feature.title}
-              </h3>
-              <p className="text-gray-400">{feature.description}</p>
-            </div>
-          ))}
-        </div>
+        <LayoutGridDemo />
         
         <div className="mt-24 relative">
           <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/20 to-purple-500/20 blur-3xl -z-10 rounded-xl"></div>
