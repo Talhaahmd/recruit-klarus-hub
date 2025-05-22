@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { Linkedin } from 'lucide-react';
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface TeamMember {
   id: number;
@@ -65,71 +66,122 @@ const TeamSection: React.FC = () => {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           {teamMembers.map((member) => (
-            <div 
+            <motion.div 
               key={member.id} 
-              className="relative group"
-              onMouseEnter={() => setHoveredMember(member.id)}
-              onMouseLeave={() => setHoveredMember(null)}
+              className="relative group cursor-pointer h-[500px] rounded-xl overflow-hidden"
+              onHoverStart={() => setHoveredMember(member.id)}
+              onHoverEnd={() => setHoveredMember(null)}
+              whileHover={{ 
+                scale: 1.02,
+                transition: { duration: 0.3 }
+              }}
             >
-              <div className="relative overflow-hidden rounded-xl bg-gradient-to-r from-gray-900 to-black p-2 border border-gray-800 transition-all duration-300 hover:border-cyan-500/30 hover:shadow-lg hover:shadow-cyan-500/20 h-[500px]">
-                <div className="h-[320px] overflow-hidden rounded-t-lg">
+              {/* Gradient border effect */}
+              <div className="absolute inset-0 rounded-xl p-[2px] bg-gradient-to-r from-cyan-500 to-purple-500 z-0 opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+              
+              {/* Image container */}
+              <div className="relative h-full w-full rounded-xl overflow-hidden bg-gradient-to-r from-gray-900 to-black z-10">
+                <motion.div 
+                  className="h-full w-full overflow-hidden"
+                  whileHover={{ scale: 1.05 }}
+                  transition={{ duration: 0.7, ease: "easeOut" }}
+                >
                   <img 
                     src={member.image} 
                     alt={member.name} 
-                    className="w-full h-full object-cover object-center transition-transform duration-500 transform group-hover:scale-105"
+                    className="w-full h-full object-cover object-center"
                   />
-                </div>
+                </motion.div>
                 
-                <div className="p-6 relative z-10">
-                  <div className="flex items-center justify-between mb-2">
-                    <h3 className="text-xl font-bold text-white">{member.name}</h3>
-                    <a
-                      href={member.linkedinUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="p-2 bg-blue-600 hover:bg-blue-700 text-white rounded-full transition-colors duration-200 flex items-center justify-center"
-                    >
-                      <Linkedin size={16} />
-                    </a>
-                  </div>
-                  
-                  <p className="text-cyan-400 mb-3 text-sm">{member.title}</p>
-                  
-                  <div className="transition-all duration-300 max-h-24 overflow-hidden">
-                    <p className="text-gray-300 text-sm">{member.description}</p>
-                  </div>
-                  
+                {/* Overlay that appears on hover */}
+                <AnimatePresence>
                   {hoveredMember === member.id && (
-                    <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black to-transparent h-12" />
+                    <motion.div 
+                      className="absolute inset-0 bg-gradient-to-t from-black via-black/80 to-transparent p-6 flex flex-col justify-end"
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: 10 }}
+                      transition={{ duration: 0.4 }}
+                    >
+                      <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: 10 }}
+                        transition={{ duration: 0.5, delay: 0.1 }}
+                      >
+                        <Avatar className="h-20 w-20 mb-4 border-2 border-cyan-500 shadow-lg shadow-cyan-500/20">
+                          <AvatarImage src={member.image} alt={member.name} />
+                          <AvatarFallback className="bg-cyan-900 text-white text-xl">
+                            {member.name.split(' ').map(name => name[0]).join('')}
+                          </AvatarFallback>
+                        </Avatar>
+                        
+                        <motion.h3 
+                          className="text-2xl font-bold text-white mb-1"
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: 5 }}
+                          transition={{ duration: 0.5, delay: 0.2 }}
+                        >
+                          {member.name}
+                        </motion.h3>
+                        
+                        <motion.p 
+                          className="text-cyan-400 mb-3"
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: 5 }}
+                          transition={{ duration: 0.5, delay: 0.3 }}
+                        >
+                          {member.title}
+                        </motion.p>
+                        
+                        <motion.p 
+                          className="text-gray-300 mb-6"
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: 5 }}
+                          transition={{ duration: 0.5, delay: 0.4 }}
+                        >
+                          {member.description}
+                        </motion.p>
+                        
+                        <motion.a
+                          href={member.linkedinUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-full transition-all duration-300 hover:scale-105"
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: 5 }}
+                          transition={{ duration: 0.5, delay: 0.5 }}
+                          whileHover={{ scale: 1.05 }}
+                          whileTap={{ scale: 0.95 }}
+                        >
+                          <Linkedin size={18} />
+                          Connect on LinkedIn
+                        </motion.a>
+                      </motion.div>
+                    </motion.div>
                   )}
-                </div>
+                </AnimatePresence>
+
+                {/* Show just the name when not hovering */}
+                <AnimatePresence>
+                  {hoveredMember !== member.id && (
+                    <motion.div 
+                      className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black to-transparent p-4"
+                      initial={{ opacity: 1 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 0.3 }}
+                    >
+                      <h3 className="text-xl font-bold text-white">{member.name}</h3>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
-              
-              {hoveredMember === member.id && (
-                <div className="absolute inset-0 bg-black bg-opacity-85 p-6 flex flex-col justify-center items-center transition-opacity duration-300 rounded-xl opacity-0 group-hover:opacity-100">
-                  <Avatar className="h-24 w-24 mb-4 border-2 border-cyan-500">
-                    <AvatarImage src={member.image} alt={member.name} />
-                    <AvatarFallback className="bg-cyan-900 text-white text-xl">
-                      {member.name.split(' ').map(name => name[0]).join('')}
-                    </AvatarFallback>
-                  </Avatar>
-                  
-                  <h3 className="text-xl font-bold text-white mb-2">{member.name}</h3>
-                  <p className="text-cyan-400 mb-4 text-sm">{member.title}</p>
-                  <p className="text-gray-300 text-center mb-6">{member.description}</p>
-                  
-                  <a
-                    href={member.linkedinUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-full transition-colors duration-200"
-                  >
-                    <Linkedin size={18} />
-                    Connect on LinkedIn
-                  </a>
-                </div>
-              )}
-            </div>
+            </motion.div>
           ))}
         </div>
       </div>
