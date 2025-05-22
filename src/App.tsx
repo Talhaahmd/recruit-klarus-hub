@@ -30,14 +30,14 @@ import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
+// ✅ Hard redirect version for reliability
 const HashRedirectHandler = () => {
-  const navigate = useNavigate();
-
   useEffect(() => {
     if (window.location.hash.includes('access_token')) {
-      navigate('/dashboard');
+      console.log('Redirecting from hash to /dashboard');
+      window.location.replace('/dashboard');
     }
-  }, [navigate]);
+  }, []);
 
   return null;
 };
