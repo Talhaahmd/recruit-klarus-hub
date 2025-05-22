@@ -53,37 +53,52 @@ const ClientsSection: React.FC = () => {
           </p>
         </div>
 
-        <div ref={clientsRef} className="relative">
+        {/* Updated clients marquee with modern UI */}
+        <div ref={clientsRef} className="relative mb-24">
           <div className="absolute inset-y-0 left-0 w-24 bg-gradient-to-r from-black to-transparent z-10"></div>
           <div className="absolute inset-y-0 right-0 w-24 bg-gradient-to-l from-black to-transparent z-10"></div>
           
-          <div className="flex overflow-hidden">
+          <div className="flex overflow-hidden py-8">
             <div className="flex animate-marquee">
               {[...clients, ...clients].map((client, index) => (
-                <div key={index} className="flex-shrink-0 w-48 mx-12 filter grayscale hover:grayscale-0 transition-all duration-300 hover:scale-110">
-                  <img 
-                    src={client.logo} 
-                    alt={client.name} 
-                    className="h-16 w-auto object-contain mx-auto"
-                  />
+                <div key={index} className="flex-shrink-0 w-48 mx-12 group">
+                  <div className="relative p-6 bg-gradient-to-b from-gray-900 to-gray-800 rounded-xl border border-gray-800 transition-all duration-300 transform hover:scale-105 hover:border-gray-700 hover:shadow-lg hover:shadow-cyan-500/20">
+                    <img 
+                      src={client.logo} 
+                      alt={client.name} 
+                      className="h-16 w-auto object-contain mx-auto filter grayscale hover:grayscale-0 transition-all duration-300"
+                    />
+                  </div>
                 </div>
               ))}
             </div>
           </div>
         </div>
         
-        <div className="mt-24 grid grid-cols-1 md:grid-cols-3 gap-8">
-          <div className="bg-gradient-to-br from-gray-900 to-gray-800 rounded-xl p-8 hover:shadow-lg hover:shadow-cyan-500/20 transition-all duration-300 border border-gray-800 hover:border-gray-700">
-            <div className="text-3xl font-bold text-white mb-2">97%</div>
-            <p className="text-gray-400">Client satisfaction rate</p>
+        {/* Updated stats with new text and modern UI */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="relative group">
+            <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/20 to-purple-500/20 rounded-xl blur-md -z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+            <div className="bg-gradient-to-br from-gray-900 to-gray-800 rounded-xl p-10 hover:shadow-lg hover:shadow-cyan-500/20 transition-all duration-500 border border-gray-800 hover:border-gray-700">
+              <div className="text-4xl font-bold bg-gradient-to-r from-cyan-500 to-purple-500 bg-clip-text text-transparent mb-3">12</div>
+              <p className="text-gray-300 font-medium">Companies</p>
+            </div>
           </div>
-          <div className="bg-gradient-to-br from-gray-900 to-gray-800 rounded-xl p-8 hover:shadow-lg hover:shadow-purple-500/20 transition-all duration-300 border border-gray-800 hover:border-gray-700">
-            <div className="text-3xl font-bold text-white mb-2">250+</div>
-            <p className="text-gray-400">Global companies using our platform</p>
+          
+          <div className="relative group">
+            <div className="absolute inset-0 bg-gradient-to-r from-purple-500/20 to-cyan-500/20 rounded-xl blur-md -z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+            <div className="bg-gradient-to-br from-gray-900 to-gray-800 rounded-xl p-10 hover:shadow-lg hover:shadow-purple-500/20 transition-all duration-500 border border-gray-800 hover:border-gray-700">
+              <div className="text-4xl font-bold bg-gradient-to-r from-purple-500 to-cyan-500 bg-clip-text text-transparent mb-3">88+</div>
+              <p className="text-gray-300 font-medium">Candidates hired globally</p>
+            </div>
           </div>
-          <div className="bg-gradient-to-br from-gray-900 to-gray-800 rounded-xl p-8 hover:shadow-lg hover:shadow-cyan-500/20 transition-all duration-300 border border-gray-800 hover:border-gray-700">
-            <div className="text-3xl font-bold text-white mb-2">10k+</div>
-            <p className="text-gray-400">Successful placements</p>
+          
+          <div className="relative group">
+            <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/20 to-purple-500/20 rounded-xl blur-md -z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+            <div className="bg-gradient-to-br from-gray-900 to-gray-800 rounded-xl p-10 hover:shadow-lg hover:shadow-cyan-500/20 transition-all duration-500 border border-gray-800 hover:border-gray-700">
+              <div className="text-4xl font-bold bg-gradient-to-r from-cyan-500 to-purple-500 bg-clip-text text-transparent mb-3">10k+</div>
+              <p className="text-gray-300 font-medium">Candidates evaluated</p>
+            </div>
           </div>
         </div>
       </div>
