@@ -159,23 +159,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const loginWithGoogle = async () => {
-    try {
-      console.log('🌐 Initiating Google login');
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: window.location.origin + '/dashboard'
-        }
-      });
-      
-      if (error) {
-        throw error;
+  try {
+    console.log('🌐 Initiating Google login');
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: 'https://klarushr.com/dashboard'
       }
-    } catch (error: any) {
-      console.error('❌ Google login failed:', error.message);
-      toast.error(error.message || 'Failed to login with Google');
+    });
+
+    if (error) {
+      throw error;
     }
-  };
+  } catch (error: any) {
+    console.error('❌ Google login failed:', error.message);
+    toast.error(error.message || 'Failed to login with Google');
+  }
+};
+
 
   const loginWithLinkedIn = async () => {
     try {
