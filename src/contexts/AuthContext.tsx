@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { Session, User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -54,6 +55,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return;
       }
       
+      console.log('✅ Profile fetched successfully:', data);
       setProfile(data);
     } catch (error) {
       console.error('Error fetching profile:', error);
@@ -61,15 +63,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   useEffect(() => {
+    console.log('🔄 AuthContext initialized');
+    
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, currentSession) => {
-        console.log('Auth state change:', event);
+        console.log('🔔 Auth state change:', event);
         setSession(currentSession);
         setUser(currentSession?.user ?? null);
         
         // When auth state changes, fetch profile if user exists
         if (currentSession?.user) {
+          console.log('👤 User authenticated:', currentSession.user.email);
           // Use setTimeout to prevent potential circular auth calls
           setTimeout(() => {
             fetchProfile(currentSession.user.id);
@@ -81,22 +86,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     );
 
     // THEN check for existing session
-   supabase.auth.getSession().then(({ data: { session: currentSession } }) => {
-  console.log("🔍 Supabase getSession result:", currentSession);
+    supabase.auth.getSession().then(({ data: { session: currentSession } }) => {
+      console.log("🔍 Supabase getSession result:", currentSession ? "Session found" : "No session");
 
-  setSession(currentSession);
-  setUser(currentSession?.user ?? null);
-  
-  if (currentSession?.user) {
-    console.log("👤 Logged in as:", currentSession.user.email);
-    fetchProfile(currentSession.user.id);
-  } else {
-    console.log("⚠️ No session found.");
-  }
+      setSession(currentSession);
+      setUser(currentSession?.user ?? null);
+      
+      if (currentSession?.user) {
+        console.log("👤 Logged in as:", currentSession.user.email);
+        fetchProfile(currentSession.user.id);
+      } else {
+        console.log("⚠️ No session found.");
+      }
 
-  setIsLoading(false);
-});
-
+      setIsLoading(false);
+    });
 
     return () => {
       subscription.unsubscribe();
@@ -106,6 +110,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const login = async (email: string, password: string) => {
     setIsLoading(true);
     try {
+      console.log('🔒 Attempting login with email:', email);
       const { error } = await supabase.auth.signInWithPassword({
         email,
         password
@@ -114,8 +119,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (error) {
         throw error;
       }
+      console.log('✅ Login successful');
     } catch (error: any) {
-      console.error('Login failed:', error.message);
+      console.error('❌ Login failed:', error.message);
       toast.error(error.message || 'Failed to login');
       throw error;
     } finally {
@@ -126,6 +132,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const signup = async (name: string, email: string, password: string) => {
     setIsLoading(true);
     try {
+      console.log('📝 Attempting signup for:', email);
       const { error } = await supabase.auth.signUp({
         email,
         password,
@@ -141,8 +148,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
       
       toast.success('Registration successful! Please verify your email.');
+      console.log('✅ Signup successful');
     } catch (error: any) {
-      console.error('Signup failed:', error.message);
+      console.error('❌ Signup failed:', error.message);
       toast.error(error.message || 'Failed to sign up');
       throw error;
     } finally {
@@ -152,6 +160,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const loginWithGoogle = async () => {
     try {
+      console.log('🌐 Initiating Google login');
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
@@ -163,13 +172,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         throw error;
       }
     } catch (error: any) {
-      console.error('Google login failed:', error.message);
+      console.error('❌ Google login failed:', error.message);
       toast.error(error.message || 'Failed to login with Google');
     }
   };
 
   const loginWithLinkedIn = async () => {
     try {
+      console.log('🌐 Initiating LinkedIn login');
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'linkedin_oidc',
         options: {
@@ -181,13 +191,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         throw error;
       }
     } catch (error: any) {
-      console.error('LinkedIn login failed:', error.message);
+      console.error('❌ LinkedIn login failed:', error.message);
       toast.error(error.message || 'Failed to login with LinkedIn');
     }
   };
 
   const logout = async () => {
     try {
+      console.log('🚪 Logging out');
       const { error } = await supabase.auth.signOut();
       if (error) {
         throw error;
@@ -195,8 +206,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUser(null);
       setProfile(null);
       setSession(null);
+      console.log('✅ Logout successful');
     } catch (error: any) {
-      console.error('Logout failed:', error.message);
+      console.error('❌ Logout failed:', error.message);
       toast.error(error.message || 'Failed to logout');
     }
   };

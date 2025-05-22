@@ -24,6 +24,7 @@ const Login: React.FC = () => {
   useEffect(() => {
     // Redirect if user is already authenticated
     if (isAuthenticated) {
+      console.log('User already authenticated, redirecting to dashboard');
       navigate('/dashboard', { replace: true });
     }
   }, [isAuthenticated, navigate]);
@@ -40,9 +41,12 @@ const Login: React.FC = () => {
     
     try {
       await login(email, password);
-      // Success is handled by the auth state change in useEffect
+      // After successful login, navigate to dashboard
+      console.log('Login successful, redirecting to dashboard');
+      navigate('/dashboard', { replace: true });
     } catch (error) {
       // Error is handled in the auth context
+      console.error('Login failed, not redirecting');
     } finally {
       setIsSubmitting(false);
     }

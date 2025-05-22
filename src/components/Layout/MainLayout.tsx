@@ -22,6 +22,10 @@ const MainLayout: React.FC = () => {
   const { isAuthenticated, isLoading } = useAuth();
   const location = useLocation();
   
+  useEffect(() => {
+    console.log('MainLayout rendered, authenticated:', isAuthenticated, 'loading:', isLoading);
+  }, [isAuthenticated, isLoading]);
+  
   // If still loading auth state, show loading
   if (isLoading) {
     return (
@@ -33,9 +37,11 @@ const MainLayout: React.FC = () => {
   
   // If not authenticated, redirect to login with the current path as the 'from' parameter
   if (!isAuthenticated) {
+    console.log('User not authenticated, redirecting to login');
     return <Navigate to={`/login?from=${encodeURIComponent(location.pathname)}`} replace />;
   }
   
+  console.log('User authenticated, showing protected content');
   return (
     <div className="flex h-screen bg-bg-200 overflow-hidden dark:bg-black">
       <Sidebar />
