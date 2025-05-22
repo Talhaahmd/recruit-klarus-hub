@@ -74,7 +74,7 @@ const Jobs = () => {
         technologies: data.technologies,
         workplace_type: data.workplaceType,
         applicants: 0,
-        user_id: user.id
+        user_id: user.id // Set user_id to the current authenticated user's ID
       };
 
       console.log('Creating job with data:', jobData);

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Header } from '@/components/Layout/MainLayout';
 import { useAuth } from '@/contexts/AuthContext';

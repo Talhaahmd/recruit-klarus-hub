@@ -67,6 +67,10 @@ const CVSubmission = () => {
     setUploading(true);
 
     try {
+      // Get user information to associate with the upload
+      const { data: userData } = await supabase.auth.getUser();
+      const userId = userData.user?.id;
+
       const fileExt = file.name.split('.').pop();
       const fileName = `${Date.now()}-${Math.random().toString(36).substring(2, 15)}.${fileExt}`;
       const filePath = `${fileName}`;
@@ -92,7 +96,8 @@ const CVSubmission = () => {
             file_size: file.size,
             file_type: file.type,
             status: 'new',
-            job_id: selectedJobId
+            job_id: selectedJobId,
+            created_by: userId // Set created_by field
           }
         ])
         .select()
@@ -112,7 +117,8 @@ const CVSubmission = () => {
             cv_link_id: cvLinkData.id,
             job_id: selectedJobId,
             link_for_cv: urlData.publicUrl,
-            job_name: jobName
+            job_name: jobName,
+            created_by: userId // Set created_by field
           }
         ]);
 
