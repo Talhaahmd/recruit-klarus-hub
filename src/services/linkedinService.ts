@@ -9,6 +9,7 @@ export type LinkedInPost = {
   scheduled_time: string | null;
   posted: boolean;
   niche: string;
+  tone: string;
 };
 
 type LinkedInPostInput = Omit<LinkedInPost, 'id' | 'posted'>;
@@ -34,7 +35,8 @@ export const linkedinService = {
         scheduled_date: post.scheduled_date,
         scheduled_time: post.scheduled_time,
         posted: post.posted,
-        niche: post.niche
+        niche: post.niche,
+        tone: post.tone || 'Professional'
       }));
     } catch (err) {
       console.error('Unexpected error fetching LinkedIn posts:', err);
@@ -59,6 +61,7 @@ export const linkedinService = {
           null,
         scheduled_time: post.scheduled_time,
         niche: post.niche,
+        tone: post.tone || 'Professional',
         user_id: user.id,
         posted: false
       };
@@ -82,7 +85,8 @@ export const linkedinService = {
         scheduled_date: data.scheduled_date,
         scheduled_time: data.scheduled_time,
         posted: data.posted,
-        niche: data.niche
+        niche: data.niche,
+        tone: data.tone
       };
     } catch (err) {
       console.error('Unexpected error creating LinkedIn post:', err);
