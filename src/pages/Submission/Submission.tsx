@@ -7,7 +7,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { jobsService } from '@/services/jobsService';
 import { Upload, Loader, AlertCircle } from 'lucide-react';
 import JobApplicationInfo from '@/components/UI/JobApplicationInfo';
-import EmailActionsModals from '@/components/UI/EmailActionsModals';
+import { EmailActionsModal, InterviewScheduleModal } from '@/components/UI/EmailActionsModals';
 
 const Submission: React.FC = () => {
   const [file, setFile] = useState<File | null>(null);
@@ -169,7 +169,8 @@ const Submission: React.FC = () => {
   };
   
   const handleScheduleInterview = (submission) => {
-    // Implement interview scheduling logic here
+    setSelectedSubmission(submission);
+    setIsInterviewModalOpen(true);
   };
   
   const handleCloseInterviewModal = () => {
@@ -177,7 +178,8 @@ const Submission: React.FC = () => {
   };
   
   const handleSendOffer = (submission) => {
-    // Implement offer sending logic here
+    setSelectedSubmission(submission);
+    setIsOfferModalOpen(true);
   };
   
   const handleCloseOfferModal = () => {
@@ -185,7 +187,20 @@ const Submission: React.FC = () => {
   };
   
   const renderStatusBadge = (status) => {
-    // Implement status badge rendering logic here
+    switch (status) {
+      case 'new':
+        return <span className="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-800">New</span>;
+      case 'in_progress':
+        return <span className="px-2 py-1 text-xs rounded-full bg-yellow-100 text-yellow-800">In Progress</span>;
+      case 'interviewed':
+        return <span className="px-2 py-1 text-xs rounded-full bg-purple-100 text-purple-800">Interviewed</span>;
+      case 'hired':
+        return <span className="px-2 py-1 text-xs rounded-full bg-green-100 text-green-800">Hired</span>;
+      case 'rejected':
+        return <span className="px-2 py-1 text-xs rounded-full bg-red-100 text-red-800">Rejected</span>;
+      default:
+        return <span className="px-2 py-1 text-xs rounded-full bg-gray-100 text-gray-800">Unknown</span>;
+    }
   };
   
   return (
@@ -304,21 +319,21 @@ const Submission: React.FC = () => {
       
       {selectedSubmission && (
         <JobApplicationInfo 
-          submission={selectedSubmission}
-          onScheduleInterview={() => setIsInterviewModalOpen(true)}
-          onSendOffer={() => setIsOfferModalOpen(true)}
+          resumeUrl={selectedSubmission.file_url}
+          candidateId={selectedSubmission.id}
         />
       )}
       
-      <EmailActionsModals
-        submission={selectedSubmission}
-        isInterviewModalOpen={isInterviewModalOpen}
-        isOfferModalOpen={isOfferModalOpen}
-        onCloseInterviewModal={handleCloseInterviewModal}
-        onCloseOfferModal={handleCloseOfferModal}
-        onScheduleInterview={handleScheduleInterview}
-        onSendOffer={handleSendOffer}
-      />
+      {selectedSubmission && isInterviewModalOpen && (
+        <EmailActionsModal
+          candidateId={selectedSubmission.id}
+          candidateName={selectedSubmission.file_name.split('.')[0] || 'Candidate'}
+          candidateEmail="candidate@example.com" // This would need to be populated from real data
+          open={isInterviewModalOpen}
+          onClose={handleCloseInterviewModal}
+          jobTitle="Position Applied For" // This would need to be populated from real data
+        />
+      )}
     </div>
   );
 };

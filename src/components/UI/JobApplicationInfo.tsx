@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Briefcase, ExternalLink } from 'lucide-react';
 import { jobsService } from '@/services/jobsService';
@@ -11,9 +10,10 @@ interface JobApplicationInfoProps {
   resumeUrl?: string | null;
   candidateId?: string;
   appliedJob?: {id: string, title: string} | null;
+  submission?: any; // Added this prop to fix the type error
 }
 
-const JobApplicationInfo: React.FC<JobApplicationInfoProps> = ({ resumeUrl, candidateId, appliedJob }) => {
+const JobApplicationInfo: React.FC<JobApplicationInfoProps> = ({ resumeUrl, candidateId, appliedJob, submission }) => {
   const [job, setJob] = useState<any | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -117,8 +117,8 @@ const JobApplicationInfo: React.FC<JobApplicationInfoProps> = ({ resumeUrl, cand
               Applied For
             </h3>
             <div className="flex flex-col">
-              <span className="font-semibold text-lg">{job.title}</span>
-              {job.type && job.location && (
+              <span className="font-semibold text-lg">{job?.title}</span>
+              {job?.type && job?.location && (
                 <div className="flex items-center gap-2 mt-1">
                   {job.type && <Badge variant="outline">{job.type}</Badge>}
                   {job.location && <Badge variant="outline">{job.location}</Badge>}
@@ -127,7 +127,7 @@ const JobApplicationInfo: React.FC<JobApplicationInfoProps> = ({ resumeUrl, cand
             </div>
           </div>
           
-          {job.id && (
+          {job?.id && (
             <Button 
               variant="ghost" 
               size="sm"
