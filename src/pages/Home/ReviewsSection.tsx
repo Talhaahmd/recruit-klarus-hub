@@ -1,105 +1,57 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
-import { LayoutGrid } from '@/components/ui/layout-grid';
+import { DraggableCardBody, DraggableCardContainer } from '@/components/ui/draggable-card';
 
 // Review content with actual reviews
 const cards = [
   {
     id: 1,
-    content: (
-      <div className="flex flex-col justify-between h-full">
-        <p className="text-white/80 leading-relaxed mb-4">
-          "The AI-driven interviews have revolutionized our hiring process. We're finding better candidates in half the time it used to take us."
-        </p>
-        <div className="flex items-center mt-4">
-          <div className="font-bold text-white">Sarah Johnson</div>
-          <div className="text-white/60 ml-2 text-sm">HR Director, TechFront Inc.</div>
-        </div>
-      </div>
-    ),
-    className: "col-span-1 md:col-span-1",
-    thumbnail: "https://images.pexels.com/photos/1181686/pexels-photo-1181686.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2"
+    content: "The AI-driven interviews have revolutionized our hiring process. We're finding better candidates in half the time it used to take us.",
+    author: "Sarah Johnson",
+    role: "HR Director, TechFront Inc.",
+    image: "https://images.pexels.com/photos/1181686/pexels-photo-1181686.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2",
+    className: "absolute top-10 left-[20%] rotate-[-5deg] z-10"
   },
   {
     id: 2,
-    content: (
-      <div className="flex flex-col justify-between h-full">
-        <p className="text-white/80 leading-relaxed mb-4">
-          "We've reduced our time-to-hire by 40% and our retention rates have improved significantly. The AI interview platform has become an essential part of our recruiting toolkit."
-        </p>
-        <div className="flex items-center mt-4">
-          <div className="font-bold text-white">Michael Chen</div>
-          <div className="text-white/60 ml-2 text-sm">Talent Acquisition Lead, GlobalTech</div>
-        </div>
-      </div>
-    ),
-    className: "col-span-1 md:col-span-1",
-    thumbnail: "https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2"
+    content: "We've reduced our time-to-hire by 40% and our retention rates have improved significantly. The AI interview platform has become an essential part of our recruiting toolkit.",
+    author: "Michael Chen",
+    role: "Talent Acquisition Lead, GlobalTech",
+    image: "https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2",
+    className: "absolute top-40 left-[25%] rotate-[-7deg] z-20"
   },
   {
     id: 3,
-    content: (
-      <div className="flex flex-col justify-between h-full">
-        <p className="text-white/80 leading-relaxed mb-4">
-          "The analytics and insights we get from each interview have been invaluable. It's like having an expert interviewer on our team 24/7."
-        </p>
-        <div className="flex items-center mt-4">
-          <div className="font-bold text-white">Emily Rodriguez</div>
-          <div className="text-white/60 ml-2 text-sm">CEO, StartupVision</div>
-        </div>
-      </div>
-    ),
-    className: "col-span-1 md:col-span-1",
-    thumbnail: "https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2"
+    content: "The analytics and insights we get from each interview have been invaluable. It's like having an expert interviewer on our team 24/7.",
+    author: "Emily Rodriguez",
+    role: "CEO, StartupVision",
+    image: "https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2",
+    className: "absolute top-5 left-[40%] rotate-[8deg] z-30"
   },
   {
     id: 4,
-    content: (
-      <div className="flex flex-col justify-between h-full">
-        <p className="text-white/80 leading-relaxed mb-4">
-          "Our hiring managers are now able to focus on the highest-potential candidates, rather than spending hours screening. The ROI has been excellent."
-        </p>
-        <div className="flex items-center mt-4">
-          <div className="font-bold text-white">David Washington</div>
-          <div className="text-white/60 ml-2 text-sm">COO, Enterprise Solutions</div>
-        </div>
-      </div>
-    ),
-    className: "col-span-1 md:col-span-1",
-    thumbnail: "https://images.pexels.com/photos/1681010/pexels-photo-1681010.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2"
+    content: "Our hiring managers are now able to focus on the highest-potential candidates, rather than spending hours screening. The ROI has been excellent.",
+    author: "David Washington",
+    role: "COO, Enterprise Solutions",
+    image: "https://images.pexels.com/photos/1681010/pexels-photo-1681010.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2",
+    className: "absolute top-32 left-[55%] rotate-[10deg] z-40"
   },
   {
     id: 5,
-    content: (
-      <div className="flex flex-col justify-between h-full">
-        <p className="text-white/80 leading-relaxed mb-4">
-          "As a fast-growing startup, we needed a solution that could scale with us. This platform has allowed us to maintain high hiring standards while doubling our team size in six months."
-        </p>
-        <div className="flex items-center mt-4">
-          <div className="font-bold text-white">Priya Patel</div>
-          <div className="text-white/60 ml-2 text-sm">Recruiting Manager, NextGen Software</div>
-        </div>
-      </div>
-    ),
-    className: "col-span-1 md:col-span-1",
-    thumbnail: "https://images.pexels.com/photos/1587009/pexels-photo-1587009.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2"
+    content: "As a fast-growing startup, we needed a solution that could scale with us. This platform has allowed us to maintain high hiring standards while doubling our team size in six months.",
+    author: "Priya Patel",
+    role: "Recruiting Manager, NextGen Software",
+    image: "https://images.pexels.com/photos/1587009/pexels-photo-1587009.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2",
+    className: "absolute top-20 right-[35%] rotate-[2deg] z-50"
   },
   {
     id: 6,
-    content: (
-      <div className="flex flex-col justify-between h-full">
-        <p className="text-white/80 leading-relaxed mb-4">
-          "The consistency of the interview process across all our global offices has improved dramatically. We're now confident that we're evaluating candidates fairly and thoroughly."
-        </p>
-        <div className="flex items-center mt-4">
-          <div className="font-bold text-white">Thomas Schmidt</div>
-          <div className="text-white/60 ml-2 text-sm">VP of HR, Global Innovations</div>
-        </div>
-      </div>
-    ),
-    className: "col-span-1 md:col-span-1",
-    thumbnail: "https://images.pexels.com/photos/1516680/pexels-photo-1516680.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2"
+    content: "The consistency of the interview process across all our global offices has improved dramatically. We're now confident that we're evaluating candidates fairly and thoroughly.",
+    author: "Thomas Schmidt",
+    role: "VP of HR, Global Innovations",
+    image: "https://images.pexels.com/photos/1516680/pexels-photo-1516680.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2",
+    className: "absolute top-24 left-[45%] rotate-[-7deg] z-60"
   }
 ];
 
@@ -124,8 +76,29 @@ const ReviewsSection: React.FC = () => {
           <div className="absolute top-40 left-1/4 w-96 h-96 bg-purple-500/20 rounded-full filter blur-[120px] opacity-30" />
           <div className="absolute bottom-20 right-1/4 w-96 h-96 bg-cyan-500/20 rounded-full filter blur-[120px] opacity-30" />
           
-          <div className="min-h-[600px] md:min-h-[800px] w-full">
-            <LayoutGrid cards={cards} />
+          <div className="min-h-[600px] md:min-h-[800px] w-full relative">
+            <DraggableCardContainer className="relative h-[600px] md:h-[800px] w-full overflow-visible">
+              {cards.map((card) => (
+                <DraggableCardBody key={card.id} className={card.className}>
+                  <div className="flex flex-col h-full">
+                    <div className="mb-4">
+                      <img 
+                        src={card.image} 
+                        alt={card.author} 
+                        className="w-16 h-16 rounded-full object-cover mx-auto mb-4"
+                      />
+                      <p className="text-neutral-800 dark:text-white/80 leading-relaxed">
+                        "{card.content}"
+                      </p>
+                    </div>
+                    <div className="mt-auto">
+                      <div className="font-bold text-neutral-900 dark:text-white text-center">{card.author}</div>
+                      <div className="text-neutral-600 dark:text-white/60 text-sm text-center">{card.role}</div>
+                    </div>
+                  </div>
+                </DraggableCardBody>
+              ))}
+            </DraggableCardContainer>
           </div>
         </div>
         
