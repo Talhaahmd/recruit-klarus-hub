@@ -1,9 +1,9 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { Session, User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
+// Profile type
 type Profile = {
   id: string;
   full_name: string | null;
@@ -11,6 +11,7 @@ type Profile = {
   avatar_url: string | null;
 };
 
+// Context type
 type AuthContextType = {
   user: User | null;
   profile: Profile | null;
@@ -26,16 +27,12 @@ type AuthContextType = {
 };
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
-
 export const useAuth = () => {
   const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
+  if (!context) throw new Error('useAuth must be used within an AuthProvider');
   return context;
 };
 
-// Use full URL for OAuth redirects
 const REDIRECT_TO =
   import.meta.env.MODE === 'development'
     ? 'http://localhost:3000/dashboard'
@@ -47,38 +44,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
-  // Fetch or create user profile
   const fetchProfile = async (userId: string) => {
     try {
       console.log('🔍 Fetching profile for user:', userId);
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', userId)
-        .single();
+      const { data, error } = await supabase.from('profiles').select('*').eq('id', userId).single();
 
-      if (error) {
-        console.error('❌ Error fetching profile:', error);
-        return;
-      }
-
-      if (!data) {
-        console.log('🆕 No profile found, creating...');
+      if (error || !data) {
+        console.warn('ℹ️ No profile found, attempting to create...');
         const userMeta = session?.user?.user_metadata || {};
         const { error: insertError } = await supabase.from('profiles').insert({
           id: userId,
           full_name: userMeta.full_name ?? '',
           avatar_url: userMeta.avatar_url ?? '',
-          company: null
+          company: null,
         });
-
         if (insertError) {
-          console.error('❌ Failed to auto-insert profile:', insertError);
+          console.error('❌ Profile creation failed:', insertError);
         } else {
-          console.log('✅ New profile created.');
+          const { data: newProfile } = await supabase.from('profiles').select('*').eq('id', userId).single();
+          if (newProfile) setProfile(newProfile);
         }
       } else {
-        console.log('✅ Profile fetched successfully:', data);
         setProfile(data);
       }
     } catch (error) {
@@ -89,7 +75,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     console.log('🔄 AuthContext initialized');
 
-    // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, currentSession) => {
         console.log('🔔 Auth state change:', event);
@@ -97,42 +82,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setUser(currentSession?.user ?? null);
 
         if (currentSession?.user) {
-          console.log('👤 User authenticated:', currentSession.user.email);
-          // Use setTimeout to prevent potential deadlocks with Supabase client
-          setTimeout(() => {
-            fetchProfile(currentSession.user.id);
-          }, 0);
-          
-          // Show success toast for login events
-          if (event === 'SIGNED_IN') {
-            toast.success('Successfully signed in');
-          }
+          fetchProfile(currentSession.user.id).finally(() => setIsLoading(false));
+          if (event === 'SIGNED_IN') toast.success('Successfully signed in');
         } else {
-          console.warn('⚠️ Auth event occurred but no user found.');
           setProfile(null);
+          setIsLoading(false);
         }
       }
     );
 
-    // THEN check for existing session
     supabase.auth.getSession().then(({ data: { session: currentSession } }) => {
-      console.log('🔍 Supabase getSession result:', currentSession ? 'Session found' : 'No session');
+      console.log('🔍 Checking for existing session...');
       setSession(currentSession);
       setUser(currentSession?.user ?? null);
-
       if (currentSession?.user) {
-        console.log('👤 Session found for:', currentSession.user.email);
-        fetchProfile(currentSession.user.id);
+        fetchProfile(currentSession.user.id).finally(() => setIsLoading(false));
       } else {
-        console.log('⚠️ No session found on load.');
+        setIsLoading(false);
       }
-
-      setIsLoading(false);
     });
 
-    return () => {
-      subscription.unsubscribe();
-    };
+    return () => subscription.unsubscribe();
   }, []);
 
   const login = async (email: string, password: string) => {
@@ -142,8 +112,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (error) throw error;
       toast.success('Login successful');
     } catch (error: any) {
-      console.error('❌ Login failed:', error.message);
-      toast.error(error.message || 'Failed to login');
+      toast.error(error.message || 'Login failed');
       throw error;
     } finally {
       setIsLoading(false);
@@ -157,14 +126,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         email,
         password,
         options: {
-          data: { name }
-        }
+          data: { name },
+        },
       });
       if (error) throw error;
-      toast.success('Registration successful! Please verify your email.');
+      toast.success('Registration successful! Check your email to verify.');
     } catch (error: any) {
-      console.error('❌ Signup failed:', error.message);
-      toast.error(error.message || 'Failed to sign up');
+      toast.error(error.message || 'Signup failed');
       throw error;
     } finally {
       setIsLoading(false);
@@ -173,33 +141,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const loginWithGoogle = async () => {
     try {
-      console.log('🌐 Initiating Google login');
-      const { error } = await supabase.auth.signInWithOAuth({
+      await supabase.auth.signInWithOAuth({
         provider: 'google',
-        options: {
-          redirectTo: REDIRECT_TO
-        }
+        options: { redirectTo: REDIRECT_TO },
       });
-      if (error) throw error;
     } catch (error: any) {
-      console.error('❌ Google login failed:', error.message);
-      toast.error(error.message || 'Failed to login with Google');
+      toast.error(error.message || 'Google login failed');
     }
   };
 
   const loginWithLinkedIn = async () => {
     try {
-      console.log('🌐 Initiating LinkedIn login');
-      const { error } = await supabase.auth.signInWithOAuth({
+      await supabase.auth.signInWithOAuth({
         provider: 'linkedin_oidc',
-        options: {
-          redirectTo: REDIRECT_TO
-        }
+        options: { redirectTo: REDIRECT_TO },
       });
-      if (error) throw error;
     } catch (error: any) {
-      console.error('❌ LinkedIn login failed:', error.message);
-      toast.error(error.message || 'Failed to login with LinkedIn');
+      toast.error(error.message || 'LinkedIn login failed');
     }
   };
 
@@ -212,24 +170,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setSession(null);
       toast.success('Logged out successfully');
     } catch (error: any) {
-      console.error('❌ Logout failed:', error.message);
-      toast.error(error.message || 'Failed to logout');
+      toast.error(error.message || 'Logout failed');
     }
   };
 
   const updateProfile = async (data: Partial<Profile>) => {
     if (!user) return;
     try {
-      const { error } = await supabase
-        .from('profiles')
-        .update(data)
-        .eq('id', user.id);
+      const { error } = await supabase.from('profiles').update(data).eq('id', user.id);
       if (error) throw error;
-      setProfile(prev => (prev ? { ...prev, ...data } : null));
+      setProfile((prev) => (prev ? { ...prev, ...data } : null));
       toast.success('Profile updated');
     } catch (error: any) {
-      console.error('❌ Profile update failed:', error.message);
-      toast.error(error.message || 'Failed to update profile');
+      toast.error(error.message || 'Profile update failed');
     }
   };
 
