@@ -16,6 +16,7 @@ import Login from "./pages/Auth/Login";
 import Signup from "./pages/Auth/Signup";
 
 // Public Pages
+import Home from "./pages/Home/Home";
 import CVSubmission from "./pages/Submission/Submission";
 
 // Dashboard Pages
@@ -40,7 +41,7 @@ const App = () => (
           <BrowserRouter>
             <Routes>
               {/* Public Routes (No Auth Required) */}
-              <Route path="/" element={<Index />} />
+              <Route path="/" element={<Home />} />
               <Route path="/login" element={<Login />} />
               <Route path="/signup" element={<Signup />} />
               <Route path="/submission" element={<CVSubmission />} />
