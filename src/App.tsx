@@ -5,7 +5,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate, useNavigate, useLocation } from "react-router-dom";
-import { AuthProvider } from "./contexts/AuthContext";
+import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import { ThemeProvider } from "./contexts/ThemeContext";
 
 // Layout
@@ -35,13 +35,13 @@ const queryClient = new QueryClient();
 const HashRedirectHandler = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { isAuthenticated } = useAuth();
 
   useEffect(() => {
     // Process OAuth redirects
     const hash = window.location.hash;
-    const isProcessingOAuth = sessionStorage.getItem('processing_oauth_login');
     
-    console.log('🔍 HashRedirectHandler checking URL:', location.pathname, 'Hash:', hash.substring(0, 20) + '...');
+    console.log('🔍 HashRedirectHandler checking URL:', location.pathname, 'Hash:', hash ? `${hash.substring(0, 20)}...` : 'none', 'Auth:', isAuthenticated);
     
     // Check if we have an access_token in the URL (from OAuth redirect)
     if (hash && hash.includes('access_token')) {
@@ -54,20 +54,40 @@ const HashRedirectHandler = () => {
       return;
     }
     
-    // Check if we just completed an OAuth redirect
-    if (sessionStorage.getItem('oauth_redirect_processed')) {
-      console.log('✅ OAuth redirect processed, cleaning up');
+    // Check if we just completed an OAuth redirect and are now on dashboard
+    if (sessionStorage.getItem('oauth_redirect_processed') && location.pathname === '/dashboard') {
+      console.log('✅ OAuth redirect to dashboard successful');
       sessionStorage.removeItem('oauth_redirect_processed');
+      
+      if (!isAuthenticated) {
+        console.log('⚠️ Still not authenticated after OAuth redirect, waiting for session...');
+        // The auth context will handle authentication when the session is available
+      }
     }
-    
-    // Clear processing flag if we're not on the expected redirect path
-    if (isProcessingOAuth && location.pathname !== '/dashboard') {
-      console.log('🧹 Cleaning up stale OAuth processing flag');
-      sessionStorage.removeItem('processing_oauth_login');
-    }
-  }, [location]);
+  }, [location, isAuthenticated]);
 
   return null;
+};
+
+// Authenticated route wrapper that handles redirect while auth is loading
+const ProtectedRouteHandler = ({ children }) => {
+  const { isAuthenticated, isLoading } = useAuth();
+  const location = useLocation();
+
+  // If we're processing an OAuth redirect, render children even if not yet authenticated
+  // This prevents redirect loops during OAuth processing
+  if (sessionStorage.getItem('oauth_redirect_processed') && location.pathname === '/dashboard') {
+    console.log('⏳ Allowing access to dashboard during OAuth processing...');
+    return <>{children}</>;
+  }
+
+  // For all other cases, normal auth check applies
+  if (!isLoading && !isAuthenticated) {
+    console.log('🔒 Access to protected route denied, redirecting to login...');
+    return <Navigate to={`/login?from=${encodeURIComponent(location.pathname)}`} replace />;
+  }
+
+  return <>{children}</>;
 };
 
 const App = () => (
@@ -89,7 +109,11 @@ const App = () => (
               <Route path="/submission" element={<CVSubmission />} />
 
               {/* Protected Routes */}
-              <Route path="/" element={<MainLayout />}>
+              <Route path="/" element={
+                <ProtectedRouteHandler>
+                  <MainLayout />
+                </ProtectedRouteHandler>
+              }>
                 <Route path="dashboard" element={<Dashboard />} />
                 <Route path="jobs" element={<Jobs />} />
                 <Route path="candidates" element={<Candidates />} />

@@ -25,11 +25,7 @@ const MainLayout: React.FC = () => {
   useEffect(() => {
     console.log('🏠 MainLayout rendered, authenticated:', isAuthenticated, 'loading:', isLoading, 'path:', location.pathname);
     
-    // Check if we're processing an OAuth login that just completed
-    const oauthRedirectProcessed = sessionStorage.getItem('oauth_redirect_processed');
-    if (oauthRedirectProcessed && location.pathname === '/dashboard') {
-      console.log('✅ OAuth redirect to dashboard successful');
-    }
+    // OAuth redirect handling is now managed by ProtectedRouteHandler in App.tsx
   }, [isAuthenticated, isLoading, location.pathname]);
   
   // If still loading auth state, show loading
@@ -46,13 +42,7 @@ const MainLayout: React.FC = () => {
     );
   }
   
-  // If not authenticated, redirect to login with the current path as the 'from' parameter
-  if (!isAuthenticated) {
-    console.log('⚠️ User not authenticated, redirecting to login from:', location.pathname);
-    return <Navigate to={`/login?from=${encodeURIComponent(location.pathname)}`} replace />;
-  }
-  
-  console.log('✅ User authenticated, showing protected content');
+  // Auth checks are now handled by ProtectedRouteHandler in App.tsx
   return (
     <div className="flex h-screen bg-bg-200 overflow-hidden dark:bg-black">
       <Sidebar />

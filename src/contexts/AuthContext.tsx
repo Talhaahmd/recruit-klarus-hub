@@ -76,42 +76,51 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   useEffect(() => {
     console.log('🔄 AuthContext initialized');
+    let mounted = true;
     
     // First set up the auth state change listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, currentSession) => {
+        if (!mounted) return;
+        
         console.log('🔔 Auth state change:', event);
         
         // Update state immediately with synchronous operations
-        setSession(currentSession);
-        setUser(currentSession?.user ?? null);
-        
-        // Check if we just processed an OAuth login
-        const oauthRedirectProcessed = sessionStorage.getItem('oauth_redirect_processed');
-        
-        if (currentSession?.user) {
-          if (event === 'SIGNED_IN') {
-            console.log('✅ User signed in:', currentSession.user.email);
-            toast.success('Successfully signed in');
-            
-            // If this is right after an OAuth redirect, remove the flag
-            if (oauthRedirectProcessed) {
-              console.log('🧹 Cleaning up OAuth redirect flag');
-              sessionStorage.removeItem('oauth_redirect_processed');
-            }
-          }
+        if (currentSession) {
+          setSession(currentSession);
+          setUser(currentSession.user);
+          console.log('✅ Session updated from auth state change:', currentSession.user.email);
           
-          // Use setTimeout to avoid potential auth state deadlocks
+          // Check for OAuth redirect completion
+          const oauthRedirectProcessed = sessionStorage.getItem('oauth_redirect_processed');
+          if (oauthRedirectProcessed && event === 'SIGNED_IN') {
+            console.log('🎉 OAuth sign-in completed successfully');
+            toast.success('Successfully signed in with ' + (currentSession.user?.app_metadata?.provider || 'OAuth'));
+          }
+        } else if (event === 'SIGNED_OUT') {
+          setSession(null);
+          setUser(null);
+          setProfile(null);
+          console.log('👋 User signed out');
+        }
+        
+        // Use setTimeout to avoid potential auth state deadlocks
+        if (currentSession?.user && event === 'SIGNED_IN') {
           setTimeout(() => {
-            fetchProfile(currentSession.user.id).finally(() => {
-              setIsLoading(false);
-              setInitialSessionChecked(true);
-            });
+            if (mounted) {
+              fetchProfile(currentSession.user.id).finally(() => {
+                if (mounted) {
+                  setIsLoading(false);
+                  setInitialSessionChecked(true);
+                }
+              });
+            }
           }, 0);
         } else {
-          setProfile(null);
-          setIsLoading(false);
-          setInitialSessionChecked(true);
+          if (mounted) {
+            setIsLoading(false);
+            setInitialSessionChecked(true);
+          }
         }
       }
     );
@@ -124,43 +133,70 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         
         if (currentSession?.user) {
           console.log('✅ Found existing session for:', currentSession.user.email);
-          setSession(currentSession);
-          setUser(currentSession.user);
-          
-          // Fetch profile after obtaining session
-          fetchProfile(currentSession.user.id).finally(() => {
-            setIsLoading(false);
-            setInitialSessionChecked(true);
-          });
+          if (mounted) {
+            setSession(currentSession);
+            setUser(currentSession.user);
+            
+            // Fetch profile after obtaining session
+            fetchProfile(currentSession.user.id).finally(() => {
+              if (mounted) {
+                setIsLoading(false);
+                setInitialSessionChecked(true);
+              }
+            });
+          }
         } else {
           console.log('ℹ️ No existing session found');
-          setIsLoading(false);
-          setInitialSessionChecked(true);
+          if (mounted) {
+            setIsLoading(false);
+            setInitialSessionChecked(true);
+          }
         }
       } catch (error) {
         console.error('❌ Error checking session:', error);
-        setIsLoading(false);
-        setInitialSessionChecked(true);
+        if (mounted) {
+          setIsLoading(false);
+          setInitialSessionChecked(true);
+        }
       }
     };
     
-    checkForExistingSession();
+    // Check for existing session with a slight delay to ensure
+    // onAuthStateChange is registered first
+    setTimeout(() => {
+      checkForExistingSession();
+    }, 10);
 
-    return () => subscription.unsubscribe();
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
-  // Check for access_token in URL hash on initial load
+  // Check for access_token in URL hash on initial load and session refresh
   useEffect(() => {
-    if (initialSessionChecked && !user && window.location.hash.includes('access_token')) {
-      console.log('🔄 Found access_token in URL on initial load, refreshing session state...');
-      supabase.auth.getSession().then(({ data: { session: currentSession } }) => {
-        if (currentSession?.user) {
-          console.log('✅ Session refreshed after access_token detected');
-          setSession(currentSession);
-          setUser(currentSession.user);
-          fetchProfile(currentSession.user.id);
-        }
-      });
+    if (initialSessionChecked) {
+      const hash = window.location.hash;
+      
+      // If we have an access_token but no user yet, try refreshing the session
+      if (hash && hash.includes('access_token') && !user) {
+        console.log('🔄 Found access_token in URL, refreshing session state...');
+        
+        // Give supabase time to process the token
+        setTimeout(() => {
+          supabase.auth.getSession().then(({ data: { session: currentSession } }) => {
+            if (currentSession?.user) {
+              console.log('✅ Session refreshed after access_token detected');
+              setSession(currentSession);
+              setUser(currentSession.user);
+              fetchProfile(currentSession.user.id);
+              
+              // OAuth login completed
+              toast.success('Successfully signed in!');
+            }
+          });
+        }, 100);
+      }
     }
   }, [initialSessionChecked, user]);
 
