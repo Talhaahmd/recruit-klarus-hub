@@ -1,9 +1,10 @@
+
 import React, { useEffect } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate, useNavigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from './contexts/AuthContext';
 import { ThemeProvider } from './contexts/ThemeContext';
 
@@ -30,18 +31,28 @@ import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
-// ✅ Hard redirect version for reliability
+// Enhanced HashRedirectHandler with more robust hash detection
 const HashRedirectHandler = () => {
   useEffect(() => {
-    if (window.location.hash.includes('access_token')) {
-      console.log('🔁 Detected access_token in hash — redirecting to /dashboard');
-      window.location.replace('/dashboard'); // ✅ force full reload
+    // Check if we have a hash with access_token
+    if (window.location.hash && window.location.hash.includes('access_token')) {
+      console.log('🔐 OAuth redirect detected with access_token');
+      
+      // Store the fact that we're processing a login to prevent infinite loops
+      sessionStorage.setItem('processing_oauth_login', 'true');
+      
+      // Force a full page reload to the dashboard route
+      // This ensures Supabase client properly processes the token
+      window.location.replace('/dashboard');
+    } else if (sessionStorage.getItem('processing_oauth_login')) {
+      // Clean up the processing flag after redirect is complete
+      console.log('✅ OAuth login process completed');
+      sessionStorage.removeItem('processing_oauth_login');
     }
   }, []);
 
   return null;
 };
-
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -51,6 +62,7 @@ const App = () => (
           <Toaster />
           <Sonner />
           <BrowserRouter>
+            {/* Place HashRedirectHandler at the top level so it runs on every route change */}
             <HashRedirectHandler />
             <Routes>
               {/* Public Routes */}

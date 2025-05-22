@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { Session, User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -156,7 +155,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-redirectTo: 'https://klarushr.com/dashboard'
+          redirectTo: window.location.origin + '/dashboard'
         }
       });
       
