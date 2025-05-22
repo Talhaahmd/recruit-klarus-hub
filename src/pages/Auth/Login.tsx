@@ -26,13 +26,12 @@ const Login: React.FC = () => {
 
   const from = new URLSearchParams(location.search).get('from') || '/dashboard';
 
-  // Wait for session to load before redirecting
   useEffect(() => {
-    if (!isLoading && isAuthenticated) {
+    if (!isLoading && isAuthenticated && location.pathname === '/login') {
       console.log('✅ Already authenticated, redirecting...');
       navigate(from, { replace: true });
     }
-  }, [isLoading, isAuthenticated, navigate, from]);
+  }, [isLoading, isAuthenticated, navigate, from, location.pathname]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -64,7 +63,6 @@ const Login: React.FC = () => {
     loginWithLinkedIn();
   };
 
-  // Show loader while checking session
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
