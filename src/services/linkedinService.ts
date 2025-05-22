@@ -15,7 +15,7 @@ export type LinkedInPost = {
 type LinkedInPostInput = Omit<LinkedInPost, 'id' | 'posted'>;
 
 export const linkedinService = {
-  // Get all LinkedIn posts for the current user
+  // Get all LinkedIn posts for the current user - RLS will filter automatically
   getPosts: async (): Promise<LinkedInPost[]> => {
     try {
       const { data, error } = await supabase
@@ -62,7 +62,7 @@ export const linkedinService = {
         scheduled_time: post.scheduled_time,
         niche: post.niche,
         tone: post.tone || 'Professional',
-        user_id: user.id,
+        user_id: user.id, // This is mapped to created_by via RLS
         posted: false
       };
       
@@ -95,7 +95,7 @@ export const linkedinService = {
     }
   },
   
-  // Mark a LinkedIn post as posted
+  // Mark a LinkedIn post as posted - RLS will ensure users can only update their own posts
   markAsPosted: async (id: string): Promise<boolean> => {
     try {
       const { error } = await supabase

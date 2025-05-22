@@ -11,6 +11,7 @@ export type Submission = {
   status: string;
   job_id: string | null;
   created_at: string;
+  created_by?: string;
 };
 
 export type JobApplication = {
@@ -19,6 +20,7 @@ export type JobApplication = {
   job_id: string;
   job_name?: string | null;
   created_at: string;
+  created_by?: string;
 };
 
 export type Interview = {
@@ -32,6 +34,7 @@ export type Interview = {
   candidate_name?: string | null;
   candidate_email?: string | null;
   job_name?: string | null;
+  created_by?: string;
 };
 
 export type OfferLetter = {
@@ -44,10 +47,11 @@ export type OfferLetter = {
   candidate_name?: string | null;
   candidate_email?: string | null;
   job_name?: string | null;
+  created_by?: string;
 };
 
 export const submissionService = {
-  // Get all submissions
+  // Get all submissions - RLS will filter to just the user's submissions
   getSubmissions: async (): Promise<Submission[]> => {
     try {
       const { data, error } = await supabase
@@ -66,7 +70,7 @@ export const submissionService = {
     }
   },
 
-  // Get job application details by cv_link_id
+  // Get job application details by cv_link_id - RLS will filter automatically
   getJobApplicationByCvLinkId: async (cvLinkId: string): Promise<JobApplication | null> => {
     try {
       console.log("Fetching job application for cv_link_id:", cvLinkId);
@@ -93,7 +97,7 @@ export const submissionService = {
     }
   },
 
-  // Get submission by id
+  // Get submission by id - RLS will ensure users can only access their own submissions
   getSubmissionById: async (id: string): Promise<Submission | null> => {
     try {
       console.log("Fetching submission for id:", id);
@@ -117,7 +121,7 @@ export const submissionService = {
     }
   },
   
-  // Get all job applications
+  // Get all job applications - RLS will filter to just the user's applications
   getAllJobApplications: async (): Promise<{submission: Submission, jobId: string}[]> => {
     try {
       // First try to get applications from job_applications table
@@ -193,6 +197,12 @@ export const submissionService = {
     jobName?: string
   ): Promise<boolean> => {
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast.error('You must be logged in to schedule an interview');
+        return false;
+      }
+
       const { data, error } = await supabase
         .from('candidate_interviews')
         .insert({
@@ -203,7 +213,8 @@ export const submissionService = {
           email_sent: true,
           candidate_name: candidateName || null,
           candidate_email: candidateEmail || null,
-          job_name: jobName || null
+          job_name: jobName || null,
+          created_by: user.id // Set created_by field
         });
 
       if (error) {
@@ -231,6 +242,12 @@ export const submissionService = {
     jobName?: string
   ): Promise<boolean> => {
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast.error('You must be logged in to send an offer letter');
+        return false;
+      }
+
       const { data, error } = await supabase
         .from('offer_letters')
         .insert({
@@ -240,7 +257,8 @@ export const submissionService = {
           email_sent: true,
           candidate_name: candidateName || null,
           candidate_email: candidateEmail || null,
-          job_name: jobName || null
+          job_name: jobName || null,
+          created_by: user.id // Set created_by field
         });
 
       if (error) {

@@ -74,7 +74,7 @@ const Jobs = () => {
         technologies: data.technologies,
         workplace_type: data.workplaceType,
         applicants: 0,
-        user_id: user.id // Set user_id to the current authenticated user's ID
+        user_id: user.id, // This is now mapped to created_by via RLS
       };
 
       console.log('Creating job with data:', jobData);

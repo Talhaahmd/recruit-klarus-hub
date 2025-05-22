@@ -15,17 +15,17 @@ export type Job = {
   technologies: string[];
   workplace_type: string;
   user_id?: string;
+  created_by?: string;
 };
 
 // The JobInput type should match what's expected by the database
 export type JobInput = Omit<Job, 'id'>;
 
 export const jobsService = {
-  // Get all jobs for current user
+  // Get all jobs for current user - RLS will automatically filter to just the user's jobs
   getJobs: async (): Promise<Job[]> => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      
+      // No need to filter by user_id, RLS will handle this
       const { data, error } = await supabase
         .from('jobs')
         .select('*')
@@ -44,7 +44,7 @@ export const jobsService = {
     }
   },
   
-  // Get a job by ID
+  // Get a job by ID - RLS will ensure users can only access their own jobs
   getJobById: async (id: string): Promise<Job | null> => {
     try {
       const { data, error } = await supabase
@@ -74,6 +74,7 @@ export const jobsService = {
         return null;
       }
       
+      // Ensure the user_id is set correctly - this will map to created_by in RLS policies
       const jobData = {
         ...job,
         user_id: user.id
@@ -101,7 +102,7 @@ export const jobsService = {
     }
   },
   
-  // Update a job
+  // Update a job - RLS will ensure users can only update their own jobs
   updateJob: async (id: string, updates: Partial<Job>): Promise<Job | null> => {
     try {
       const { data, error } = await supabase
@@ -124,7 +125,7 @@ export const jobsService = {
     }
   },
   
-  // Delete a job
+  // Delete a job - RLS will ensure users can only delete their own jobs
   deleteJob: async (id: string): Promise<boolean> => {
     try {
       const { error } = await supabase

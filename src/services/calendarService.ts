@@ -14,7 +14,7 @@ export type CalendarEvent = {
 type CalendarEventInput = Omit<CalendarEvent, 'id'>;
 
 export const calendarService = {
-  // Get all events for the current user
+  // Get all events for the current user - RLS will filter automatically
   getEvents: async (): Promise<CalendarEvent[]> => {
     try {
       const { data, error } = await supabase
@@ -60,7 +60,7 @@ export const calendarService = {
           ? event.endDate 
           : event.endDate.toISOString(),
         type: event.type,
-        user_id: user.id
+        user_id: user.id // This is mapped to created_by via RLS
       };
       
       const { data, error } = await supabase
@@ -88,7 +88,7 @@ export const calendarService = {
     }
   },
   
-  // Delete an event
+  // Delete an event - RLS will ensure users can only delete their own events
   deleteEvent: async (id: string): Promise<boolean> => {
     try {
       const { error } = await supabase

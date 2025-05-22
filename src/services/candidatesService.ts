@@ -31,12 +31,13 @@ export type Candidate = {
   status?: string; // Adding status property 
   applied_date?: string; // Adding applied date property
   resume_url?: string; // Adding resume URL property
+  created_by?: string;
 };
 
 export type CandidateInput = Omit<Candidate, 'id' | 'timestamp'>;
 
 export const candidatesService = {
-  // Get all candidates
+  // Get all candidates - RLS will filter to just the user's candidates
   getCandidates: async (): Promise<Candidate[]> => {
     try {
       const { data, error } = await supabase
@@ -63,7 +64,7 @@ export const candidatesService = {
     }
   },
   
-  // Get a candidate by ID
+  // Get a candidate by ID - RLS will ensure users can only access their own candidates
   getCandidateById: async (id: string): Promise<Candidate | null> => {
     try {
       const { data, error } = await supabase
@@ -96,10 +97,16 @@ export const candidatesService = {
   // Create a new candidate
   createCandidate: async (candidate: CandidateInput): Promise<Candidate | null> => {
     try {
+      // Get the current authenticated user
       const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast.error('You must be logged in to create a candidate');
+        return null;
+      }
       
       const candidateData = {
         ...candidate,
+        user_id: user.id, // This maps to created_by in RLS policies
       };
       
       const { data, error } = await supabase
@@ -128,16 +135,12 @@ export const candidatesService = {
     }
   },
   
-  // Update a candidate
+  // Update a candidate - RLS will ensure users can only update their own candidates
   updateCandidate: async (id: string, updates: Partial<Candidate>): Promise<Candidate | null> => {
     try {      
-      const candidateData = {
-        ...updates,
-      };
-      
       const { data, error } = await supabase
         .from('candidates')
-        .update(candidateData)
+        .update(updates)
         .eq('id', id)
         .select()
         .single();
@@ -162,7 +165,7 @@ export const candidatesService = {
     }
   },
   
-  // Delete a candidate
+  // Delete a candidate - RLS will ensure users can only delete their own candidates
   deleteCandidate: async (id: string): Promise<boolean> => {
     try {
       const { error } = await supabase
