@@ -1,9 +1,9 @@
 
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
-import { GithubIcon, Loader2 } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import { FcGoogle } from 'react-icons/fc';
 import { FaLinkedin } from 'react-icons/fa';
 import { Button } from '@/components/ui/button';
@@ -16,11 +16,15 @@ const Login: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { login, loginWithGoogle, loginWithLinkedIn, isAuthenticated } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+  
+  // Get the intended destination from query parameters or default to dashboard
+  const from = new URLSearchParams(location.search).get('from') || '/dashboard';
   
   useEffect(() => {
     // Redirect if user is already authenticated
     if (isAuthenticated) {
-      navigate('/dashboard');
+      navigate('/dashboard', { replace: true });
     }
   }, [isAuthenticated, navigate]);
   
@@ -36,12 +40,22 @@ const Login: React.FC = () => {
     
     try {
       await login(email, password);
-      navigate('/dashboard');
+      // Success is handled by the auth state change in useEffect
     } catch (error) {
       // Error is handled in the auth context
     } finally {
       setIsSubmitting(false);
     }
+  };
+  
+  const handleGoogleLogin = () => {
+    loginWithGoogle();
+    // Redirect handled by Supabase OAuth and auth state change
+  };
+  
+  const handleLinkedInLogin = () => {
+    loginWithLinkedIn();
+    // Redirect handled by Supabase OAuth and auth state change
   };
   
   return (
@@ -108,11 +122,11 @@ const Login: React.FC = () => {
               </div>
               
               <div className="grid grid-cols-2 gap-3">
-                <Button variant="outline" type="button" onClick={() => loginWithGoogle()}>
+                <Button variant="outline" type="button" onClick={handleGoogleLogin}>
                   <FcGoogle className="mr-2 h-4 w-4" />
                   Google
                 </Button>
-                <Button variant="outline" type="button" onClick={() => loginWithLinkedIn()}>
+                <Button variant="outline" type="button" onClick={handleLinkedInLogin}>
                   <FaLinkedin className="mr-2 h-4 w-4 text-blue-600" />
                   LinkedIn
                 </Button>

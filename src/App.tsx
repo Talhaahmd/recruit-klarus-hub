@@ -3,7 +3,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from './contexts/AuthContext';
 import { ThemeProvider } from './contexts/ThemeContext';
 
@@ -11,7 +11,6 @@ import { ThemeProvider } from './contexts/ThemeContext';
 import MainLayout from "./components/Layout/MainLayout";
 
 // Auth Pages
-import Index from "./pages/Index";
 import Login from "./pages/Auth/Login";
 import Signup from "./pages/Auth/Signup";
 
@@ -45,18 +44,20 @@ const App = () => (
               <Route path="/login" element={<Login />} />
               <Route path="/signup" element={<Signup />} />
               <Route path="/submission" element={<CVSubmission />} />
-              <Route path="/index" element={<Index />} />
               
               {/* Protected Routes */}
               <Route path="/" element={<MainLayout />}>
-                <Route path="/dashboard" element={<Dashboard />} />
-                <Route path="/jobs" element={<Jobs />} />
-                <Route path="/candidates" element={<Candidates />} />
-                <Route path="/candidates/:id" element={<CandidateProfile />} />
-                <Route path="/calendar" element={<Calendar />} />
-                <Route path="/build-profile" element={<BuildProfile />} />
-                <Route path="/settings" element={<Settings />} />
+                <Route path="dashboard" element={<Dashboard />} />
+                <Route path="jobs" element={<Jobs />} />
+                <Route path="candidates" element={<Candidates />} />
+                <Route path="candidates/:id" element={<CandidateProfile />} />
+                <Route path="calendar" element={<Calendar />} />
+                <Route path="build-profile" element={<BuildProfile />} />
+                <Route path="settings" element={<Settings />} />
               </Route>
+              
+              {/* Redirect /index to Dashboard for authenticated users */}
+              <Route path="/index" element={<Navigate to="/dashboard" />} />
               
               {/* 404 Route */}
               <Route path="*" element={<NotFound />} />

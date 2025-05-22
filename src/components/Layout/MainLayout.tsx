@@ -1,8 +1,8 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import Sidebar from './Sidebar';
 import { useAuth } from '@/contexts/AuthContext';
-import { Navigate, Outlet } from 'react-router-dom';
+import { Navigate, Outlet, useLocation } from 'react-router-dom';
 
 interface HeaderProps {
   title: string;
@@ -20,6 +20,7 @@ export const Header: React.FC<HeaderProps> = ({ title, subtitle }) => {
 
 const MainLayout: React.FC = () => {
   const { isAuthenticated, isLoading } = useAuth();
+  const location = useLocation();
   
   // If still loading auth state, show loading
   if (isLoading) {
@@ -30,9 +31,9 @@ const MainLayout: React.FC = () => {
     );
   }
   
-  // If not authenticated, redirect to login
+  // If not authenticated, redirect to login with the current path as the 'from' parameter
   if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
+    return <Navigate to={`/login?from=${encodeURIComponent(location.pathname)}`} replace />;
   }
   
   return (

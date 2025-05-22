@@ -22,7 +22,7 @@ const Signup: React.FC = () => {
   useEffect(() => {
     // Redirect if user is already authenticated
     if (isAuthenticated) {
-      navigate('/dashboard');
+      navigate('/dashboard', { replace: true });
     }
   }, [isAuthenticated, navigate]);
   
@@ -48,13 +48,23 @@ const Signup: React.FC = () => {
     
     try {
       await signup(name, email, password);
-      toast.success('Please check your email for verification');
-      navigate('/login');
+      // After signup, we now redirect to login page since verification may be required
+      navigate('/login', { replace: true });
     } catch (error) {
       // Error is handled in the auth context
     } finally {
       setIsSubmitting(false);
     }
+  };
+  
+  const handleGoogleLogin = () => {
+    loginWithGoogle();
+    // Redirect handled by Supabase OAuth and auth state change
+  };
+  
+  const handleLinkedInLogin = () => {
+    loginWithLinkedIn();
+    // Redirect handled by Supabase OAuth and auth state change
   };
   
   return (
@@ -144,11 +154,11 @@ const Signup: React.FC = () => {
               </div>
               
               <div className="grid grid-cols-2 gap-3">
-                <Button variant="outline" type="button" onClick={() => loginWithGoogle()}>
+                <Button variant="outline" type="button" onClick={handleGoogleLogin}>
                   <FcGoogle className="mr-2 h-4 w-4" />
                   Google
                 </Button>
-                <Button variant="outline" type="button" onClick={() => loginWithLinkedIn()}>
+                <Button variant="outline" type="button" onClick={handleLinkedInLogin}>
                   <FaLinkedin className="mr-2 h-4 w-4 text-blue-600" />
                   LinkedIn
                 </Button>
