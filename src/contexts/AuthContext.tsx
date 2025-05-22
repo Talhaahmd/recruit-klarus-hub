@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { Session, User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -19,6 +18,7 @@ type AuthContextType = {
   session: Session | null;
   isAuthenticated: boolean;
   isLoading: boolean;
+  authReady: boolean; // Add this new property
   login: (email: string, password: string) => Promise<void>;
   signup: (name: string, email: string, password: string) => Promise<void>;
   loginWithGoogle: () => Promise<void>;
@@ -303,6 +303,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         session,
         isAuthenticated: !!user,
         isLoading,
+        authReady: initialSessionChecked, // Map initialSessionChecked to authReady
         login,
         signup,
         loginWithGoogle,
