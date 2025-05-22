@@ -46,6 +46,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [initialSessionChecked, setInitialSessionChecked] = useState<boolean>(false);
 
+  // Check if we're in an OAuth redirect scenario
+  const isOAuthRedirect = () => {
+    // Check for access token in the URL hash or if we were processing OAuth
+    return window.location.hash.includes('access_token') || 
+           sessionStorage.getItem('processing_oauth_login') === 'true';
+  };
+
   const fetchProfile = async (userId: string) => {
     try {
       const { data, error } = await supabase.from('profiles').select('*').eq('id', userId).single();
@@ -71,18 +78,34 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   useEffect(() => {
+    console.log('🔄 AuthProvider initializing auth state...');
+    
+    // First set up the auth state change listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, currentSession) => {
+        console.log('🔐 Auth state changed:', event, !!currentSession);
+        
         if (currentSession) {
           setSession(currentSession);
           setUser(currentSession.user);
 
           if (event === 'SIGNED_IN') {
-            sessionStorage.removeItem('oauth_redirect_processed');
-            toast.success('Signed in successfully');
-            await fetchProfile(currentSession.user.id);
+            console.log('✅ User signed in:', currentSession.user.email);
+            
+            // Clear OAuth processing flag
+            if (sessionStorage.getItem('processing_oauth_login')) {
+              console.log('🔄 Processing OAuth redirect...');
+              sessionStorage.removeItem('processing_oauth_login');
+              toast.success('Signed in successfully');
+            }
+            
+            // Fetch profile after a slight delay to avoid potential deadlocks
+            setTimeout(() => {
+              fetchProfile(currentSession.user.id);
+            }, 0);
           }
         } else if (event === 'SIGNED_OUT') {
+          console.log('👋 User signed out');
           setSession(null);
           setUser(null);
           setProfile(null);
@@ -93,15 +116,31 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     );
 
-    supabase.auth.getSession().then(({ data: { session: currentSession } }) => {
-      if (currentSession?.user) {
-        setSession(currentSession);
-        setUser(currentSession.user);
-        fetchProfile(currentSession.user.id);
+    // Then check for existing session
+    const initializeAuth = async () => {
+      try {
+        const { data: { session: currentSession } } = await supabase.auth.getSession();
+        console.log('📝 Initial session check:', !!currentSession);
+        
+        if (currentSession?.user) {
+          setSession(currentSession);
+          setUser(currentSession.user);
+          
+          // Only fetch profile if not in an OAuth redirect
+          // This prevents duplicate profile fetches during auth state changes
+          if (!isOAuthRedirect()) {
+            await fetchProfile(currentSession.user.id);
+          }
+        }
+      } catch (error) {
+        console.error('Error checking session:', error);
+      } finally {
+        setIsLoading(false);
+        setInitialSessionChecked(true);
       }
-      setIsLoading(false);
-      setInitialSessionChecked(true);
-    });
+    };
+
+    initializeAuth();
 
     return () => subscription.unsubscribe();
   }, []);

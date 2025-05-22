@@ -1,3 +1,4 @@
+
 import React, { useEffect } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -43,23 +44,27 @@ const HashRedirectHandler = () => {
   const { isAuthenticated } = useAuth();
 
   useEffect(() => {
+    // Detect access_token in hash for OAuth redirects
     const hash = window.location.hash;
-
+    
     if (hash && hash.includes("access_token")) {
-      console.log("🔐 OAuth access_token detected in hash, redirecting...");
+      console.log("🔐 OAuth access_token detected in hash, redirecting to dashboard...");
+      // Store a flag that we're handling an OAuth redirect
       sessionStorage.setItem("oauth_redirect_processed", "true");
-      window.location.replace("/dashboard");
+      
+      // Short delay to ensure Supabase has time to process the token
+      setTimeout(() => {
+        window.location.replace("/dashboard");
+      }, 100);
       return;
     }
 
-    if (
-      sessionStorage.getItem("oauth_redirect_processed") &&
-      location.pathname === "/dashboard"
-    ) {
+    // Check if we're coming from a successful OAuth redirect
+    if (sessionStorage.getItem("oauth_redirect_processed") && location.pathname === "/dashboard") {
       console.log("✅ OAuth redirect to dashboard successful");
       sessionStorage.removeItem("oauth_redirect_processed");
     }
-  }, [location, isAuthenticated]);
+  }, [location, navigate, isAuthenticated]);
 
   return null;
 };
@@ -68,17 +73,17 @@ const ProtectedRouteHandler = ({ children }: { children: React.ReactNode }) => {
   const { isAuthenticated, isLoading, authReady } = useAuth();
   const location = useLocation();
 
+  // If auth state is still initializing, show loading
   if (!authReady) {
     return <div className="min-h-screen flex items-center justify-center bg-white text-gray-500">Loading session...</div>;
   }
-
-  if (
-    sessionStorage.getItem("oauth_redirect_processed") &&
-    location.pathname === "/dashboard"
-  ) {
+  
+  // Special case: if we're handling an OAuth redirect to dashboard, allow access
+  if (sessionStorage.getItem("oauth_redirect_processed") && location.pathname === "/dashboard") {
     return <>{children}</>;
   }
 
+  // Normal authenticated route check
   if (!isLoading && !isAuthenticated) {
     return (
       <Navigate

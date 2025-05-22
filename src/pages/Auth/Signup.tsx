@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -22,18 +23,22 @@ const Signup: React.FC = () => {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { signup, loginWithGoogle, loginWithLinkedIn, isAuthenticated, isLoading } = useAuth();
+  const { signup, loginWithGoogle, loginWithLinkedIn, isAuthenticated, isLoading, authReady } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
   const from = new URLSearchParams(location.search).get('from') || '/dashboard';
 
+  // Check if we're handling an OAuth redirect to avoid immediate redirections
+  const isHandlingOAuth = sessionStorage.getItem('oauth_redirect_processed') === 'true';
+
   useEffect(() => {
-    if (!isLoading && isAuthenticated && location.pathname === '/signup') {
-      console.log('✅ Already authenticated, redirecting...');
+    // Only redirect if auth state is ready, user is authenticated, and we're not handling OAuth
+    if (authReady && !isLoading && isAuthenticated && location.pathname === '/signup' && !isHandlingOAuth) {
+      console.log('✅ Already authenticated, redirecting to:', from);
       navigate(from, { replace: true });
     }
-  }, [isLoading, isAuthenticated, location.pathname, navigate, from]);
+  }, [isLoading, isAuthenticated, location.pathname, navigate, from, authReady, isHandlingOAuth]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -68,10 +73,12 @@ const Signup: React.FC = () => {
   };
 
   const handleGoogleLogin = () => {
+    console.log('🔄 Starting Google OAuth login...');
     loginWithGoogle();
   };
 
   const handleLinkedInLogin = () => {
+    console.log('🔄 Starting LinkedIn OAuth login...');
     loginWithLinkedIn();
   };
 
