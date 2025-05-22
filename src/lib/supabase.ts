@@ -14,7 +14,15 @@ if (!supabaseUrl || !supabaseAnonKey) {
   console.warn('⚠️ Missing Supabase environment variables. Using fallback values. Set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY for proper functionality.');
 }
 
-export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+  auth: {
+    storage: localStorage,
+    persistSession: true,
+    autoRefreshToken: true,
+    detectSessionInUrl: true, // Important for OAuth redirects
+    flowType: 'implicit' // Use implicit flow for OAuth
+  }
+});
 
 // Database schema types based on our Supabase setup
 export type Tables = {

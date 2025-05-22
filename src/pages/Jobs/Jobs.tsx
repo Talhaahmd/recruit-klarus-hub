@@ -12,22 +12,12 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 
 const Jobs = () => {
-  const [user, setUser] = useState(null);
   const [isAddJobModalOpen, setIsAddJobModalOpen] = useState(false);
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
   const [jobs, setJobs] = useState<Job[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
-
-  // Get current user on mount
-  useEffect(() => {
-    const getUser = async () => {
-      const { data } = await supabase.auth.getUser();
-      setUser(data.user);
-    };
-    getUser();
-  }, []);
 
   // Fetch jobs on mount
   useEffect(() => {
@@ -57,11 +47,6 @@ const Jobs = () => {
   };
 
   const handleSaveJob = async (data: NewJobData) => {
-    if (!user?.id) {
-      toast.error("User not authenticated");
-      return;
-    }
-
     try {
       const jobData = {
         title: data.title,
@@ -73,11 +58,8 @@ const Jobs = () => {
         active_days: data.activeDays,
         technologies: data.technologies,
         workplace_type: data.workplaceType,
-        applicants: 0,
-        user_id: user.id, // This is now mapped to created_by via RLS
+        applicants: 0
       };
-
-      console.log('Creating job with data:', jobData);
 
       const savedJob = await jobsService.createJob(jobData);
 
