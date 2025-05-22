@@ -100,17 +100,15 @@ const Candidates: React.FC = () => {
     toast.info(`Edit candidate with ID: ${id}`);
   };
 
-  const handleDelete = async (id: string) => {
-    try {
-      // Fix: Pass an empty string or undefined as the second argument if job_id is not available
-      const success = await candidatesService.deleteCandidate(id, undefined);
+  const handleDelete = async (candidateId: string) => {
+    const candidate = candidates.find(c => c.id === candidateId);
+    if (window.confirm('Are you sure you want to delete this candidate?')) {
+      // Pass both candidateId and job_id to deleteCandidate
+      const success = await candidatesService.deleteCandidate(candidateId, candidate?.job_id);
       if (success) {
-        setCandidates(candidates.filter(c => c.id !== id));
+        setCandidates(candidates.filter(c => c.id !== candidateId));
         toast.success('Candidate deleted successfully');
       }
-    } catch (error) {
-      console.error("Error deleting candidate:", error);
-      toast.error('Failed to delete candidate');
     }
   };
 

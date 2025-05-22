@@ -1,8 +1,8 @@
+
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 
 export const submissionService = {
-  // Add the scheduleInterview function
   scheduleInterview: async (
     candidateId: string,
     interviewDate: string,
@@ -13,6 +13,12 @@ export const submissionService = {
     jobName?: string
   ): Promise<boolean> => {
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        throw new Error('User not authenticated');
+      }
+
       const { error } = await supabase
         .from('candidate_interviews')
         .insert({
@@ -23,7 +29,8 @@ export const submissionService = {
           candidate_name: candidateName,
           candidate_email: candidateEmail,
           job_name: jobName,
-          email_sent: true
+          email_sent: true,
+          user_id: user.id // Add the user_id to correctly apply RLS
         });
         
       if (error) {
@@ -43,6 +50,12 @@ export const submissionService = {
     try {
       const fileName = `${Date.now()}-${file.name}`;
       const filePath = `resumes/${fileName}`;
+      
+      // Verify user is authenticated before uploading
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        throw new Error('User not authenticated');
+      }
       
       const { error: uploadError } = await supabase.storage
         .from('candidate-files')
@@ -78,6 +91,8 @@ export const submissionService = {
         throw new Error('User not authenticated');
       }
       
+      console.log('Creating submission with user ID:', user.id); // Debug log
+      
       const { data, error } = await supabase
         .from('submissions')
         .insert({
@@ -105,6 +120,16 @@ export const submissionService = {
   
   getSubmissions: async () => {
     try {
+      // Verify user is authenticated before fetching data
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        console.warn('User not authenticated, cannot fetch submissions');
+        return [];
+      }
+
+      console.log('Fetching submissions for user:', user.id); // Debug log
+      
       const { data, error } = await supabase
         .from('submissions')
         .select('*')
@@ -124,6 +149,14 @@ export const submissionService = {
   
   getSubmissionById: async (id: string) => {
     try {
+      // Verify user is authenticated before fetching data
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        console.warn('User not authenticated, cannot fetch submission');
+        return null;
+      }
+
       const { data, error } = await supabase
         .from('submissions')
         .select('*')
@@ -143,6 +176,14 @@ export const submissionService = {
   
   getJobApplicationByCvLinkId: async (cvLinkId: string) => {
     try {
+      // Verify user is authenticated before fetching data
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        console.warn('User not authenticated, cannot fetch job application');
+        return null;
+      }
+
       const { data, error } = await supabase
         .from('job_applications')
         .select('*')

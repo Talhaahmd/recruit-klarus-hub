@@ -1,5 +1,5 @@
 
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 
 export type Job = {
@@ -25,6 +25,15 @@ export const jobsService = {
   // Get all jobs for current user - RLS will automatically filter to just the user's jobs
   getJobs: async (): Promise<Job[]> => {
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        console.warn('User not authenticated, cannot fetch jobs');
+        return [];
+      }
+
+      console.log('Fetching jobs for user:', user.id); // Debug log
+      
       // No need to filter by user_id, RLS will handle this
       const { data, error } = await supabase
         .from('jobs')
@@ -47,6 +56,15 @@ export const jobsService = {
   // Get a job by ID - RLS will ensure users can only access their own jobs
   getJobById: async (id: string): Promise<Job | null> => {
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        console.warn('User not authenticated, cannot fetch job');
+        return null;
+      }
+
+      console.log('Fetching job:', id, 'for user:', user.id); // Debug log
+      
       const { data, error } = await supabase
         .from('jobs')
         .select('*')
@@ -80,7 +98,7 @@ export const jobsService = {
         user_id: user.id
       };
       
-      console.log('Creating job with data:', jobData);
+      console.log('Creating job with data:', jobData, 'for user:', user.id); // Debug log
       
       const { data, error } = await supabase
         .from('jobs')
@@ -105,6 +123,15 @@ export const jobsService = {
   // Update a job - RLS will ensure users can only update their own jobs
   updateJob: async (id: string, updates: Partial<Job>): Promise<Job | null> => {
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        console.warn('User not authenticated, cannot update job');
+        return null;
+      }
+
+      console.log('Updating job:', id, 'for user:', user.id); // Debug log
+      
       const { data, error } = await supabase
         .from('jobs')
         .update(updates)
@@ -128,6 +155,15 @@ export const jobsService = {
   // Delete a job - RLS will ensure users can only delete their own jobs
   deleteJob: async (id: string): Promise<boolean> => {
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        console.warn('User not authenticated, cannot delete job');
+        return false;
+      }
+
+      console.log('Deleting job:', id, 'for user:', user.id); // Debug log
+      
       const { error } = await supabase
         .from('jobs')
         .delete()

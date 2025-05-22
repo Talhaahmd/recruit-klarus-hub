@@ -14,6 +14,8 @@ if (!supabaseUrl || !supabaseAnonKey) {
   console.warn('⚠️ Missing Supabase environment variables. Using fallback values. Set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY for proper functionality.');
 }
 
+console.log('Initializing Supabase client with explicit auth configuration');
+
 export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
   auth: {
     storage: localStorage,
@@ -22,6 +24,16 @@ export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
     detectSessionInUrl: true, // Important for OAuth redirects
     flowType: 'implicit' // Use implicit flow for OAuth
   }
+});
+
+// Add debugging for auth state changes
+supabase.auth.onAuthStateChange((event, session) => {
+  console.log('🔐 Auth state changed:', event, 'User ID:', session?.user?.id);
+});
+
+// Verify current session on initialization
+supabase.auth.getSession().then(({ data: { session } }) => {
+  console.log('🔐 Initial auth check:', session ? `Authenticated as ${session.user.id}` : 'No active session');
 });
 
 // Database schema types based on our Supabase setup

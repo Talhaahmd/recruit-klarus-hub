@@ -6,7 +6,7 @@ export type Candidate = {
   id: string;
   job_id?: string;
   name?: string;
-  full_name?: string;  // Added for compatibility with existing UI
+  full_name?: string;  
   email: string;
   phone?: string;
   resume_url?: string;
@@ -17,7 +17,7 @@ export type Candidate = {
   user_id?: string;
   created_by?: string;
   
-  // Additional fields from the database schema
+  // Additional fields needed by UI components
   location?: string;
   linkedin?: string;
   current_job_title?: string;
@@ -44,6 +44,15 @@ export const candidatesService = {
   // Get all candidates - RLS will filter to only show the user's candidates
   getCandidates: async (): Promise<Candidate[]> => {
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        console.warn('User not authenticated, cannot fetch candidates');
+        return [];
+      }
+
+      console.log('Fetching candidates for user:', user.id); // Debug log
+      
       const { data, error } = await supabase
         .from('candidates')
         .select('*')
@@ -64,6 +73,15 @@ export const candidatesService = {
   // Get candidates for a specific job - RLS will ensure only your jobs' candidates are shown
   getCandidatesByJobId: async (jobId: string): Promise<Candidate[]> => {
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        console.warn('User not authenticated, cannot fetch candidates');
+        return [];
+      }
+
+      console.log('Fetching candidates for job:', jobId, 'user:', user.id); // Debug log
+      
       const { data, error } = await supabase
         .from('candidates')
         .select('*')
@@ -85,6 +103,15 @@ export const candidatesService = {
   // Get a candidate by ID - RLS will ensure you can only access your candidates
   getCandidateById: async (id: string): Promise<Candidate | null> => {
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        console.warn('User not authenticated, cannot fetch candidate');
+        return null;
+      }
+
+      console.log('Fetching candidate:', id, 'for user:', user.id); // Debug log
+      
       const { data, error } = await supabase
         .from('candidates')
         .select('*')
@@ -119,6 +146,8 @@ export const candidatesService = {
         created_by: user.id
       };
       
+      console.log('Creating candidate with user ID:', user.id); // Debug log
+      
       const { data, error } = await supabase
         .from('candidates')
         .insert(candidateData)
@@ -146,6 +175,15 @@ export const candidatesService = {
   // Update a candidate - RLS will ensure you can only update your candidates
   updateCandidate: async (id: string, updates: Partial<Candidate>): Promise<Candidate | null> => {
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        console.warn('User not authenticated, cannot update candidate');
+        return null;
+      }
+
+      console.log('Updating candidate:', id, 'for user:', user.id); // Debug log
+      
       const { data, error } = await supabase
         .from('candidates')
         .update(updates)
@@ -169,6 +207,15 @@ export const candidatesService = {
   // Delete a candidate - also needs to update the job's applicant count
   deleteCandidate: async (id: string, jobId?: string): Promise<boolean> => {
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        console.warn('User not authenticated, cannot delete candidate');
+        return false;
+      }
+
+      console.log('Deleting candidate:', id, 'for user:', user.id); // Debug log
+      
       const { error } = await supabase
         .from('candidates')
         .delete()
