@@ -213,7 +213,7 @@ const Settings: React.FC = () => {
                   <Switch
                     checked={theme === 'dark'}
                     onCheckedChange={toggleTheme}
-                    className="data-[state=checked]:bg-blue-600"
+                    className="data-[state=checked]:bg-dark-primary-100"
                   />
                   <Moon className="h-4 w-4 text-indigo-400" />
                 </div>
@@ -251,14 +251,14 @@ const Settings: React.FC = () => {
                 <label className="block text-sm text-gray-500 dark:text-dark-text-200">
                   Account ID
                 </label>
-                <div className="font-medium">{user?.id || '-'}</div>
+                <div className="font-medium dark:text-dark-text-100">{user?.id || '-'}</div>
               </div>
               
               <div>
                 <label className="block text-sm text-gray-500 dark:text-dark-text-200">
                   Account Type
                 </label>
-                <div className="font-medium">Free Plan</div>
+                <div className="font-medium dark:text-dark-text-100">Free Plan</div>
               </div>
               
               <div className="pt-4 border-t border-gray-200 dark:border-dark-bg-300">
