@@ -1,10 +1,9 @@
 
 import React, { useEffect, useRef } from 'react';
-import LayoutGridDemo from '../../components/ui/layout-grid-demo';
+import ExpandableCardDemo from '../../components/ui/expandable-card-demo-standard';
 
 const FeaturesSection: React.FC = () => {
   const sectionRef = useRef<HTMLDivElement>(null);
-  const featuresRef = useRef<(HTMLDivElement | null)[]>([]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -18,19 +17,6 @@ const FeaturesSection: React.FC = () => {
         section.classList.add('opacity-100');
         section.classList.remove('opacity-0', 'translate-y-10');
       }
-
-      featuresRef.current.forEach((feature, index) => {
-        if (!feature) return;
-        
-        const featureTop = feature.getBoundingClientRect().top;
-        
-        if (featureTop < windowHeight * 0.85) {
-          setTimeout(() => {
-            feature.classList.add('opacity-100');
-            feature.classList.remove('opacity-0', 'translate-y-10');
-          }, index * 150);
-        }
-      });
     };
 
     window.addEventListener('scroll', handleScroll);
@@ -44,7 +30,7 @@ const FeaturesSection: React.FC = () => {
   return (
     <section id="features" ref={sectionRef} className="py-24 bg-gradient-to-b from-black to-gray-900 transition-all duration-1000 transform opacity-0 translate-y-10">
       <div className="container mx-auto px-4">
-        <div className="text-center mb-10">
+        <div className="text-center mb-16">
           <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-500 to-purple-500 text-sm font-medium tracking-widest uppercase">
             Features
           </span>
@@ -54,7 +40,9 @@ const FeaturesSection: React.FC = () => {
           </p>
         </div>
 
-        <LayoutGridDemo />
+        <div className="max-w-4xl mx-auto">
+          <ExpandableCardDemo />
+        </div>
       </div>
     </section>
   );
