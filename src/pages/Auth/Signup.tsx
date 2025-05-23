@@ -270,9 +270,18 @@ const Signup: React.FC = () => {
       <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-gray-900 to-black relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/10 to-purple-500/10" />
         
-        <div className="flex items-center justify-center w-full p-12 relative z-10">
-          <div className="max-w-lg">
-            <div className="relative h-96">
+        <div className="flex flex-col items-center justify-center w-full p-12 relative z-10">
+          <div className="text-center mb-8">
+            <h2 className="text-2xl font-bold text-white mb-2">
+              What Our Clients Say
+            </h2>
+            <p className="text-gray-400">
+              Trusted by companies worldwide
+            </p>
+          </div>
+
+          <div className="max-w-lg w-full">
+            <div className="relative h-80">
               {testimonials.map((testimonial, index) => (
                 <div
                   key={index}
@@ -282,25 +291,27 @@ const Signup: React.FC = () => {
                       : 'opacity-0 translate-y-10'
                   }`}
                 >
-                  <div className="backdrop-blur-xl bg-white/10 border border-white/20 rounded-2xl p-8 h-full flex flex-col justify-between">
-                    <div>
-                      <svg className="h-8 w-8 text-cyan-400 mb-4" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z" />
-                      </svg>
-                      <p className="text-white text-lg leading-relaxed mb-6">
-                        "{testimonial.content}"
-                      </p>
-                    </div>
-                    
-                    <div className="flex items-center">
+                  <div className="backdrop-blur-xl bg-white/10 border border-white/20 rounded-2xl p-6 h-full flex flex-col">
+                    <div className="flex items-center mb-4">
                       <img 
                         src={testimonial.image} 
                         alt={testimonial.author} 
-                        className="w-12 h-12 rounded-full object-cover mr-4"
+                        className="w-16 h-16 rounded-full object-cover mr-4"
                       />
                       <div>
-                        <p className="text-white font-semibold">{testimonial.author}</p>
+                        <p className="text-white font-semibold text-lg">{testimonial.author}</p>
                         <p className="text-gray-400 text-sm">{testimonial.role}</p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex-1 flex items-center">
+                      <div>
+                        <svg className="h-6 w-6 text-cyan-400 mb-3" fill="currentColor" viewBox="0 0 24 24">
+                          <path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z" />
+                        </svg>
+                        <p className="text-white text-base leading-relaxed">
+                          {testimonial.content}
+                        </p>
                       </div>
                     </div>
                   </div>
@@ -309,7 +320,7 @@ const Signup: React.FC = () => {
             </div>
             
             {/* Testimonial indicators */}
-            <div className="flex justify-center mt-8 space-x-2">
+            <div className="flex justify-center mt-6 space-x-2">
               {testimonials.map((_, index) => (
                 <button
                   key={index}
