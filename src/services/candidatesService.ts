@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
@@ -88,32 +87,62 @@ export const candidatesService = {
         return [];
       }
       
-      const { data, error } = await supabase
-        .from('candidates')
+      // Get job applications for this job
+      const { data: applications, error: appError } = await supabase
+        .from('job_applications')
         .select('*')
         .eq('job_id', jobId);
-        
-      if (error) throw error;
       
-      // Create an empty array with explicit Candidate type
+      if (appError) {
+        console.error('Error fetching job applications:', appError);
+        return [];
+      }
+      
+      if (!applications || applications.length === 0) {
+        return [];
+      }
+      
+      // Get all candidates from the job applications
+      // Use an explicit typed array to avoid TypeScript deep instantiation error
       const candidates: Candidate[] = [];
       
-      // Process each candidate separately to avoid deep type instantiation
-      if (data && Array.isArray(data)) {
-        for (let i = 0; i < data.length; i++) {
-          const item = data[i];
-          // Create a new candidate object with the required rating property
-          candidates.push({
-            ...item,
-            rating: item.ai_rating || 0
-          });
+      for (const app of applications) {
+        try {
+          // Get candidate ID from application or CV link
+          let candidateId = app.candidate_id;
+          
+          if (!candidateId && app.cv_link_id) {
+            // Try to get the candidate from CV link
+            const { data: cvLink } = await supabase
+              .from('cv_links')
+              .select('id')
+              .eq('id', app.cv_link_id)
+              .single();
+              
+            if (cvLink) {
+              candidateId = cvLink.id;
+            }
+          }
+          
+          if (candidateId) {
+            const { data: candidate } = await supabase
+              .from('candidates')
+              .select('*')
+              .eq('id', candidateId)
+              .single();
+              
+            if (candidate) {
+              candidates.push(candidate as Candidate);
+            }
+          }
+        } catch (err) {
+          console.error('Error fetching candidate details:', err);
         }
       }
       
       return candidates;
-    } catch (error: any) {
-      console.error('Error in getCandidatesByJob:', error.message);
-      toast.error('Failed to fetch candidates for this job');
+    } catch (err: any) {
+      console.error('Error in getCandidatesByJob:', err.message);
       return [];
     }
   },

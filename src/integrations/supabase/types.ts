@@ -42,6 +42,38 @@ export type Database = {
         }
         Relationships: []
       }
+      candidate_applications: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          cv_url: string
+          id: string
+          job_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          cv_url: string
+          id?: string
+          job_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          cv_url?: string
+          id?: string
+          job_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "candidate_applications_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       candidate_interviews: {
         Row: {
           candidate_email: string | null
