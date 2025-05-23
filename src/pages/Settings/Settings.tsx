@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Header } from '@/components/Layout/MainLayout';
 import { useAuth } from '@/contexts/AuthContext';
@@ -6,6 +7,7 @@ import { Save, Moon, Sun } from 'lucide-react';
 import { useTheme } from '@/contexts/ThemeContext';
 import { Switch } from '@/components/ui/switch';
 import { profilesService } from '@/services/profilesService';
+import { supabase } from '@/integrations/supabase/client'; // Added missing import
 
 const Settings: React.FC = () => {
   const { user } = useAuth();

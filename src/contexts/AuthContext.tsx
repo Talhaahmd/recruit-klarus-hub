@@ -2,10 +2,10 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { Session, User } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
-import { Profile, profilesService } from '@/services/profilesService';
+import { profilesService, type Profile as ProfileType } from '@/services/profilesService';
 
-// Profile type
-type Profile = {
+// Rename the local Profile type to AuthProfile to avoid conflict
+type AuthProfile = {
   id: string;
   full_name: string | null;
   company: string | null;
@@ -15,7 +15,7 @@ type Profile = {
 // Context type
 type AuthContextType = {
   user: User | null;
-  profile: Profile | null;
+  profile: ProfileType | null;
   session: Session | null;
   isAuthenticated: boolean;
   isLoading: boolean;
@@ -25,7 +25,7 @@ type AuthContextType = {
   loginWithGoogle: () => Promise<void>;
   loginWithLinkedIn: () => Promise<void>;
   logout: () => Promise<void>;
-  updateProfile: (data: Partial<Profile>) => Promise<void>;
+  updateProfile: (data: Partial<ProfileType>) => Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -42,7 +42,7 @@ const REDIRECT_TO =
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [profile, setProfile] = useState<Profile | null>(null);
+  const [profile, setProfile] = useState<ProfileType | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [initialSessionChecked, setInitialSessionChecked] = useState<boolean>(false);
@@ -264,14 +264,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const updateProfile = async (data: Partial<Profile>) => {
+  const updateProfile = async (data: Partial<ProfileType>) => {
     if (!user) {
       console.error('No user to update profile for');
       return;
     }
     
     try {
-      const updatedProfile = await profilesService.updateProfile(data);
+      // Make sure we include all required fields for ProfileUpdateInput
+      const updateData = {
+        ...data,
+        phone: data.phone !== undefined ? data.phone : profile?.phone,
+        company_contact: data.company_contact !== undefined ? data.company_contact : profile?.company_contact,
+        full_name: data.full_name !== undefined ? data.full_name : profile?.full_name,
+        company: data.company !== undefined ? data.company : profile?.company,
+        avatar_url: data.avatar_url !== undefined ? data.avatar_url : profile?.avatar_url
+      };
+      
+      const updatedProfile = await profilesService.updateProfile(updateData);
       if (updatedProfile) {
         setProfile(updatedProfile);
       }
@@ -289,7 +299,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         session,
         isAuthenticated: !!user,
         isLoading,
-        authReady: initialSessionChecked, // Map initialSessionChecked to authReady
+        authReady: initialSessionChecked,
         login,
         signup,
         loginWithGoogle,
