@@ -56,7 +56,14 @@ export const candidatesService = {
       }
 
       console.log('Fetched candidates:', data);
-      return data || [];
+      
+      // Ensure all returned candidates have a rating property
+      const candidates = data?.map(candidate => ({
+        ...candidate,
+        rating: candidate.rating || candidate.ai_rating || 0
+      })) || [];
+      
+      return candidates;
     } catch (error: any) {
       console.error('Error in getCandidates:', error.message);
       toast.error('Failed to fetch candidates');
@@ -80,7 +87,13 @@ export const candidatesService = {
         
       if (error) throw error;
       
-      return data || [];
+      // Ensure all returned candidates have a rating property
+      const candidates = data?.map(candidate => ({
+        ...candidate,
+        rating: candidate.rating || candidate.ai_rating || 0
+      })) || [];
+      
+      return candidates;
     } catch (error: any) {
       console.error('Error in getCandidatesByJob:', error.message);
       toast.error('Failed to fetch candidates for this job');
@@ -105,7 +118,15 @@ export const candidatesService = {
         
       if (error) throw error;
       
-      return data;
+      // Ensure the returned candidate has a rating property
+      if (data) {
+        return {
+          ...data,
+          rating: data.rating || data.ai_rating || 0
+        };
+      }
+      
+      return null;
     } catch (error: any) {
       console.error('Error in getCandidateById:', error.message);
       toast.error('Failed to fetch candidate details');
@@ -122,10 +143,11 @@ export const candidatesService = {
         return null;
       }
       
-      // Ensure user_id is set correctly
+      // Ensure rating is set
       const candidateData = {
         ...candidate,
-        user_id: user.id
+        user_id: user.id,
+        rating: candidate.rating || candidate.ai_rating || 0
       };
       
       const { data, error } = await supabase
@@ -154,9 +176,15 @@ export const candidatesService = {
         return null;
       }
       
+      // Ensure rating is set correctly
+      const updateData = {
+        ...updates,
+        rating: updates.rating || updates.ai_rating || 0
+      };
+      
       const { data, error } = await supabase
         .from('candidates')
-        .update(updates)
+        .update(updateData)
         .eq('id', id)
         .select()
         .single();

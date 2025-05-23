@@ -174,14 +174,15 @@ export const submissionService = {
     }
   },
   
-  scheduleInterview: async (interviewData: {
-    candidate_id: string;
-    interview_date: Date;
-    interview_time?: string;
-    candidate_name?: string;
-    candidate_email?: string;
-    job_name?: string;
-  }) => {
+  scheduleInterview: async (
+    candidateId: string,
+    interviewDateString: string,
+    interviewTime: string = '',
+    interviewNotes: string = '',
+    candidateName: string = '',
+    candidateEmail: string = '',
+    jobName: string = ''
+  ) => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       
@@ -189,6 +190,17 @@ export const submissionService = {
         toast.error('You must be logged in to schedule an interview');
         return null;
       }
+      
+      // Prepare the data for insertion
+      const interviewData = {
+        candidate_id: candidateId,
+        interview_date: interviewDateString, // Use string directly, not Date object
+        interview_time: interviewTime,
+        interview_notes: interviewNotes,
+        candidate_name: candidateName,
+        candidate_email: candidateEmail,
+        job_name: jobName
+      };
       
       const { data, error } = await supabase
         .from('candidate_interviews')
