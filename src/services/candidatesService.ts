@@ -100,12 +100,17 @@ export const candidatesService = {
     try {
       const { data: { user } } = await supabase.auth.getUser();
 
-      const candidateData = {
-        ...candidate,
-        created_by: user?.id ?? null,
-        user_id: user?.id ?? null,
-        rating: candidate.rating || candidate.ai_rating || 0
-      };
+     const candidateData: any = {
+  ...candidate,
+  rating: candidate.rating || candidate.ai_rating || 0,
+};
+
+// Only add created_by and user_id if a user exists
+if (user?.id) {
+  candidateData.created_by = user.id;
+  candidateData.user_id = user.id;
+}
+
 
       const { data, error } = await supabase.from('candidates').insert(candidateData).select().single();
       if (error) throw error;
