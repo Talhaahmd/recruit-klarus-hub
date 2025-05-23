@@ -96,56 +96,60 @@ const VideoFeaturesSection: React.FC = () => {
         </video>
         
         {/* Dark overlay for better readability */}
-        <div className="absolute inset-0 bg-black bg-opacity-30" />
+        <div className="absolute inset-0 bg-black bg-opacity-40" />
         
-        {/* Glass Morphism Features Panel on Right Side */}
+        {/* Glass Morphism Features Panel - Full Height, 45% Width from Right */}
         <div 
-          className={`absolute right-8 top-1/2 transform -translate-y-1/2 transition-all duration-1000 ${
+          className={`absolute right-0 top-0 w-[45%] h-full transition-all duration-1000 ${
             showFeatures ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-full'
           }`}
         >
-          <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-8 max-w-md w-full shadow-2xl">
-            <div className="mb-8">
-              <h2 className="text-3xl font-bold text-white mb-3">Our Salient Features</h2>
+          <div className="backdrop-blur-xl bg-black/30 border-l border-white/20 h-full flex flex-col">
+            {/* Header Section */}
+            <div className="p-8 pb-6">
+              <h2 className="text-4xl font-bold text-white mb-4">Our Salient Features</h2>
               <p className="text-gray-300 text-lg leading-relaxed">
                 Discover our AI-powered solutions that transform your recruitment process
               </p>
             </div>
             
-            <div className="space-y-3">
-              {features.map((feature, index) => (
-                <div
-                  key={index}
-                  className="backdrop-blur-sm bg-white/5 border border-white/10 rounded-xl overflow-hidden transition-all duration-300 hover:bg-white/10 hover:border-white/20"
-                >
-                  <button
-                    onClick={() => toggleFeature(index)}
-                    className="w-full px-6 py-4 text-left flex items-center justify-between focus:outline-none"
+            {/* Features List - Scrollable */}
+            <div className="flex-1 px-8 pb-8 overflow-y-auto">
+              <div className="space-y-2">
+                {features.map((feature, index) => (
+                  <div
+                    key={index}
+                    className="backdrop-blur-sm bg-white/10 border border-white/20 rounded-lg overflow-hidden transition-all duration-300 hover:bg-white/15 hover:border-white/30"
                   >
-                    <h3 className="text-lg font-semibold text-white">
-                      {feature.title}
-                    </h3>
-                    {expandedFeature === index ? (
-                      <ChevronUp className="w-5 h-5 text-gray-300 flex-shrink-0" />
-                    ) : (
-                      <ChevronDown className="w-5 h-5 text-gray-300 flex-shrink-0" />
-                    )}
-                  </button>
-                  
-                  {expandedFeature === index && (
-                    <div className="px-6 pb-4 animate-accordion-down">
-                      <div className="border-t border-white/10 pt-4">
-                        <p className="text-gray-300 text-sm mb-3 leading-relaxed">
-                          {feature.description}
-                        </p>
-                        <p className="text-gray-400 text-xs leading-relaxed">
-                          {feature.details}
-                        </p>
+                    <button
+                      onClick={() => toggleFeature(index)}
+                      className="w-full px-6 py-5 text-left flex items-center justify-between focus:outline-none group"
+                    >
+                      <h3 className="text-xl font-semibold text-white group-hover:text-gray-100 transition-colors">
+                        {feature.title}
+                      </h3>
+                      {expandedFeature === index ? (
+                        <ChevronUp className="w-6 h-6 text-gray-300 flex-shrink-0 transition-transform" />
+                      ) : (
+                        <ChevronDown className="w-6 h-6 text-gray-300 flex-shrink-0 transition-transform" />
+                      )}
+                    </button>
+                    
+                    {expandedFeature === index && (
+                      <div className="px-6 pb-5 animate-accordion-down">
+                        <div className="border-t border-white/20 pt-4 space-y-3">
+                          <p className="text-gray-200 text-base leading-relaxed">
+                            {feature.description}
+                          </p>
+                          <p className="text-gray-400 text-sm leading-relaxed">
+                            {feature.details}
+                          </p>
+                        </div>
                       </div>
-                    </div>
-                  )}
-                </div>
-              ))}
+                    )}
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </div>
