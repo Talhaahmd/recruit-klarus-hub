@@ -57,13 +57,13 @@ export const candidatesService = {
 
       console.log('Fetched candidates:', data);
       
-      // Ensure all returned candidates have a rating property
-      const candidates = data?.map(candidate => ({
+      // Map the data to include rating property
+      const candidates: Candidate[] = (data || []).map(candidate => ({
         ...candidate,
         rating: candidate.ai_rating || 0
-      })) || [];
+      }));
       
-      return candidates as Candidate[];
+      return candidates;
     } catch (error: any) {
       console.error('Error in getCandidates:', error.message);
       toast.error('Failed to fetch candidates');
@@ -87,13 +87,13 @@ export const candidatesService = {
         
       if (error) throw error;
       
-      // Ensure all returned candidates have a rating property
-      const candidates = data?.map(candidate => ({
+      // Map the data to include rating property
+      const candidates: Candidate[] = (data || []).map(candidate => ({
         ...candidate,
         rating: candidate.ai_rating || 0
-      })) || [];
+      }));
       
-      return candidates as Candidate[];
+      return candidates;
     } catch (error: any) {
       console.error('Error in getCandidatesByJob:', error.message);
       toast.error('Failed to fetch candidates for this job');
@@ -118,12 +118,13 @@ export const candidatesService = {
         
       if (error) throw error;
       
-      // Ensure the returned candidate has a rating property
+      // Add rating property to the candidate
       if (data) {
-        return {
+        const candidate: Candidate = {
           ...data,
           rating: data.ai_rating || 0
-        } as Candidate;
+        };
+        return candidate;
       }
       
       return null;
@@ -159,7 +160,8 @@ export const candidatesService = {
       if (error) throw error;
       
       toast.success('Candidate created successfully');
-      return data as Candidate;
+      const createdCandidate: Candidate = data;
+      return createdCandidate;
     } catch (error: any) {
       console.error('Error in createCandidate:', error.message);
       toast.error('Failed to create candidate');
@@ -192,7 +194,8 @@ export const candidatesService = {
       if (error) throw error;
       
       toast.success('Candidate updated successfully');
-      return data as Candidate;
+      const updatedCandidate: Candidate = data;
+      return updatedCandidate;
     } catch (error: any) {
       console.error('Error in updateCandidate:', error.message);
       toast.error('Failed to update candidate');
