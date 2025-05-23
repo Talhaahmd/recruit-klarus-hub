@@ -12,7 +12,7 @@ export type Candidate = {
   applied_date?: string;
   status?: string;
   notes?: string;
-  rating?: number;
+  rating: number; // Make sure rating is required and not optional
   user_id?: string;
   created_at?: string;
   // Extended candidate properties
@@ -87,16 +87,20 @@ export const candidatesService = {
         
       if (error) throw error;
       
-      // Fix the type instantiation issue by explicitly defining the result type
-      // and avoiding unnecessary type assertions
+      // Create an empty array with explicit Candidate type
       const candidates: Candidate[] = [];
       
       // Process each candidate separately to avoid deep type instantiation
-      if (data) {
-        for (const item of data) {
+      if (data && Array.isArray(data)) {
+        for (let i = 0; i < data.length; i++) {
+          const item = data[i];
+          // Create a new candidate object with the required rating property
           candidates.push({
-            ...item,
-            rating: item.ai_rating || 0
+            id: item.id,
+            email: item.email,
+            rating: item.ai_rating || 0,
+            // Add other properties from item
+            ...item
           });
         }
       }
