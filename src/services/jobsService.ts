@@ -34,7 +34,7 @@ export const jobsService = {
 
       console.log('Fetching jobs for user:', user.id); // Debug log
       
-      // No need to filter by user_id, RLS will handle this
+      // No need to filter by user_id or created_by, RLS will handle this
       const { data, error } = await supabase
         .from('jobs')
         .select('*')
@@ -105,10 +105,11 @@ export const jobsService = {
       const user = sessionData.session.user;
       console.log('Creating job with authenticated user:', user.id);
       
-      // Ensure the user_id is set correctly - this will map to created_by in RLS policies
+      // Set both user_id and created_by for RLS policies
       const jobData = {
         ...job,
-        user_id: user.id
+        user_id: user.id,
+        created_by: user.id
       };
       
       console.log('Creating job with data:', jobData); // Debug log

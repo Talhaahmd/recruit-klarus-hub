@@ -48,6 +48,7 @@ export type Database = {
           candidate_id: string
           candidate_name: string | null
           created_at: string | null
+          created_by: string | null
           email_sent: boolean | null
           id: string
           interview_date: string
@@ -60,6 +61,7 @@ export type Database = {
           candidate_id: string
           candidate_name?: string | null
           created_at?: string | null
+          created_by?: string | null
           email_sent?: boolean | null
           id?: string
           interview_date: string
@@ -72,6 +74,7 @@ export type Database = {
           candidate_id?: string
           candidate_name?: string | null
           created_at?: string | null
+          created_by?: string | null
           email_sent?: boolean | null
           id?: string
           interview_date?: string
@@ -96,6 +99,7 @@ export type Database = {
           ai_summary: string | null
           certifications: string | null
           companies: string | null
+          created_by: string | null
           current_job_title: string | null
           degrees: string | null
           email: string | null
@@ -120,6 +124,7 @@ export type Database = {
           ai_summary?: string | null
           certifications?: string | null
           companies?: string | null
+          created_by?: string | null
           current_job_title?: string | null
           degrees?: string | null
           email?: string | null
@@ -144,6 +149,7 @@ export type Database = {
           ai_summary?: string | null
           certifications?: string | null
           companies?: string | null
+          created_by?: string | null
           current_job_title?: string | null
           degrees?: string | null
           email?: string | null
@@ -208,6 +214,7 @@ export type Database = {
       job_applications: {
         Row: {
           created_at: string | null
+          created_by: string | null
           cv_link_id: string
           id: string
           job_id: string
@@ -216,6 +223,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string | null
+          created_by?: string | null
           cv_link_id: string
           id?: string
           job_id: string
@@ -224,6 +232,7 @@ export type Database = {
         }
         Update: {
           created_at?: string | null
+          created_by?: string | null
           cv_link_id?: string
           id?: string
           job_id?: string
@@ -252,6 +261,7 @@ export type Database = {
           active_days: number
           applicants: number
           created_at: string | null
+          created_by: string | null
           description: string
           id: string
           location: string
@@ -267,6 +277,7 @@ export type Database = {
           active_days?: number
           applicants?: number
           created_at?: string | null
+          created_by?: string | null
           description: string
           id?: string
           location: string
@@ -282,6 +293,7 @@ export type Database = {
           active_days?: number
           applicants?: number
           created_at?: string | null
+          created_by?: string | null
           description?: string
           id?: string
           location?: string
@@ -299,6 +311,7 @@ export type Database = {
         Row: {
           content: string
           created_at: string | null
+          created_by: string | null
           id: string
           niche: string
           posted: boolean | null
@@ -310,6 +323,7 @@ export type Database = {
         Insert: {
           content: string
           created_at?: string | null
+          created_by?: string | null
           id?: string
           niche: string
           posted?: boolean | null
@@ -321,6 +335,7 @@ export type Database = {
         Update: {
           content?: string
           created_at?: string | null
+          created_by?: string | null
           id?: string
           niche?: string
           posted?: boolean | null
@@ -395,6 +410,7 @@ export type Database = {
           avatar_url: string | null
           company: string | null
           company_contact: string | null
+          created_by: string | null
           full_name: string | null
           id: string
           phone: string | null
@@ -404,6 +420,7 @@ export type Database = {
           avatar_url?: string | null
           company?: string | null
           company_contact?: string | null
+          created_by?: string | null
           full_name?: string | null
           id: string
           phone?: string | null
@@ -413,6 +430,7 @@ export type Database = {
           avatar_url?: string | null
           company?: string | null
           company_contact?: string | null
+          created_by?: string | null
           full_name?: string | null
           id?: string
           phone?: string | null

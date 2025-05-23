@@ -12,8 +12,9 @@ export type Candidate = {
   applied_date?: string;
   status?: string;
   notes?: string;
-  rating: number; // Make sure rating is required and not optional
+  rating: number; // Required property
   user_id?: string;
+  created_by?: string;
   created_at?: string;
   // Extended candidate properties
   full_name?: string;
@@ -46,6 +47,7 @@ export const candidatesService = {
 
       console.log('Fetching candidates for user:', user.id); // Debug log
       
+      // No need to filter by created_by since RLS will handle this automatically
       const { data, error } = await supabase
         .from('candidates')
         .select('*');
@@ -57,11 +59,17 @@ export const candidatesService = {
 
       console.log('Fetched candidates:', data);
       
-      // Map the data to include rating property
-      const candidates: Candidate[] = (data || []).map(candidate => ({
-        ...candidate,
-        rating: candidate.ai_rating || 0
-      }));
+      // Create a properly typed candidates array with the required rating property
+      const candidates: Candidate[] = [];
+      
+      if (data && Array.isArray(data)) {
+        for (let i = 0; i < data.length; i++) {
+          candidates.push({
+            ...data[i],
+            rating: data[i].ai_rating || 0
+          });
+        }
+      }
       
       return candidates;
     } catch (error: any) {
@@ -96,11 +104,8 @@ export const candidatesService = {
           const item = data[i];
           // Create a new candidate object with the required rating property
           candidates.push({
-            id: item.id,
-            email: item.email,
-            rating: item.ai_rating || 0,
-            // Add other properties from item
-            ...item
+            ...item,
+            rating: item.ai_rating || 0
           });
         }
       }
@@ -132,11 +137,10 @@ export const candidatesService = {
       
       // Add rating property to the candidate
       if (data) {
-        const candidate: Candidate = {
+        return {
           ...data,
           rating: data.ai_rating || 0
         };
-        return candidate;
       }
       
       return null;
@@ -156,10 +160,11 @@ export const candidatesService = {
         return null;
       }
       
-      // Ensure rating is set
+      // Ensure rating is set and add created_by field
       const candidateData = {
         ...candidate,
         user_id: user.id,
+        created_by: user.id, // Add created_by field for RLS
         rating: candidate.rating || candidate.ai_rating || 0
       };
       
@@ -172,8 +177,10 @@ export const candidatesService = {
       if (error) throw error;
       
       toast.success('Candidate created successfully');
-      const createdCandidate: Candidate = data;
-      return createdCandidate;
+      return {
+        ...data,
+        rating: data.ai_rating || 0
+      };
     } catch (error: any) {
       console.error('Error in createCandidate:', error.message);
       toast.error('Failed to create candidate');
@@ -206,8 +213,10 @@ export const candidatesService = {
       if (error) throw error;
       
       toast.success('Candidate updated successfully');
-      const updatedCandidate: Candidate = data;
-      return updatedCandidate;
+      return {
+        ...data,
+        rating: data.ai_rating || 0
+      };
     } catch (error: any) {
       console.error('Error in updateCandidate:', error.message);
       toast.error('Failed to update candidate');

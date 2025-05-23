@@ -1,8 +1,8 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { Session, User } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
+import { Profile, profilesService } from '@/services/profilesService';
 
 // Profile type
 type Profile = {
@@ -56,31 +56,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const fetchProfile = async (userId: string) => {
     try {
-      const { data, error } = await supabase.from('profiles').select('*').eq('id', userId).single();
-
-      if (error || !data) {
-        console.log('No profile found, creating new profile for user:', userId);
-        const userMeta = session?.user?.user_metadata || {};
-        const { error: insertError } = await supabase.from('profiles').insert({
-          id: userId,
-          full_name: userMeta.full_name ?? userMeta.name ?? '',
-          avatar_url: userMeta.avatar_url ?? '',
-          company: null,
-        });
-        
-        if (insertError) {
-          console.error('Error creating profile:', insertError);
-        } else {
-          console.log('Profile created successfully');
-          const { data: newProfile } = await supabase.from('profiles').select('*').eq('id', userId).single();
-          if (newProfile) {
-            console.log('New profile:', newProfile);
-            setProfile(newProfile);
-          }
-        }
+      const profileData = await profilesService.getProfile();
+      
+      if (profileData) {
+        setProfile(profileData);
       } else {
-        console.log('Profile found:', data);
-        setProfile(data);
+        // If no profile exists, create one with basic info from auth
+        const userMeta = session?.user?.user_metadata || {};
+        const newProfileData = {
+          full_name: userMeta.full_name ?? userMeta.name ?? '',
+          avatar_url: userMeta.avatar_url ?? null,
+          company: null,
+          phone: null,
+          company_contact: null
+        };
+        
+        const createdProfile = await profilesService.updateProfile(newProfileData);
+        if (createdProfile) {
+          setProfile(createdProfile);
+        }
       }
     } catch (error) {
       console.error('Error fetching profile:', error);
@@ -277,17 +271,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
     
     try {
-      console.log('Updating profile for user:', user.id);
-      const { error } = await supabase.from('profiles').update(data).eq('id', user.id);
-      
-      if (error) {
-        console.error('Profile update error:', error);
-        throw error;
+      const updatedProfile = await profilesService.updateProfile(data);
+      if (updatedProfile) {
+        setProfile(updatedProfile);
       }
-      
-      setProfile((prev) => (prev ? { ...prev, ...data } : null));
-      console.log('Profile updated successfully');
-      toast.success('Profile updated');
     } catch (error: any) {
       console.error('Profile update failed:', error.message);
       toast.error(error.message || 'Profile update failed');

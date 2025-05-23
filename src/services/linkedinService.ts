@@ -10,6 +10,8 @@ export type LinkedInPost = {
   posted: boolean;
   niche: string;
   tone: string;
+  user_id?: string;
+  created_by?: string;
 };
 
 type LinkedInPostInput = Omit<LinkedInPost, 'id' | 'posted'>;
@@ -36,7 +38,9 @@ export const linkedinService = {
         scheduled_time: post.scheduled_time,
         posted: post.posted,
         niche: post.niche,
-        tone: post.tone || 'Professional'
+        tone: post.tone || 'Professional',
+        user_id: post.user_id,
+        created_by: post.created_by
       }));
     } catch (err) {
       console.error('Unexpected error fetching LinkedIn posts:', err);
@@ -62,7 +66,8 @@ export const linkedinService = {
         scheduled_time: post.scheduled_time,
         niche: post.niche,
         tone: post.tone || 'Professional',
-        user_id: user.id, // This is mapped to created_by via RLS
+        user_id: user.id, 
+        created_by: user.id, // Add created_by field for RLS
         posted: false
       };
       
@@ -86,7 +91,9 @@ export const linkedinService = {
         scheduled_time: data.scheduled_time,
         posted: data.posted,
         niche: data.niche,
-        tone: data.tone
+        tone: data.tone,
+        user_id: data.user_id,
+        created_by: data.created_by
       };
     } catch (err) {
       console.error('Unexpected error creating LinkedIn post:', err);

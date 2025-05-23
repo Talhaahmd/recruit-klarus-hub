@@ -3,9 +3,9 @@ import { Header } from '@/components/Layout/MainLayout';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { Save, Moon, Sun } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
 import { useTheme } from '@/contexts/ThemeContext';
 import { Switch } from '@/components/ui/switch';
+import { profilesService } from '@/services/profilesService';
 
 const Settings: React.FC = () => {
   const { user } = useAuth();
@@ -16,7 +16,6 @@ const Settings: React.FC = () => {
   const [companyName, setCompanyName] = useState('');
   const [companyContact, setCompanyContact] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [profileId, setProfileId] = useState<string | null>(null);
   
   useEffect(() => {
     if (user) {
@@ -32,23 +31,13 @@ const Settings: React.FC = () => {
     if (!user) return;
     
     try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', user.id)
-        .single();
-        
-      if (error) {
-        console.error('Error loading profile:', error);
-        return;
-      }
+      const profile = await profilesService.getProfile();
       
-      if (data) {
-        setProfileId(data.id);
-        setName(data.full_name || name);
-        setCompanyName(data.company || '');
-        setPhone(data.phone || '');
-        setCompanyContact(data.company_contact || '');
+      if (profile) {
+        setName(profile.full_name || name);
+        setCompanyName(profile.company || '');
+        setPhone(profile.phone || '');
+        setCompanyContact(profile.company_contact || '');
       }
     } catch (err) {
       console.error('Unexpected error loading profile:', err);
@@ -73,42 +62,18 @@ const Settings: React.FC = () => {
         return;
       }
       
-      // Update or insert profile
+      // Update profile using profilesService
       const profileData = {
-        id: user.id,
         full_name: name,
         company: companyName,
         phone,
         company_contact: companyContact,
-        updated_at: new Date().toISOString()
+        avatar_url: user.user_metadata?.avatar_url || null
       };
       
-      let error;
+      await profilesService.updateProfile(profileData);
+      loadUserProfile(); // Reload profile data
       
-      if (profileId) {
-        // Update existing profile
-        const result = await supabase
-          .from('profiles')
-          .update(profileData)
-          .eq('id', profileId);
-          
-        error = result.error;
-      } else {
-        // Insert new profile
-        const result = await supabase
-          .from('profiles')
-          .insert([profileData]);
-          
-        error = result.error;
-      }
-      
-      if (error) {
-        console.error('Error updating profile:', error);
-        toast.error('Failed to update profile information');
-      } else {
-        toast.success('Settings saved successfully');
-        loadUserProfile(); // Reload profile data
-      }
     } catch (err) {
       console.error('Unexpected error saving settings:', err);
       toast.error('An unexpected error occurred');
