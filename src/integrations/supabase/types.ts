@@ -140,6 +140,7 @@ export type Database = {
           graduation_years: string | null
           id: string
           institutions: string | null
+          job_id: string | null
           job_titles: string | null
           linkedin: string | null
           location: string | null
@@ -165,6 +166,7 @@ export type Database = {
           graduation_years?: string | null
           id?: string
           institutions?: string | null
+          job_id?: string | null
           job_titles?: string | null
           linkedin?: string | null
           location?: string | null
@@ -190,6 +192,7 @@ export type Database = {
           graduation_years?: string | null
           id?: string
           institutions?: string | null
+          job_id?: string | null
           job_titles?: string | null
           linkedin?: string | null
           location?: string | null
@@ -200,7 +203,15 @@ export type Database = {
           timestamp?: string | null
           years_experience?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "candidates_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       cv_links: {
         Row: {
