@@ -8,14 +8,39 @@ import { FcGoogle } from 'react-icons/fc';
 import { FaLinkedin } from 'react-icons/fa';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
+
+const testimonials = [
+  {
+    content: "The AI-driven interviews have revolutionized our hiring process. We're finding better candidates in half the time it used to take us.",
+    author: "Sarah Johnson",
+    role: "HR Director, TechFront Inc.",
+    image: "https://images.pexels.com/photos/1181686/pexels-photo-1181686.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2"
+  },
+  {
+    content: "We've reduced our time-to-hire by 40% and our retention rates have improved significantly. The AI interview platform has become an essential part of our recruiting toolkit.",
+    author: "Michael Chen",
+    role: "Talent Acquisition Lead, GlobalTech",
+    image: "https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2"
+  },
+  {
+    content: "The analytics and insights we get from each interview have been invaluable. It's like having an expert interviewer on our team 24/7.",
+    author: "Emily Rodriguez",
+    role: "CEO, StartupVision",
+    image: "https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2"
+  },
+  {
+    content: "Our hiring managers are now able to focus on the highest-potential candidates, rather than spending hours screening. The ROI has been excellent.",
+    author: "David Washington",
+    role: "COO, Enterprise Solutions",
+    image: "https://images.pexels.com/photos/1681010/pexels-photo-1681010.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2"
+  },
+  {
+    content: "As a fast-growing startup, we needed a solution that could scale with us. This platform has allowed us to maintain high hiring standards while doubling our team size in six months.",
+    author: "Priya Patel",
+    role: "Recruiting Manager, NextGen Software",
+    image: "https://images.pexels.com/photos/1587009/pexels-photo-1587009.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2"
+  }
+];
 
 const Signup: React.FC = () => {
   const [name, setName] = useState('');
@@ -23,17 +48,23 @@ const Signup: React.FC = () => {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [currentTestimonial, setCurrentTestimonial] = useState(0);
   const { signup, loginWithGoogle, loginWithLinkedIn, isAuthenticated, isLoading, authReady } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
   const from = new URLSearchParams(location.search).get('from') || '/dashboard';
-
-  // Check if we're handling an OAuth redirect to avoid immediate redirections
   const isHandlingOAuth = sessionStorage.getItem('oauth_redirect_processed') === 'true';
 
+  // Auto-scroll testimonials
   useEffect(() => {
-    // Only redirect if auth state is ready, user is authenticated, and we're not handling OAuth
+    const interval = setInterval(() => {
+      setCurrentTestimonial((prev) => (prev + 1) % testimonials.length);
+    }, 4000);
+    return () => clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
     if (authReady && !isLoading && isAuthenticated && location.pathname === '/signup' && !isHandlingOAuth) {
       console.log('✅ Already authenticated, redirecting to:', from);
       navigate(from, { replace: true });
@@ -66,7 +97,6 @@ const Signup: React.FC = () => {
       navigate(`/login?from=${encodeURIComponent(from)}`, { replace: true });
     } catch (error) {
       console.error('❌ Signup failed');
-      // error handled in context
     } finally {
       setIsSubmitting(false);
     }
@@ -84,123 +114,214 @@ const Signup: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <Loader2 className="h-6 w-6 animate-spin text-gray-500" />
+      <div className="min-h-screen flex items-center justify-center bg-black">
+        <Loader2 className="h-6 w-6 animate-spin text-white" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
-      <div className="w-full max-w-md">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-primary-100">KlarusHR</h1>
-          <p className="text-text-200 mt-2">Modern HR Management Solution</p>
-        </div>
+    <div className="min-h-screen bg-black text-white flex">
+      {/* Logo */}
+      <div className="absolute top-8 left-8 z-20">
+        <Link to="/" className="flex items-center">
+          <img 
+            className="w-auto h-9" 
+            src="/lovable-uploads/67d45eae-154d-4a02-a7a5-1f115188b97b.png" 
+            alt="Klarus HR Logo" 
+          />
+        </Link>
+      </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Create an account</CardTitle>
-            <CardDescription>Sign up to get started</CardDescription>
-          </CardHeader>
+      {/* Left Side - Signup Form */}
+      <div className="w-full lg:w-1/2 flex items-center justify-center px-8 py-12">
+        <div className="w-full max-w-md">
+          <div className="text-center mb-8">
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-cyan-500 to-purple-500 bg-clip-text text-transparent">
+              Create your account
+            </h1>
+            <p className="text-gray-400 mt-2">Enter your email and create a password, getting started is easy!</p>
+          </div>
 
-          <form onSubmit={handleSubmit}>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <label htmlFor="name" className="text-sm font-medium">
-                  Full Name
-                </label>
-                <Input
-                  id="name"
-                  type="text"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="John Doe"
-                  required
-                />
-              </div>
+          <div className="grid grid-cols-3 gap-3 mb-6">
+            <Button 
+              variant="outline" 
+              type="button" 
+              onClick={handleGoogleLogin}
+              className="bg-gray-900 border-gray-700 text-white hover:bg-gray-800 flex items-center justify-center"
+            >
+              <FcGoogle className="h-5 w-5" />
+            </Button>
+            <Button 
+              variant="outline" 
+              type="button" 
+              onClick={handleLinkedInLogin}
+              className="bg-gray-900 border-gray-700 text-white hover:bg-gray-800 flex items-center justify-center"
+            >
+              <FaLinkedin className="h-5 w-5 text-blue-500" />
+            </Button>
+            <Button 
+              variant="outline" 
+              type="button"
+              className="bg-gray-900 border-gray-700 text-white hover:bg-gray-800 flex items-center justify-center"
+            >
+              <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+              </svg>
+            </Button>
+          </div>
 
-              <div className="space-y-2">
-                <label htmlFor="email" className="text-sm font-medium">
-                  Email
-                </label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="email@example.com"
-                  required
-                />
-              </div>
+          <div className="relative my-6">
+            <div className="absolute inset-0 flex items-center">
+              <span className="w-full border-t border-gray-700" />
+            </div>
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-black px-2 text-gray-500">Or sign up with</span>
+            </div>
+          </div>
 
-              <div className="space-y-2">
-                <label htmlFor="password" className="text-sm font-medium">
-                  Password
-                </label>
-                <Input
-                  id="password"
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••"
-                  required
-                />
-              </div>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <label htmlFor="name" className="block text-sm font-medium text-gray-300 mb-2">
+                Full Name
+              </label>
+              <Input
+                id="name"
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Your full name"
+                className="bg-gray-900 border-gray-700 text-white placeholder-gray-500 focus:border-cyan-500"
+                required
+              />
+            </div>
 
-              <div className="space-y-2">
-                <label htmlFor="confirmPassword" className="text-sm font-medium">
-                  Confirm Password
-                </label>
-                <Input
-                  id="confirmPassword"
-                  type="password"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  placeholder="••••••••"
-                  required
-                />
-              </div>
+            <div>
+              <label htmlFor="email" className="block text-sm font-medium text-gray-300 mb-2">
+                Email
+              </label>
+              <Input
+                id="email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="Your email address"
+                className="bg-gray-900 border-gray-700 text-white placeholder-gray-500 focus:border-cyan-500"
+                required
+              />
+            </div>
 
-              <Button type="submit" className="w-full" disabled={isSubmitting}>
-                {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Sign up
-              </Button>
+            <div>
+              <label htmlFor="password" className="block text-sm font-medium text-gray-300 mb-2">
+                Password
+              </label>
+              <Input
+                id="password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Your password"
+                className="bg-gray-900 border-gray-700 text-white placeholder-gray-500 focus:border-cyan-500"
+                required
+              />
+            </div>
 
-              <div className="relative">
-                <div className="absolute inset-0 flex items-center">
-                  <span className="w-full border-t" />
-                </div>
-                <div className="relative flex justify-center text-xs uppercase">
-                  <span className="bg-white px-2 text-muted-foreground">Or continue with</span>
-                </div>
-              </div>
+            <div>
+              <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-300 mb-2">
+                Confirm Password
+              </label>
+              <Input
+                id="confirmPassword"
+                type="password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                placeholder="Confirm your password"
+                className="bg-gray-900 border-gray-700 text-white placeholder-gray-500 focus:border-cyan-500"
+                required
+              />
+            </div>
 
-              <div className="grid grid-cols-2 gap-3">
-                <Button variant="outline" type="button" onClick={handleGoogleLogin}>
-                  <FcGoogle className="mr-2 h-4 w-4" />
-                  Google
-                </Button>
-                <Button variant="outline" type="button" onClick={handleLinkedInLogin}>
-                  <FaLinkedin className="mr-2 h-4 w-4 text-blue-600" />
-                  LinkedIn
-                </Button>
-              </div>
-            </CardContent>
+            <Button 
+              type="submit" 
+              className="w-full bg-gradient-to-r from-cyan-500 to-purple-500 hover:from-cyan-600 hover:to-purple-600 text-white font-semibold py-3 rounded-lg mt-6"
+              disabled={isSubmitting}
+            >
+              {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Sign Up
+            </Button>
           </form>
 
-          <CardFooter>
-            <p className="text-center text-sm text-muted-foreground w-full">
-              Already have an account?{' '}
-              <Link
-                to={`/login?from=${encodeURIComponent(from)}`}
-                className="text-primary-100 hover:underline"
-              >
-                Sign in
-              </Link>
-            </p>
-          </CardFooter>
-        </Card>
+          <p className="text-center text-sm text-gray-400 mt-6">
+            Already have an account?{' '}
+            <Link
+              to={`/login?from=${encodeURIComponent(from)}`}
+              className="text-cyan-400 hover:text-cyan-300 font-medium"
+            >
+              Sign in
+            </Link>
+          </p>
+        </div>
+      </div>
+
+      {/* Right Side - Auto-scrolling Reviews */}
+      <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-gray-900 to-black relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/10 to-purple-500/10" />
+        
+        <div className="flex items-center justify-center w-full p-12 relative z-10">
+          <div className="max-w-lg">
+            <div className="relative h-96">
+              {testimonials.map((testimonial, index) => (
+                <div
+                  key={index}
+                  className={`absolute inset-0 transition-all duration-1000 ${
+                    index === currentTestimonial 
+                      ? 'opacity-100 translate-y-0' 
+                      : 'opacity-0 translate-y-10'
+                  }`}
+                >
+                  <div className="backdrop-blur-xl bg-white/10 border border-white/20 rounded-2xl p-8 h-full flex flex-col justify-between">
+                    <div>
+                      <svg className="h-8 w-8 text-cyan-400 mb-4" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z" />
+                      </svg>
+                      <p className="text-white text-lg leading-relaxed mb-6">
+                        "{testimonial.content}"
+                      </p>
+                    </div>
+                    
+                    <div className="flex items-center">
+                      <img 
+                        src={testimonial.image} 
+                        alt={testimonial.author} 
+                        className="w-12 h-12 rounded-full object-cover mr-4"
+                      />
+                      <div>
+                        <p className="text-white font-semibold">{testimonial.author}</p>
+                        <p className="text-gray-400 text-sm">{testimonial.role}</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+            
+            {/* Testimonial indicators */}
+            <div className="flex justify-center mt-8 space-x-2">
+              {testimonials.map((_, index) => (
+                <button
+                  key={index}
+                  className={`w-2 h-2 rounded-full transition-all duration-300 ${
+                    index === currentTestimonial ? 'bg-cyan-500 w-8' : 'bg-gray-600'
+                  }`}
+                  onClick={() => setCurrentTestimonial(index)}
+                />
+              ))}
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
