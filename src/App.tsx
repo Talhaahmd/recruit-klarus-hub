@@ -24,8 +24,7 @@ import Signup from "./pages/Auth/Signup";
 
 // Public Pages
 import Home from "./pages/Home/Home";
-import CVSubmission from "./pages/Submission/Submission";
-import Apply from "./pages/Apply/Apply"; // Import the new Apply page
+import Apply from "./pages/Apply/Apply"; // Import the Apply page
 
 // Dashboard Pages
 import Dashboard from "./pages/Dashboard/Dashboard";
@@ -110,8 +109,7 @@ const App = () => (
               <Route index element={<Home />} />
               <Route path="/login" element={<Login />} />
               <Route path="/signup" element={<Signup />} />
-              <Route path="/submission" element={<CVSubmission />} />
-              <Route path="/apply/:jobId" element={<Apply />} /> {/* Add the new Apply route */}
+              <Route path="/apply/:jobId" element={<Apply />} /> {/* The Apply route */}
 
               <Route
                 path="/"

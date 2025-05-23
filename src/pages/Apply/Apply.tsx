@@ -169,14 +169,32 @@ const Apply: React.FC = () => {
       
       const fileUrl = urlData.publicUrl;
       
-      // Insert into job_applications table
+      // First insert a cv_link record to get an ID for cv_link_id
+      const { data: cvLinkData, error: cvLinkError } = await supabase
+        .from('cv_links')
+        .insert({
+          file_url: fileUrl,
+          file_name: file.name,
+          file_size: file.size,
+          file_type: file.type,
+          job_id: jobId,
+          status: 'new'
+        })
+        .select()
+        .single();
+        
+      if (cvLinkError || !cvLinkData) {
+        throw new Error(cvLinkError?.message || 'Failed to create CV link');
+      }
+      
+      // Now insert into job_applications table with the cv_link_id
       const { error: insertError } = await supabase
         .from('job_applications')
         .insert({
           job_id: jobId,
           link_for_cv: fileUrl,
           job_name: job.title,
-          // created_by is omitted for public applications
+          cv_link_id: cvLinkData.id // This was missing in the previous code
         });
         
       if (insertError) {

@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
@@ -108,11 +109,11 @@ export const candidatesService = {
       
       for (const app of applications) {
         try {
-          // Get candidate ID from application or CV link
-          let candidateId = app.candidate_id;
+          // Get candidate ID from application
+          let candidateId = '';
           
-          if (!candidateId && app.cv_link_id) {
-            // Try to get the candidate from CV link
+          // If cv_link_id is available, try to get the candidate from that
+          if (app.cv_link_id) {
             const { data: cvLink } = await supabase
               .from('cv_links')
               .select('id')
@@ -132,7 +133,11 @@ export const candidatesService = {
               .single();
               
             if (candidate) {
-              candidates.push(candidate as Candidate);
+              // Explicitly set the rating property to fix type error
+              candidates.push({
+                ...candidate,
+                rating: candidate.ai_rating || 0
+              });
             }
           }
         } catch (err) {
