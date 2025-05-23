@@ -12,7 +12,7 @@ export type Candidate = {
   applied_date?: string;
   status?: string;
   notes?: string;
-  rating: number;
+  rating?: number;
   user_id?: string;
   created_at?: string;
   // Extended candidate properties
@@ -60,10 +60,10 @@ export const candidatesService = {
       // Ensure all returned candidates have a rating property
       const candidates = data?.map(candidate => ({
         ...candidate,
-        rating: candidate.rating || candidate.ai_rating || 0
+        rating: candidate.ai_rating || 0
       })) || [];
       
-      return candidates;
+      return candidates as Candidate[];
     } catch (error: any) {
       console.error('Error in getCandidates:', error.message);
       toast.error('Failed to fetch candidates');
@@ -90,10 +90,10 @@ export const candidatesService = {
       // Ensure all returned candidates have a rating property
       const candidates = data?.map(candidate => ({
         ...candidate,
-        rating: candidate.rating || candidate.ai_rating || 0
+        rating: candidate.ai_rating || 0
       })) || [];
       
-      return candidates;
+      return candidates as Candidate[];
     } catch (error: any) {
       console.error('Error in getCandidatesByJob:', error.message);
       toast.error('Failed to fetch candidates for this job');
@@ -122,8 +122,8 @@ export const candidatesService = {
       if (data) {
         return {
           ...data,
-          rating: data.rating || data.ai_rating || 0
-        };
+          rating: data.ai_rating || 0
+        } as Candidate;
       }
       
       return null;
@@ -159,7 +159,7 @@ export const candidatesService = {
       if (error) throw error;
       
       toast.success('Candidate created successfully');
-      return data;
+      return data as Candidate;
     } catch (error: any) {
       console.error('Error in createCandidate:', error.message);
       toast.error('Failed to create candidate');
@@ -192,7 +192,7 @@ export const candidatesService = {
       if (error) throw error;
       
       toast.success('Candidate updated successfully');
-      return data;
+      return data as Candidate;
     } catch (error: any) {
       console.error('Error in updateCandidate:', error.message);
       toast.error('Failed to update candidate');
