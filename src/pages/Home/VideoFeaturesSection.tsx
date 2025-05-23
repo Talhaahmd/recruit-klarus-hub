@@ -1,11 +1,12 @@
 
 import React, { useEffect, useRef, useState } from 'react';
+import { ChevronDown, ChevronUp } from 'lucide-react';
 
 const VideoFeaturesSection: React.FC = () => {
   const sectionRef = useRef<HTMLDivElement>(null);
   const [scrollProgress, setScrollProgress] = useState(0);
   const [showFeatures, setShowFeatures] = useState(false);
-  const [selectedFeature, setSelectedFeature] = useState<number | null>(null);
+  const [expandedFeature, setExpandedFeature] = useState<number | null>(null);
 
   const features = [
     {
@@ -69,8 +70,8 @@ const VideoFeaturesSection: React.FC = () => {
     };
   }, []);
 
-  const closeFeatureDetail = () => {
-    setSelectedFeature(null);
+  const toggleFeature = (index: number) => {
+    setExpandedFeature(expandedFeature === index ? null : index);
   };
 
   return (
@@ -95,85 +96,60 @@ const VideoFeaturesSection: React.FC = () => {
         </video>
         
         {/* Dark overlay for better readability */}
-        <div className="absolute inset-0 bg-black bg-opacity-40" />
+        <div className="absolute inset-0 bg-black bg-opacity-30" />
         
-        {/* Features List on Right Side */}
+        {/* Glass Morphism Features Panel on Right Side */}
         <div 
-          className={`absolute right-0 top-0 h-full w-1/2 flex items-center justify-center transition-all duration-1000 ${
+          className={`absolute right-8 top-1/2 transform -translate-y-1/2 transition-all duration-1000 ${
             showFeatures ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-full'
           }`}
         >
-          <div className="bg-black bg-opacity-70 backdrop-blur-sm rounded-lg p-8 max-w-lg w-full mx-8">
-            <h2 className="text-3xl font-bold text-white mb-2">Our Salient Features</h2>
-            <p className="text-gray-300 mb-8 text-lg">
-              Discover our AI-powered solutions that transform your recruitment process
-            </p>
+          <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-8 max-w-md w-full shadow-2xl">
+            <div className="mb-8">
+              <h2 className="text-3xl font-bold text-white mb-3">Our Salient Features</h2>
+              <p className="text-gray-300 text-lg leading-relaxed">
+                Discover our AI-powered solutions that transform your recruitment process
+              </p>
+            </div>
             
-            <div className="space-y-4">
+            <div className="space-y-3">
               {features.map((feature, index) => (
                 <div
                   key={index}
-                  className="border border-gray-600 rounded-lg p-4 cursor-pointer transition-all duration-300 hover:border-cyan-500 hover:bg-white hover:bg-opacity-10"
-                  onClick={() => setSelectedFeature(index)}
+                  className="backdrop-blur-sm bg-white/5 border border-white/10 rounded-xl overflow-hidden transition-all duration-300 hover:bg-white/10 hover:border-white/20"
                 >
-                  <h3 className="text-xl font-semibold text-white mb-2">
-                    {feature.title}
-                  </h3>
-                  <p className="text-gray-300 text-sm">
-                    {feature.description}
-                  </p>
-                  <div className="mt-3 text-cyan-400 text-sm font-medium">
-                    Click to learn more →
-                  </div>
+                  <button
+                    onClick={() => toggleFeature(index)}
+                    className="w-full px-6 py-4 text-left flex items-center justify-between focus:outline-none"
+                  >
+                    <h3 className="text-lg font-semibold text-white">
+                      {feature.title}
+                    </h3>
+                    {expandedFeature === index ? (
+                      <ChevronUp className="w-5 h-5 text-gray-300 flex-shrink-0" />
+                    ) : (
+                      <ChevronDown className="w-5 h-5 text-gray-300 flex-shrink-0" />
+                    )}
+                  </button>
+                  
+                  {expandedFeature === index && (
+                    <div className="px-6 pb-4 animate-accordion-down">
+                      <div className="border-t border-white/10 pt-4">
+                        <p className="text-gray-300 text-sm mb-3 leading-relaxed">
+                          {feature.description}
+                        </p>
+                        <p className="text-gray-400 text-xs leading-relaxed">
+                          {feature.details}
+                        </p>
+                      </div>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
           </div>
         </div>
       </div>
-
-      {/* Feature Detail Modal */}
-      {selectedFeature !== null && (
-        <div className="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg max-w-2xl w-full max-h-[80vh] overflow-y-auto">
-            <div className="p-6">
-              <div className="flex justify-between items-start mb-4">
-                <h3 className="text-2xl font-bold text-gray-900">
-                  {features[selectedFeature].title}
-                </h3>
-                <button
-                  onClick={closeFeatureDetail}
-                  className="text-gray-500 hover:text-gray-700 text-2xl font-bold"
-                >
-                  ×
-                </button>
-              </div>
-              
-              <p className="text-gray-600 mb-4 text-lg">
-                {features[selectedFeature].description}
-              </p>
-              
-              <div className="border-t pt-4">
-                <h4 className="font-semibold text-lg text-gray-900 mb-3">
-                  Detailed Information
-                </h4>
-                <p className="text-gray-700 leading-relaxed">
-                  {features[selectedFeature].details}
-                </p>
-              </div>
-              
-              <div className="mt-6 flex justify-end">
-                <button
-                  onClick={closeFeatureDetail}
-                  className="px-6 py-2 bg-cyan-500 text-white rounded-lg hover:bg-cyan-600 transition-colors"
-                >
-                  Close
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
     </section>
   );
 };
