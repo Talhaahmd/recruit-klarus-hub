@@ -3,14 +3,24 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 
 const HeroSection: React.FC = () => {
+  const scrollToDemo = (e: React.MouseEvent) => {
+    e.preventDefault();
+    const demoSection = document.getElementById('demo');
+    if (demoSection) {
+      demoSection.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
   return (
     <section className="relative pt-12 overflow-hidden bg-black sm:pt-16">
       <div className="relative px-4 mx-auto sm:px-6 lg:px-8 max-w-7xl">
         <div className="max-w-4xl mx-auto text-center">
           <p className="text-sm font-normal tracking-widest uppercase">
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-500 to-purple-500">Find the perfect talent</span>
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-500 to-purple-500">Klarus Supports Over 6,000+ Diverse Job Categories</span>
           </p>
-          <h1 className="mt-8 text-4xl font-normal text-white sm:text-5xl lg:text-6xl xl:text-7xl">Connect & grow with your targeted candidates</h1>
+          <h1 className="mt-8 text-4xl font-normal text-white sm:text-5xl lg:text-6xl xl:text-7xl">Klarus HR</h1>
+          <p className="mt-6 text-lg text-gray-300 sm:text-xl">Connect & grow with your targeted candidates</p>
+          <p className="mt-4 text-base text-gray-400 italic">From CV to Interview in Under 60 Seconds.</p>
 
           <div className="flex flex-col items-center justify-center px-8 mt-12 space-y-5 sm:space-y-0 sm:px-0 sm:space-x-5 sm:flex-row">
             <div className="relative inline-flex items-center justify-center w-full sm:w-auto group">
@@ -20,9 +30,12 @@ const HeroSection: React.FC = () => {
               </Link>
             </div>
 
-            <Link to="/#demo" className="inline-flex items-center justify-center w-full px-8 py-3 text-base font-normal text-white transition-all duration-200 bg-black border border-gray-600 rounded-full sm:w-auto hover:border-white">
+            <button 
+              onClick={scrollToDemo}
+              className="inline-flex items-center justify-center w-full px-8 py-3 text-base font-normal text-white transition-all duration-200 bg-black border border-gray-600 rounded-full sm:w-auto hover:border-white"
+            >
               Book a Demo
-            </Link>
+            </button>
           </div>
         </div>
 

@@ -10,6 +10,15 @@ const Navbar: React.FC = () => {
     setIsMenuOpen(!isMenuOpen);
   };
 
+  const scrollToDemo = (e: React.MouseEvent) => {
+    e.preventDefault();
+    const demoSection = document.getElementById('demo');
+    if (demoSection) {
+      demoSection.scrollIntoView({ behavior: 'smooth' });
+    }
+    setIsMenuOpen(false);
+  };
+
   return (
     <header className="py-4 bg-black sm:py-6">
       <div className="px-4 sm:px-6 lg:px-8">
@@ -46,9 +55,12 @@ const Navbar: React.FC = () => {
             <Link to="/#process" className="text-base font-normal text-gray-400 transition-all duration-200 hover:text-white">
               Our Process
             </Link>
-            <Link to="/#demo" className="text-base font-normal text-gray-400 transition-all duration-200 hover:text-white">
+            <button 
+              onClick={scrollToDemo}
+              className="text-base font-normal text-gray-400 transition-all duration-200 hover:text-white"
+            >
               Book a Demo
-            </Link>
+            </button>
             <Link to="/signup" className="text-base font-normal text-gray-400 transition-all duration-200 hover:text-white">
               Sign Up
             </Link>
@@ -72,13 +84,12 @@ const Navbar: React.FC = () => {
               >
                 Our Process
               </Link>
-              <Link 
-                to="/#demo" 
-                className="text-base font-normal text-gray-400 transition-all duration-200 hover:text-white"
-                onClick={() => setIsMenuOpen(false)}
+              <button 
+                onClick={scrollToDemo}
+                className="text-left text-base font-normal text-gray-400 transition-all duration-200 hover:text-white"
               >
                 Book a Demo
-              </Link>
+              </button>
               <Link 
                 to="/signup" 
                 className="text-base font-normal text-gray-400 transition-all duration-200 hover:text-white"
