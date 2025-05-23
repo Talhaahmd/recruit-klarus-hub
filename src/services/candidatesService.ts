@@ -87,11 +87,19 @@ export const candidatesService = {
         
       if (error) throw error;
       
-      // Map the data to include rating property
-      const candidates: Candidate[] = (data || []).map(candidate => ({
-        ...candidate,
-        rating: candidate.ai_rating || 0
-      }));
+      // Fix the type instantiation issue by explicitly defining the result type
+      // and avoiding unnecessary type assertions
+      const candidates: Candidate[] = [];
+      
+      // Process each candidate separately to avoid deep type instantiation
+      if (data) {
+        for (const item of data) {
+          candidates.push({
+            ...item,
+            rating: item.ai_rating || 0
+          });
+        }
+      }
       
       return candidates;
     } catch (error: any) {
