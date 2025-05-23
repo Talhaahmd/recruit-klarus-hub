@@ -13,18 +13,18 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [theme, setTheme] = useState<Theme>(() => {
     const savedTheme = localStorage.getItem('theme');
-    // Check system preference if no saved theme
+    // Always default to dark theme to match the app design
     if (!savedTheme) {
-      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-      return prefersDark ? 'dark' : 'light';
+      return 'dark';
     }
-    return (savedTheme as Theme) || 'light';
+    return (savedTheme as Theme) || 'dark';
   });
 
   useEffect(() => {
     localStorage.setItem('theme', theme);
     document.documentElement.classList.remove('light', 'dark');
-    document.documentElement.classList.add(theme);
+    document.documentElement.classList.add('dark'); // Always apply dark theme
+    document.body.classList.add('dark');
   }, [theme]);
 
   const toggleTheme = () => {

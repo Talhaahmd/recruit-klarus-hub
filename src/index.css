@@ -5,89 +5,89 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    --background: 0 0% 0%;
+    --foreground: 0 0% 98%;
 
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card: 0 0% 3.9%;
+    --card-foreground: 0 0% 98%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover: 0 0% 3.9%;
+    --popover-foreground: 0 0% 98%;
 
-    --primary: 211 100% 38%;
-    --primary-foreground: 210 40% 98%;
+    --primary: 188 100% 38%;
+    --primary-foreground: 0 0% 98%;
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 0 0% 14.9%;
+    --secondary-foreground: 0 0% 98%;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    --muted: 0 0% 14.9%;
+    --muted-foreground: 0 0% 63.9%;
 
-    --accent: 195 100% 50%;
-    --accent-foreground: 210 40% 98%;
+    --accent: 271 81% 56%;
+    --accent-foreground: 0 0% 98%;
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    --border: 0 0% 14.9%;
+    --input: 0 0% 14.9%;
+    --ring: 188 100% 38%;
 
     --radius: 0.5rem;
 
-    --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 240 5.3% 26.1%;
-    --sidebar-primary: 240 5.9% 10%;
+    --sidebar-background: 0 0% 0%;
+    --sidebar-foreground: 0 0% 98%;
+    --sidebar-primary: 188 100% 38%;
     --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 240 4.8% 95.9%;
-    --sidebar-accent-foreground: 240 5.9% 10%;
-    --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-accent: 0 0% 14.9%;
+    --sidebar-accent-foreground: 0 0% 98%;
+    --sidebar-border: 0 0% 14.9%;
+    --sidebar-ring: 188 100% 38%;
   }
 
   .dark {
     --background: 0 0% 0%;
     --foreground: 0 0% 98%;
 
-    --card: 215 28% 17%;
+    --card: 0 0% 3.9%;
     --card-foreground: 0 0% 98%;
 
-    --popover: 215 28% 17%;
+    --popover: 0 0% 3.9%;
     --popover-foreground: 0 0% 98%;
 
-    --primary: 217 33% 25%;
+    --primary: 188 100% 38%;
     --primary-foreground: 0 0% 98%;
 
-    --secondary: 215 25% 27%;
+    --secondary: 0 0% 14.9%;
     --secondary-foreground: 0 0% 98%;
 
-    --muted: 215 25% 27%;
-    --muted-foreground: 240 5% 84.9%;
+    --muted: 0 0% 14.9%;
+    --muted-foreground: 0 0% 63.9%;
 
-    --accent: 216 34% 37%;
+    --accent: 271 81% 56%;
     --accent-foreground: 0 0% 98%;
 
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 0 0% 98%;
 
-    --border: 215 28% 25%;
-    --input: 215 28% 25%;
-    --ring: 216 34% 17%;
+    --border: 0 0% 14.9%;
+    --input: 0 0% 14.9%;
+    --ring: 188 100% 38%;
 
     --sidebar-background: 0 0% 0%;
     --sidebar-foreground: 0 0% 98%;
-    --sidebar-primary: 216 34% 37%;
+    --sidebar-primary: 188 100% 38%;
     --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 215 25% 27%;
+    --sidebar-accent: 0 0% 14.9%;
     --sidebar-accent-foreground: 0 0% 98%;
-    --sidebar-border: 215 28% 25%;
-    --sidebar-ring: 216 34% 37%;
+    --sidebar-border: 0 0% 14.9%;
+    --sidebar-ring: 188 100% 38%;
   }
 }
 
 @layer components {
   .glass {
-    @apply backdrop-blur-md bg-white/30 border border-white/30 shadow-lg dark:bg-dark-bg-200/30 dark:border-dark-bg-300/30;
+    @apply backdrop-blur-md bg-white/5 border border-white/10 shadow-lg;
   }
   
   .glass-dark {
@@ -107,7 +107,7 @@
   }
   
   .glow::before {
-    @apply content-[''] absolute inset-0 bg-primary-200/30 blur-xl opacity-0 -z-10 transition-opacity duration-300 rounded-lg dark:bg-dark-primary-200/30;
+    @apply content-[''] absolute inset-0 bg-cyan-500/20 blur-xl opacity-0 -z-10 transition-opacity duration-300 rounded-lg;
   }
   
   .glow:hover::before {
@@ -115,11 +115,11 @@
   }
 
   .sidebar-item {
-    @apply flex items-center gap-3 px-3 py-2 rounded-md transition-all duration-200 hover:bg-primary-100/10 text-text-100 dark:hover:bg-dark-primary-100/10 dark:text-dark-text-100;
+    @apply flex items-center gap-3 px-3 py-2 rounded-md transition-all duration-200 hover:bg-cyan-500/10 text-white;
   }
   
   .sidebar-item.active {
-    @apply bg-primary-100 text-white hover:bg-primary-100/90 dark:bg-dark-primary-100 dark:hover:bg-dark-primary-100/90;
+    @apply bg-gradient-to-r from-cyan-500 to-purple-500 text-white hover:from-cyan-600 hover:to-purple-600;
   }
 }
 
@@ -129,7 +129,7 @@
   }
 
   body {
-    @apply bg-bg-200 text-foreground dark:bg-black dark:text-dark-text-100;
+    @apply bg-black text-white;
   }
 }
 
@@ -188,4 +188,3 @@
   background-size: 200% 200%;
   animation: gradient 5s ease infinite;
 }
-
