@@ -1,12 +1,11 @@
 
-import { supabase } from '@/lib/supabase';
+import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
 export type Candidate = {
   id: string;
   job_id?: string;
   name?: string;
-  full_name?: string;  
   email: string;
   phone?: string;
   resume_url?: string;
@@ -15,33 +14,27 @@ export type Candidate = {
   notes?: string;
   rating: number;
   user_id?: string;
-  created_by?: string;
-  
-  // Additional fields needed by UI components
+  created_at?: string;
+  // Extended candidate properties
+  full_name?: string;
+  current_job_title?: string;
   location?: string;
   linkedin?: string;
-  current_job_title?: string;
+  skills?: string;
   years_experience?: string;
   experience_level?: string;
-  skills?: string;
   companies?: string;
   job_titles?: string;
   degrees?: string;
   institutions?: string;
-  graduation_years?: string;
   certifications?: string;
+  graduation_years?: string;
   ai_summary?: string;
   ai_content?: string;
   ai_rating?: number;
-  timestamp?: string;
-  source?: string;
-  suitable_role?: string;
 };
 
-export type CandidateInput = Omit<Candidate, 'id'>;
-
 export const candidatesService = {
-  // Get all candidates - RLS will filter to only show the user's candidates
   getCandidates: async (): Promise<Candidate[]> => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -55,23 +48,23 @@ export const candidatesService = {
       
       const { data, error } = await supabase
         .from('candidates')
-        .select('*')
-        .order('applied_date', { ascending: false });
-        
+        .select('*');
+
       if (error) {
+        console.error('Error fetching candidates:', error);
         throw error;
       }
-      
-      return data as Candidate[] || [];
-    } catch (err: any) {
-      console.error('Error fetching candidates:', err.message);
-      toast.error('Failed to load candidates');
+
+      console.log('Fetched candidates:', data);
+      return data || [];
+    } catch (error: any) {
+      console.error('Error in getCandidates:', error.message);
+      toast.error('Failed to fetch candidates');
       return [];
     }
   },
-  
-  // Get candidates for a specific job - RLS will ensure only your jobs' candidates are shown
-  getCandidatesByJobId: async (jobId: string): Promise<Candidate[]> => {
+
+  getCandidatesByJob: async (jobId: string): Promise<Candidate[]> => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       
@@ -79,28 +72,22 @@ export const candidatesService = {
         console.warn('User not authenticated, cannot fetch candidates');
         return [];
       }
-
-      console.log('Fetching candidates for job:', jobId, 'user:', user.id); // Debug log
       
       const { data, error } = await supabase
         .from('candidates')
         .select('*')
-        .eq('job_id', jobId)
-        .order('applied_date', { ascending: false });
+        .eq('job_id', jobId);
         
-      if (error) {
-        throw error;
-      }
+      if (error) throw error;
       
-      return data as Candidate[] || [];
-    } catch (err: any) {
-      console.error('Error fetching candidates for job:', err.message);
-      toast.error('Failed to load candidates for this job');
+      return data || [];
+    } catch (error: any) {
+      console.error('Error in getCandidatesByJob:', error.message);
+      toast.error('Failed to fetch candidates for this job');
       return [];
     }
   },
-  
-  // Get a candidate by ID - RLS will ensure you can only access your candidates
+
   getCandidateById: async (id: string): Promise<Candidate | null> => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -109,8 +96,6 @@ export const candidatesService = {
         console.warn('User not authenticated, cannot fetch candidate');
         return null;
       }
-
-      console.log('Fetching candidate:', id, 'for user:', user.id); // Debug log
       
       const { data, error } = await supabase
         .from('candidates')
@@ -118,35 +103,30 @@ export const candidatesService = {
         .eq('id', id)
         .single();
         
-      if (error) {
-        throw error;
-      }
+      if (error) throw error;
       
-      return data as Candidate;
-    } catch (err: any) {
-      console.error('Error fetching candidate:', err.message);
-      toast.error('Failed to load candidate');
+      return data;
+    } catch (error: any) {
+      console.error('Error in getCandidateById:', error.message);
+      toast.error('Failed to fetch candidate details');
       return null;
     }
   },
-  
-  // Create a new candidate - also needs to update the job's applicant count
-  createCandidate: async (candidate: CandidateInput): Promise<Candidate | null> => {
+
+  createCandidate: async (candidate: Partial<Candidate>): Promise<Candidate | null> => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
+      
       if (!user) {
-        toast.error('You must be logged in to add a candidate');
+        toast.error('You must be logged in to create candidates');
         return null;
       }
       
       // Ensure user_id is set correctly
       const candidateData = {
         ...candidate,
-        user_id: user.id,
-        created_by: user.id
+        user_id: user.id
       };
-      
-      console.log('Creating candidate with user ID:', user.id); // Debug log
       
       const { data, error } = await supabase
         .from('candidates')
@@ -154,35 +134,25 @@ export const candidatesService = {
         .select()
         .single();
         
-      if (error) {
-        throw error;
-      }
+      if (error) throw error;
       
-      // Update the job's applicant count if job_id is provided
-      if (candidate.job_id) {
-        await supabase.rpc('increment_job_applicants', { job_id: candidate.job_id });
-      }
-      
-      toast.success('Candidate added successfully');
-      return data as Candidate;
-    } catch (err: any) {
-      console.error('Error creating candidate:', err.message);
-      toast.error('Failed to add candidate');
+      toast.success('Candidate created successfully');
+      return data;
+    } catch (error: any) {
+      console.error('Error in createCandidate:', error.message);
+      toast.error('Failed to create candidate');
       return null;
     }
   },
-  
-  // Update a candidate - RLS will ensure you can only update your candidates
+
   updateCandidate: async (id: string, updates: Partial<Candidate>): Promise<Candidate | null> => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       
       if (!user) {
-        console.warn('User not authenticated, cannot update candidate');
+        toast.error('You must be logged in to update candidates');
         return null;
       }
-
-      console.log('Updating candidate:', id, 'for user:', user.id); // Debug log
       
       const { data, error } = await supabase
         .from('candidates')
@@ -191,49 +161,48 @@ export const candidatesService = {
         .select()
         .single();
         
-      if (error) {
-        throw error;
-      }
+      if (error) throw error;
       
       toast.success('Candidate updated successfully');
-      return data as Candidate;
-    } catch (err: any) {
-      console.error('Error updating candidate:', err.message);
+      return data;
+    } catch (error: any) {
+      console.error('Error in updateCandidate:', error.message);
       toast.error('Failed to update candidate');
       return null;
     }
   },
-  
-  // Delete a candidate - also needs to update the job's applicant count
+
   deleteCandidate: async (id: string, jobId?: string): Promise<boolean> => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       
       if (!user) {
-        console.warn('User not authenticated, cannot delete candidate');
+        toast.error('You must be logged in to delete candidates');
         return false;
       }
-
-      console.log('Deleting candidate:', id, 'for user:', user.id); // Debug log
       
       const { error } = await supabase
         .from('candidates')
         .delete()
         .eq('id', id);
         
-      if (error) {
-        throw error;
-      }
+      if (error) throw error;
       
-      // Update the job's applicant count if jobId is provided
+      // If job_id is provided, decrement the applicants count
       if (jobId) {
-        await supabase.rpc('decrement_job_applicants', { job_id: jobId });
+        const { error: jobError } = await supabase
+          .rpc('decrement_job_applicants', { job_id: jobId });
+          
+        if (jobError) {
+          console.error('Error decrementing job applicants:', jobError);
+          // Don't throw, as the candidate was already deleted
+        }
       }
       
       toast.success('Candidate deleted successfully');
       return true;
-    } catch (err: any) {
-      console.error('Error deleting candidate:', err.message);
+    } catch (error: any) {
+      console.error('Error in deleteCandidate:', error.message);
       toast.error('Failed to delete candidate');
       return false;
     }

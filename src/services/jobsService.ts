@@ -41,6 +41,7 @@ export const jobsService = {
         .order('posted_date', { ascending: false });
         
       if (error) {
+        console.error('Error fetching jobs:', error);
         throw error;
       }
       
@@ -48,7 +49,7 @@ export const jobsService = {
       return data || [];
     } catch (err: any) {
       console.error('Error fetching jobs:', err.message);
-      toast.error('Failed to load jobs');
+      toast.error('Failed to load jobs: ' + err.message);
       return [];
     }
   },
@@ -60,6 +61,7 @@ export const jobsService = {
       
       if (!user) {
         console.warn('User not authenticated, cannot fetch job');
+        toast.error('You must be logged in to view job details');
         return null;
       }
 
@@ -72,13 +74,14 @@ export const jobsService = {
         .single();
         
       if (error) {
+        console.error('Error fetching job:', error);
         throw error;
       }
       
       return data;
     } catch (err: any) {
       console.error('Error fetching job:', err.message);
-      toast.error('Failed to load job');
+      toast.error('Failed to load job: ' + err.message);
       return null;
     }
   },
@@ -86,11 +89,21 @@ export const jobsService = {
   // Create a new job
   createJob: async (job: JobInput): Promise<Job | null> => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        toast.error('You must be logged in to create a job');
-        return null;
+      // First, explicitly check authentication status
+      const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+      
+      if (sessionError) {
+        console.error('Session error:', sessionError);
+        throw new Error('Authentication error: ' + sessionError.message);
       }
+      
+      if (!sessionData.session || !sessionData.session.user) {
+        console.error('No session or user found');
+        throw new Error('You must be logged in to create a job');
+      }
+      
+      const user = sessionData.session.user;
+      console.log('Creating job with authenticated user:', user.id);
       
       // Ensure the user_id is set correctly - this will map to created_by in RLS policies
       const jobData = {
@@ -98,7 +111,7 @@ export const jobsService = {
         user_id: user.id
       };
       
-      console.log('Creating job with data:', jobData, 'for user:', user.id); // Debug log
+      console.log('Creating job with data:', jobData); // Debug log
       
       const { data, error } = await supabase
         .from('jobs')
@@ -127,6 +140,7 @@ export const jobsService = {
       
       if (!user) {
         console.warn('User not authenticated, cannot update job');
+        toast.error('You must be logged in to update jobs');
         return null;
       }
 
@@ -140,6 +154,7 @@ export const jobsService = {
         .single();
         
       if (error) {
+        console.error('Error updating job:', error);
         throw error;
       }
       
@@ -147,7 +162,7 @@ export const jobsService = {
       return data;
     } catch (err: any) {
       console.error('Error updating job:', err.message);
-      toast.error('Failed to update job');
+      toast.error('Failed to update job: ' + err.message);
       return null;
     }
   },
@@ -159,6 +174,7 @@ export const jobsService = {
       
       if (!user) {
         console.warn('User not authenticated, cannot delete job');
+        toast.error('You must be logged in to delete jobs');
         return false;
       }
 
@@ -170,6 +186,7 @@ export const jobsService = {
         .eq('id', id);
         
       if (error) {
+        console.error('Error deleting job:', error);
         throw error;
       }
       
@@ -177,7 +194,7 @@ export const jobsService = {
       return true;
     } catch (err: any) {
       console.error('Error deleting job:', err.message);
-      toast.error('Failed to delete job');
+      toast.error('Failed to delete job: ' + err.message);
       return false;
     }
   }

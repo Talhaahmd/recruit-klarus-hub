@@ -12,7 +12,8 @@ import {
   Star,
   MapPin,
   Briefcase,
-  X
+  X,
+  Loader2
 } from 'lucide-react';
 import { toast } from 'sonner';
 import CandidateCard from '@/components/UI/CandidateCard';
@@ -35,6 +36,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Slider } from "@/components/ui/slider";
 import { EmailActionsModal } from '@/components/UI/EmailActionsModals';
+import { supabase } from '@/integrations/supabase/client';
 
 // Helper to get unique values from an array of objects for a specific property
 const getUniqueValues = (data: any[], property: string): string[] => {
@@ -65,18 +67,40 @@ const Candidates: React.FC = () => {
   const [selectedCandidate, setSelectedCandidate] = useState<Candidate | null>(null);
 
   useEffect(() => {
-    fetchCandidates();
-  }, []);
+    // First, verify authentication
+    const checkAuth = async () => {
+      const { data } = await supabase.auth.getUser();
+      if (!data.user) {
+        console.log('User not authenticated, redirecting to login');
+        toast.error('You must be logged in to view candidates');
+        navigate('/login');
+        return;
+      }
+      
+      console.log('User authenticated as:', data.user.id);
+      fetchCandidates();
+    };
+    
+    checkAuth();
+  }, [navigate]);
 
   const fetchCandidates = async () => {
     setIsLoading(true);
     try {
       const data = await candidatesService.getCandidates();
+      console.log('Fetched candidates:', data);
       setCandidates(data);
       
       // Extract unique values for filter dropdowns
       setJobsList(getUniqueValues(data, 'current_job_title'));
-      setSkillsList(getUniqueValues(data.flatMap(c => (c.skills || '').split(',').map(s => s.trim())), ''));
+      
+      // Safely handle skills which might need splitting
+      const skillsArray = data.flatMap(c => {
+        if (!c.skills) return [];
+        return c.skills.split(',').map(s => s.trim());
+      });
+      setSkillsList([...new Set(skillsArray)]);
+      
       setLocationsList(getUniqueValues(data, 'location'));
       
     } catch (error) {
@@ -125,7 +149,9 @@ const Candidates: React.FC = () => {
 
   const filteredCandidates = candidates.filter(candidate => {
     // Search filter - add null checks before calling toLowerCase()
-    const nameMatch = candidate.name?.toLowerCase().includes(searchTerm.toLowerCase()) || false;
+    const nameMatch = (candidate.name?.toLowerCase().includes(searchTerm.toLowerCase())) || 
+                     (candidate.full_name?.toLowerCase().includes(searchTerm.toLowerCase())) || 
+                     false;
     const emailMatch = candidate.email?.toLowerCase().includes(searchTerm.toLowerCase()) || false;
     const skillsMatch = candidate.skills?.toLowerCase().includes(searchTerm.toLowerCase()) || false;
     const matchesSearch = searchTerm === '' || nameMatch || emailMatch || skillsMatch;
@@ -336,15 +362,8 @@ const Candidates: React.FC = () => {
       </div>
 
       {isLoading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {[...Array(6)].map((_, i) => (
-            <div key={i} className="glass-card p-6 h-40 animate-pulse">
-              <div className="h-4 bg-gray-200 rounded w-3/4 mb-4"></div>
-              <div className="h-3 bg-gray-200 rounded w-1/2 mb-2"></div>
-              <div className="h-3 bg-gray-200 rounded w-2/3 mb-2"></div>
-              <div className="h-3 bg-gray-200 rounded w-1/3"></div>
-            </div>
-          ))}
+        <div className="flex justify-center items-center h-64">
+          <Loader2 className="h-8 w-8 animate-spin text-primary-100" />
         </div>
       ) : viewMode === 'grid' ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

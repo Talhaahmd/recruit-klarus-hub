@@ -6,8 +6,8 @@ const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
 
 // Provide default values for development
-const SUPABASE_URL = supabaseUrl || 'https://your-project-url.supabase.co';
-const SUPABASE_ANON_KEY = supabaseAnonKey || 'your-anon-key';
+const SUPABASE_URL = supabaseUrl || 'https://bzddkmmjqwgylckimwiq.supabase.co';
+const SUPABASE_ANON_KEY = supabaseAnonKey || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ6ZGRrbW1qcXdneWxja2ltd2lxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc3MDUyNTIsImV4cCI6MjA2MzI4MTI1Mn0.TJ-WarxEHdsEbsychuwRHaKDtWQcWK3Yl5-zqAO4Ow0';
 
 // Log warning if environment variables are not set
 if (!supabaseUrl || !supabaseAnonKey) {
@@ -29,6 +29,16 @@ export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
 // Add debugging for auth state changes
 supabase.auth.onAuthStateChange((event, session) => {
   console.log('🔐 Auth state changed:', event, 'User ID:', session?.user?.id);
+  
+  // Verify session in localStorage for debugging
+  if (session) {
+    try {
+      const localStorageData = localStorage.getItem(`sb-${SUPABASE_URL.split('//')[1]}-auth-token`);
+      console.log('🔑 Local storage auth data exists:', !!localStorageData);
+    } catch (e) {
+      console.error('Error checking localStorage:', e);
+    }
+  }
 });
 
 // Verify current session on initialization
