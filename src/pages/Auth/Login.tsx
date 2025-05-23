@@ -218,7 +218,7 @@ const Login: React.FC = () => {
         </div>
       </div>
 
-      {/* Right Side - Auto-scrolling Reviews */}
+      {/* Right Side - Client Reviews */}
       <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-gray-900 to-black relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/10 to-purple-500/10" />
         
