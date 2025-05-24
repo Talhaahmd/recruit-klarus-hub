@@ -5,15 +5,12 @@ import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
 const ALLOWED_FILE_TYPES = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
 const ALLOWED_FILE_EXTENSIONS = ['.pdf', '.doc', '.docx'];
-const MAKE_WEBHOOK_URL = 'https://hook.eu2.make.com/mufj147gj50vc2ip7sxae5sva9segfpr';
 
 const Apply: React.FC = () => {
   const { jobId } = useParams<{ jobId: string }>();
@@ -115,6 +112,27 @@ const Apply: React.FC = () => {
         .getPublicUrl(filePath);
       const fileUrl = urlData.publicUrl;
 
+      console.log('Uploaded CV to:', fileUrl);
+
+      // Call our candidate-cv-api function to process the CV and create candidate
+      const { data: candidateResult, error: apiError } = await supabase.functions.invoke('candidate-cv-api', {
+        body: {
+          cv_url: fileUrl,
+          job_id: jobId,
+          job_name: job.title,
+          hr_user_id: job.user_id,
+          file_name: file.name,
+          source: 'Job Application'
+        }
+      });
+
+      if (apiError) {
+        console.error('API Error:', apiError);
+        throw new Error(apiError.message || 'Failed to process application');
+      }
+
+      console.log('Candidate created successfully:', candidateResult);
+
       // Insert application into job_applications table
       const { error: insertError } = await supabase
         .from('job_applications')
@@ -124,30 +142,13 @@ const Apply: React.FC = () => {
           link_for_cv: fileUrl
         });
 
-      if (insertError) throw new Error(insertError.message);
-
-      // Call Make webhook to parse CV and create candidate
-      try {
-        const response = await fetch(MAKE_WEBHOOK_URL, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          mode: "no-cors",
-          body: JSON.stringify({
-            cv_url: fileUrl,
-            job_id: jobId,
-            job_name: job.title,
-            hr_user_id: job.user_id,
-            file_name: file.name
-          })
-        });
-
-        console.log('Webhook called successfully');
-      } catch (webhookError) {
-        console.error('Webhook error (non-critical):', webhookError);
+      if (insertError) {
+        console.error('Error inserting job application:', insertError);
+        // Don't throw here as the main processing was successful
       }
 
       setSuccess(true);
-      toast.success('Application submitted successfully! Your CV is being processed.');
+      toast.success('Application submitted successfully! Your CV has been processed and you are now in the candidate pool.');
     } catch (err: any) {
       console.error('Error submitting application:', err);
       setError(err.message || 'Failed to submit application');
@@ -200,7 +201,7 @@ const Apply: React.FC = () => {
               <h2 className="text-xl font-semibold mb-2">Application Submitted!</h2>
               <p className="text-gray-600 mb-4">
                 Thank you for applying to <strong>{job?.title}</strong>. 
-                Your CV is being processed and analyzed. We'll review your application and get back to you soon.
+                Your CV has been processed and analyzed. We'll review your application and get back to you soon.
               </p>
               <Link to="/">
                 <Button>
