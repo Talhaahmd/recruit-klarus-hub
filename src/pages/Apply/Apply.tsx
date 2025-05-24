@@ -102,8 +102,7 @@ const Apply: React.FC = () => {
       });
       if (insertError) throw new Error(insertError.message);
 
-      // 🔁 Call your Edge Function
-      await fetch("https://bzddkmmjqwgylckimwiq.functions.supabase.co/candidate-cv-api", {
+      const res = await fetch("https://bzddkmmjqwgylckimwiq.functions.supabase.co/candidate-cv-api", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -113,6 +112,9 @@ const Apply: React.FC = () => {
           created_by: job.user_id
         })
       });
+
+      const result = await res.json();
+      console.log("💬 Edge function result:", result);
 
       await supabase.rpc('increment_job_applicants', { job_id: jobId });
       setSuccess(true);
@@ -126,7 +128,6 @@ const Apply: React.FC = () => {
     }
   };
 
-  // The rest of your form UI remains unchanged
   return <div>... [RENDERING SECTION OMITTED FOR BREVITY] ...</div>;
 };
 
