@@ -1,32 +1,22 @@
 
+
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
+import { jobsService, JobInput } from '@/services/jobsService';
 
 export const useLinkedInPrompt = () => {
   const { user, isAuthenticated } = useAuth();
   const [isCheckingToken, setIsCheckingToken] = useState(false);
   const [hasLinkedInToken, setHasLinkedInToken] = useState<boolean | null>(null);
   const [showModal, setShowModal] = useState(false);
-  const [tokenCheckCache, setTokenCheckCache] = useState<{ [key: string]: { valid: boolean, timestamp: number } }>({});
 
   const checkLinkedInToken = useCallback(async (forceCheck = false) => {
     if (!user || !isAuthenticated) {
       console.log('No user or not authenticated, skipping LinkedIn token check');
       setHasLinkedInToken(null);
       setShowModal(false);
-      return;
-    }
-
-    // Use cache if available and not forced check (cache for 5 minutes)
-    const cacheKey = user.id;
-    const cachedResult = tokenCheckCache[cacheKey];
-    const cacheExpiry = 5 * 60 * 1000; // 5 minutes
-    
-    if (!forceCheck && cachedResult && (Date.now() - cachedResult.timestamp) < cacheExpiry) {
-      console.log('Using cached LinkedIn token status:', cachedResult.valid);
-      setHasLinkedInToken(cachedResult.valid);
       return;
     }
 
@@ -43,10 +33,6 @@ export const useLinkedInPrompt = () => {
       if (error && error.code !== 'PGRST116') {
         console.error('Error checking LinkedIn token:', error);
         setHasLinkedInToken(false);
-        setTokenCheckCache(prev => ({
-          ...prev,
-          [cacheKey]: { valid: false, timestamp: Date.now() }
-        }));
         return;
       }
 
@@ -60,34 +46,20 @@ export const useLinkedInPrompt = () => {
         console.log('LinkedIn token found, valid:', tokenValid, 'expires:', expiresAt);
         setHasLinkedInToken(tokenValid);
         
-        // Cache the result
-        setTokenCheckCache(prev => ({
-          ...prev,
-          [cacheKey]: { valid: tokenValid, timestamp: Date.now() }
-        }));
-        
         if (!tokenValid) {
           console.log('LinkedIn token will expire soon or has expired');
         }
       } else {
         console.log('No LinkedIn token found');
         setHasLinkedInToken(false);
-        setTokenCheckCache(prev => ({
-          ...prev,
-          [cacheKey]: { valid: false, timestamp: Date.now() }
-        }));
       }
     } catch (error) {
       console.error('Error checking LinkedIn token:', error);
       setHasLinkedInToken(false);
-      setTokenCheckCache(prev => ({
-        ...prev,
-        [cacheKey]: { valid: false, timestamp: Date.now() }
-      }));
     } finally {
       setIsCheckingToken(false);
     }
-  }, [user, isAuthenticated, tokenCheckCache]);
+  }, [user, isAuthenticated]);
 
   const initiateLinkedInConnect = (postData?: any) => {
     if (!user) {
@@ -146,25 +118,75 @@ export const useLinkedInPrompt = () => {
       // Clean up URL
       window.history.replaceState({}, document.title, window.location.pathname);
       
-      // Clear cache and force recheck
-      setTokenCheckCache({});
-      
       // Recheck token with force
       setTimeout(() => {
         checkLinkedInToken(true);
       }, 1000);
       
-      // Check for pending post data
+      // Check for pending post data and create job
       const pendingPostData = sessionStorage.getItem('pending_post_data');
       if (pendingPostData) {
         console.log('Found pending post data after LinkedIn connection');
+        const jobData = JSON.parse(pendingPostData);
         sessionStorage.removeItem('pending_post_data');
-        toast.success('LinkedIn connected! Processing your post...');
+        
+        // Create job with LinkedIn posting
+        createJobWithLinkedInPosting(jobData);
       } else {
         toast.success('LinkedIn connected successfully!');
       }
     }
   }, [checkLinkedInToken]);
+
+  const createJobWithLinkedInPosting = async (data: any) => {
+    try {
+      console.log('Creating job with LinkedIn posting after OAuth...');
+      
+      // Map to JobInput format
+      const jobInput: JobInput = {
+        title: data.title,
+        description: data.description,
+        location: data.location,
+        type: data.type,
+        workplace_type: data.workplaceType,
+        technologies: data.technologies,
+        status: 'Active',
+        posted_date: new Date().toISOString().split('T')[0],
+        active_days: data.activeDays,
+        applicants: 0
+      };
+
+      const createdJob = await jobsService.createJob(jobInput);
+      if (createdJob) {
+        // Try to auto-post to LinkedIn
+        try {
+          const { data: linkedInResponse, error } = await supabase.functions.invoke('auto-linkedin-post', {
+            body: { jobId: createdJob.id }
+          });
+
+          if (error) {
+            console.error('LinkedIn auto-post error:', error);
+            toast.success('Job created successfully, but LinkedIn posting failed. Please try posting manually.');
+          } else if (linkedInResponse?.error) {
+            console.error('LinkedIn auto-post failed:', linkedInResponse.error);
+            toast.success('Job created successfully, but LinkedIn posting failed. Please try posting manually.');
+          } else {
+            console.log('Job created and posted to LinkedIn successfully');
+            toast.success('Job created and posted to LinkedIn successfully!');
+          }
+        } catch (linkedInError) {
+          console.error('Error posting to LinkedIn:', linkedInError);
+          toast.success('Job created successfully, but LinkedIn posting failed. Please try posting manually.');
+        }
+        
+        // Refresh page to show new job
+        window.location.reload();
+      }
+    } catch (error) {
+      console.error('Error creating job:', error);
+      toast.error('Failed to create job');
+    }
+  };
 
   // Only check token when user is authenticated and we have a valid user
   useEffect(() => {
@@ -191,3 +213,4 @@ export const useLinkedInPrompt = () => {
     recheckToken: () => checkLinkedInToken(true) // Force recheck
   };
 };
+

@@ -1,4 +1,5 @@
 
+
 import React, { useState, useEffect } from 'react';
 import { Header } from '@/components/Layout/MainLayout';
 import { toast } from 'sonner';
@@ -23,7 +24,7 @@ const Jobs = () => {
   const [pendingJobData, setPendingJobData] = useState<NewJobData | null>(null);
   const navigate = useNavigate();
   const { autoPostToLinkedIn, isPosting } = useLinkedInAutoPost();
-  const { showModal, initiateLinkedInConnect, dismissModal, hasLinkedInToken, recheckToken } = useLinkedInPrompt();
+  const { showModal, initiateLinkedInConnect, dismissModal, recheckToken } = useLinkedInPrompt();
 
   // Fetch jobs on mount
   useEffect(() => {
@@ -70,51 +71,12 @@ const Jobs = () => {
   };
 
   const handleSaveJob = async (data: NewJobData) => {
-    console.log('Job data received, checking LinkedIn connection status...');
+    console.log('Job data received, requesting LinkedIn connection for fresh tokens...');
     
-    // Only prompt for LinkedIn connection if we know the token is invalid
-    if (hasLinkedInToken === false) {
-      console.log('No valid LinkedIn token, requesting connection...');
-      setPendingJobData(data);
-      setIsAddJobModalOpen(false);
-      initiateLinkedInConnect(data);
-      return;
-    }
-    
-    // If token status is unknown or valid, proceed with job creation
-    console.log('Proceeding with job creation...');
-    try {
-      // Map NewJobData to JobInput format
-      const jobInput: JobInput = {
-        title: data.title,
-        description: data.description,
-        location: data.location,
-        type: data.type,
-        workplace_type: data.workplaceType,
-        technologies: data.technologies,
-        status: 'Active',
-        posted_date: new Date().toISOString().split('T')[0], // Current date in YYYY-MM-DD format
-        active_days: data.activeDays,
-        applicants: 0
-      };
-
-      const createdJob = await jobsService.createJob(jobInput);
-      if (createdJob) {
-        // Auto-post to LinkedIn if token is available
-        const success = await autoPostToLinkedIn(createdJob.id);
-        if (success) {
-          toast.success('Job created and posted to LinkedIn successfully!');
-        } else {
-          toast.success('Job created successfully!');
-        }
-        await fetchJobs();
-      }
-    } catch (error) {
-      console.error('Error creating job:', error);
-      toast.error('Failed to create job');
-    } finally {
-      setIsAddJobModalOpen(false);
-    }
+    // Always prompt for LinkedIn connection to get fresh tokens
+    setPendingJobData(data);
+    setIsAddJobModalOpen(false);
+    initiateLinkedInConnect(data);
   };
 
   const handleEditJob = (id: string) => {
@@ -154,7 +116,40 @@ const Jobs = () => {
   const handleLinkedInDismiss = () => {
     console.log('User dismissed LinkedIn connection');
     dismissModal();
+    
+    // If user dismisses, create job without LinkedIn posting
+    if (pendingJobData) {
+      createJobWithoutLinkedIn(pendingJobData);
+    }
     setPendingJobData(null);
+  };
+
+  const createJobWithoutLinkedIn = async (data: NewJobData) => {
+    console.log('Creating job without LinkedIn posting...');
+    try {
+      // Map NewJobData to JobInput format
+      const jobInput: JobInput = {
+        title: data.title,
+        description: data.description,
+        location: data.location,
+        type: data.type,
+        workplace_type: data.workplaceType,
+        technologies: data.technologies,
+        status: 'Active',
+        posted_date: new Date().toISOString().split('T')[0],
+        active_days: data.activeDays,
+        applicants: 0
+      };
+
+      const createdJob = await jobsService.createJob(jobInput);
+      if (createdJob) {
+        toast.success('Job created successfully!');
+        await fetchJobs();
+      }
+    } catch (error) {
+      console.error('Error creating job:', error);
+      toast.error('Failed to create job');
+    }
   };
 
   return (
@@ -173,7 +168,7 @@ const Jobs = () => {
           </span>
         </div>
         <p className="text-sm text-blue-700 mt-2">
-          When you create a new job, we'll ask for LinkedIn permission to automatically post it to your profile with fresh authorization.
+          When you create a new job, we'll ask for LinkedIn permission to automatically post it to your profile with fresh authorization every time.
         </p>
       </div>
 
@@ -247,3 +242,4 @@ const Jobs = () => {
 };
 
 export default Jobs;
+
