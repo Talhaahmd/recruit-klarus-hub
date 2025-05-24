@@ -347,6 +347,7 @@ export type Database = {
         Row: {
           created_at: string | null
           created_by: string | null
+          cv_link_id: string
           id: string
           job_id: string
           job_name: string | null
@@ -355,6 +356,7 @@ export type Database = {
         Insert: {
           created_at?: string | null
           created_by?: string | null
+          cv_link_id: string
           id?: string
           job_id: string
           job_name?: string | null
@@ -363,12 +365,20 @@ export type Database = {
         Update: {
           created_at?: string | null
           created_by?: string | null
+          cv_link_id?: string
           id?: string
           job_id?: string
           job_name?: string | null
           link_for_cv?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "job_applications_cv_link_id_fkey"
+            columns: ["cv_link_id"]
+            isOneToOne: false
+            referencedRelation: "cv_links"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "job_applications_job_id_fkey"
             columns: ["job_id"]
@@ -565,99 +575,20 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      bytea_to_text: {
-        Args: { data: string }
-        Returns: string
-      }
       decrement_job_applicants: {
         Args: { job_id: string }
         Returns: undefined
       }
-      http: {
-        Args: { request: Database["public"]["CompositeTypes"]["http_request"] }
-        Returns: unknown
-      }
-      http_delete: {
-        Args:
-          | { uri: string }
-          | { uri: string; content: string; content_type: string }
-        Returns: unknown
-      }
-      http_get: {
-        Args: { uri: string } | { uri: string; data: Json }
-        Returns: unknown
-      }
-      http_head: {
-        Args: { uri: string }
-        Returns: unknown
-      }
-      http_header: {
-        Args: { field: string; value: string }
-        Returns: Database["public"]["CompositeTypes"]["http_header"]
-      }
-      http_list_curlopt: {
-        Args: Record<PropertyKey, never>
-        Returns: {
-          curlopt: string
-          value: string
-        }[]
-      }
-      http_patch: {
-        Args: { uri: string; content: string; content_type: string }
-        Returns: unknown
-      }
-      http_post: {
-        Args:
-          | { uri: string; content: string; content_type: string }
-          | { uri: string; data: Json }
-        Returns: unknown
-      }
-      http_put: {
-        Args: { uri: string; content: string; content_type: string }
-        Returns: unknown
-      }
-      http_reset_curlopt: {
-        Args: Record<PropertyKey, never>
-        Returns: boolean
-      }
-      http_set_curlopt: {
-        Args: { curlopt: string; value: string }
-        Returns: boolean
-      }
       increment_job_applicants: {
         Args: { job_id: string }
         Returns: undefined
-      }
-      text_to_bytea: {
-        Args: { data: string }
-        Returns: string
-      }
-      urlencode: {
-        Args: { data: Json } | { string: string } | { string: string }
-        Returns: string
       }
     }
     Enums: {
       [_ in never]: never
     }
     CompositeTypes: {
-      http_header: {
-        field: string | null
-        value: string | null
-      }
-      http_request: {
-        method: unknown | null
-        uri: string | null
-        headers: Database["public"]["CompositeTypes"]["http_header"][] | null
-        content_type: string | null
-        content: string | null
-      }
-      http_response: {
-        status: number | null
-        content_type: string | null
-        headers: Database["public"]["CompositeTypes"]["http_header"][] | null
-        content: string | null
-      }
+      [_ in never]: never
     }
   }
 }
