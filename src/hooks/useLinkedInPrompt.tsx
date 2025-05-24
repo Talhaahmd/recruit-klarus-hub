@@ -13,6 +13,8 @@ export const useLinkedInPrompt = () => {
   const checkLinkedInToken = async () => {
     if (!user || !isAuthenticated) {
       console.log('No user or not authenticated, skipping LinkedIn token check');
+      setHasLinkedInToken(null);
+      setShowModal(false);
       return;
     }
 
@@ -44,6 +46,8 @@ export const useLinkedInPrompt = () => {
         if (!tokenValid) {
           console.log('LinkedIn token expired, prompting for reconnection');
           setShowModal(true);
+        } else {
+          setShowModal(false);
         }
       } else {
         console.log('No LinkedIn token found, prompting for connection');
@@ -69,7 +73,10 @@ export const useLinkedInPrompt = () => {
       console.log('Generated OAuth state:', state);
 
       // Use the correct LinkedIn client ID and construct OAuth URL
-      const authUrl = `https://www.linkedin.com/oauth/v2/authorization?response_type=code&client_id=771girpp9fv439&redirect_uri=${encodeURIComponent('https://klarushr.com/linkedin-token-callback')}&scope=${encodeURIComponent('r_liteprofile r_emailaddress w_member_social')}&state=${state}`;
+      const clientId = '771girpp9fv439';
+      const redirectUri = encodeURIComponent('https://klarushr.com/linkedin-token-callback');
+      const scope = encodeURIComponent('r_liteprofile r_emailaddress w_member_social');
+      const authUrl = `https://www.linkedin.com/oauth/v2/authorization?response_type=code&client_id=${clientId}&redirect_uri=${redirectUri}&scope=${scope}&state=${state}`;
 
       console.log('Redirecting to LinkedIn OAuth:', authUrl);
       window.location.href = authUrl;
@@ -84,10 +91,19 @@ export const useLinkedInPrompt = () => {
     setShowModal(false);
   };
 
+  // Only check token when user is authenticated and we have a valid user
   useEffect(() => {
     if (isAuthenticated && user) {
       console.log('User authenticated, checking LinkedIn token...');
-      checkLinkedInToken();
+      // Add a small delay to ensure auth state is stable
+      const timeoutId = setTimeout(() => {
+        checkLinkedInToken();
+      }, 1000);
+      
+      return () => clearTimeout(timeoutId);
+    } else {
+      setHasLinkedInToken(null);
+      setShowModal(false);
     }
   }, [isAuthenticated, user]);
 

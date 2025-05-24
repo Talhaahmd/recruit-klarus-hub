@@ -15,7 +15,7 @@ Deno.serve(async (req) => {
   try {
     console.log('LinkedIn token store function called');
     console.log('Request method:', req.method);
-    console.log('Request headers:', Object.fromEntries(req.headers.entries()));
+    console.log('Request URL:', req.url);
     
     // Get the authorization header
     const authHeader = req.headers.get('Authorization');
@@ -31,7 +31,7 @@ Deno.serve(async (req) => {
     }
 
     const token = authHeader.replace('Bearer ', '');
-    console.log('Auth token received:', token.substring(0, 20) + '...');
+    console.log('Auth token received (first 20 chars):', token.substring(0, 20) + '...');
     
     // Initialize Supabase client with service role key
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
@@ -48,7 +48,7 @@ Deno.serve(async (req) => {
     if (userError || !user) {
       console.error('Invalid user token:', userError);
       return new Response(
-        JSON.stringify({ error: 'Invalid user token' }),
+        JSON.stringify({ error: 'Invalid user token', details: userError?.message }),
         { 
           status: 401, 
           headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
@@ -59,7 +59,7 @@ Deno.serve(async (req) => {
     console.log('User verified:', user.id);
 
     const requestBody = await req.text();
-    console.log('Request body:', requestBody);
+    console.log('Request body received:', requestBody);
     
     const { code } = JSON.parse(requestBody);
     
@@ -74,10 +74,10 @@ Deno.serve(async (req) => {
       );
     }
 
-    console.log('Authorization code received:', code.substring(0, 10) + '...');
+    console.log('Authorization code received (first 10 chars):', code.substring(0, 10) + '...');
     console.log('Exchanging code for access token');
     
-    // Use the provided LinkedIn credentials
+    // LinkedIn credentials
     const linkedinClientId = '771girpp9fv439';
     const linkedinClientSecret = 'WPL_AP1.P66OnLQbXKWBBjfM.EqymLg==';
     
@@ -93,23 +93,25 @@ Deno.serve(async (req) => {
       client_secret: linkedinClientSecret,
     });
 
-    console.log('Token request body:', tokenRequestBody.toString());
+    console.log('Making token exchange request to LinkedIn...');
 
     const tokenResponse = await fetch('https://www.linkedin.com/oauth/v2/accessToken', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
+        'Accept': 'application/json',
       },
       body: tokenRequestBody,
     });
 
     console.log('LinkedIn token response status:', tokenResponse.status);
+    const tokenResponseText = await tokenResponse.text();
+    console.log('LinkedIn token response body:', tokenResponseText);
 
     if (!tokenResponse.ok) {
-      const errorText = await tokenResponse.text();
-      console.error('LinkedIn token exchange failed:', errorText);
+      console.error('LinkedIn token exchange failed:', tokenResponseText);
       return new Response(
-        JSON.stringify({ error: 'Token exchange failed', details: errorText }),
+        JSON.stringify({ error: 'Token exchange failed', details: tokenResponseText }),
         { 
           status: 400, 
           headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
@@ -117,13 +119,15 @@ Deno.serve(async (req) => {
       );
     }
 
-    const tokenData = await tokenResponse.json();
+    const tokenData = JSON.parse(tokenResponseText);
     console.log('Token exchange successful, expires in:', tokenData.expires_in);
 
     // Get LinkedIn user profile to get the LinkedIn ID
+    console.log('Fetching LinkedIn profile...');
     const profileResponse = await fetch('https://api.linkedin.com/v2/me', {
       headers: {
         'Authorization': `Bearer ${tokenData.access_token}`,
+        'Accept': 'application/json',
       },
     });
 
@@ -150,6 +154,7 @@ Deno.serve(async (req) => {
     console.log('Token expires at:', expiresAt);
 
     // Store the token in the database
+    console.log('Storing LinkedIn token in database...');
     const { error: insertError } = await supabase
       .from('linkedin_tokens')
       .upsert(

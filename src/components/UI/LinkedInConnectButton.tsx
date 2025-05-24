@@ -59,8 +59,12 @@ const LinkedInConnectButton: React.FC = () => {
       sessionStorage.setItem('linkedin_oauth_state', state);
 
       // Construct LinkedIn OAuth URL with correct client ID
-      const authUrl = `https://www.linkedin.com/oauth/v2/authorization?response_type=code&client_id=771girpp9fv439&redirect_uri=${encodeURIComponent('https://klarushr.com/linkedin-token-callback')}&scope=${encodeURIComponent('r_liteprofile r_emailaddress w_member_social')}&state=${state}`;
+      const clientId = '771girpp9fv439';
+      const redirectUri = encodeURIComponent('https://klarushr.com/linkedin-token-callback');
+      const scope = encodeURIComponent('r_liteprofile r_emailaddress w_member_social');
+      const authUrl = `https://www.linkedin.com/oauth/v2/authorization?response_type=code&client_id=${clientId}&redirect_uri=${redirectUri}&scope=${scope}&state=${state}`;
 
+      console.log('Redirecting to LinkedIn OAuth:', authUrl);
       // Redirect to LinkedIn
       window.location.href = authUrl;
     } catch (error) {
