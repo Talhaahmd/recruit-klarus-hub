@@ -53,7 +53,7 @@ const BuildProfile: React.FC = () => {
   const [pendingPostData, setPendingPostData] = useState<any>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   
-  const { showModal, initiateLinkedInConnect, dismissModal, hasLinkedInToken, recheckToken } = useLinkedInPrompt();
+  const { showModal, initiateLinkedInConnect, dismissModal } = useLinkedInPrompt();
 
   useEffect(() => {
     const fetchPosts = async () => {
@@ -92,86 +92,10 @@ const BuildProfile: React.FC = () => {
     try {
       console.log('Generating LinkedIn post with data:', postData);
       
-      // Only check LinkedIn connection if we know it's invalid, don't preemptively ask for consent
-      if (hasLinkedInToken === false) {
-        console.log('No valid LinkedIn token, requesting connection...');
-        setPendingPostData({ ...postData, isScheduled });
-        initiateLinkedInConnect();
-        return;
-      }
-      
-      const { data, error } = await supabase.functions.invoke('generate-linkedin-post', {
-        body: {
-          niche: postData.niche,
-          tone: postData.tone,
-          contentPrompt: postData.content,
-          scheduleDate: isScheduled ? postData.scheduledDate : null,
-          scheduleTime: isScheduled ? postData.scheduledTime : null
-        }
-      });
-
-      if (error) {
-        console.error('LinkedIn post generation error:', error);
-        
-        // Only show LinkedIn consent if the error is specifically about connection
-        if (error.message.includes('LinkedIn not connected') || 
-            error.message.includes('token') || 
-            error.message.includes('expired') ||
-            error.message.includes('revoked')) {
-          console.log('LinkedIn connection error detected, requesting reconnection...');
-          setPendingPostData({ ...postData, isScheduled });
-          // Force recheck to update hasLinkedInToken state
-          await recheckToken();
-          initiateLinkedInConnect();
-          return;
-        }
-        
-        toast.error(`Failed to generate LinkedIn post: ${error.message}`);
-        return;
-      }
-
-      if (data?.error) {
-        console.error('LinkedIn post generation failed:', data.error);
-        
-        // Only show LinkedIn consent if the error is specifically about connection
-        if (data.error.includes('LinkedIn not connected') || 
-            data.error.includes('token') || 
-            data.error.includes('expired') ||
-            data.error.includes('revoked')) {
-          console.log('LinkedIn connection error in response, requesting reconnection...');
-          setPendingPostData({ ...postData, isScheduled });
-          await recheckToken();
-          initiateLinkedInConnect();
-          return;
-        }
-        
-        toast.error(`Failed to generate LinkedIn post: ${data.error}`);
-        return;
-      }
-
-      console.log('LinkedIn post generation successful:', data);
-      
-      // Refresh posts list
-      const updatedPosts = await linkedinService.getPosts();
-      setPosts(updatedPosts);
-      
-      // Reset form
-      if (isScheduled) {
-        setScheduledContent('');
-        setScheduledDate(null);
-        setScheduledTime(null);
-        setScheduledCustomNiche('');
-        setScheduledNiche('');
-        setOpenScheduleDialog(false);
-      } else {
-        setPostContent('');
-        setCustomNiche('');
-        setSelectedNiche('');
-      }
-      
-      // Show success modal
-      setSuccessMessage(data.scheduled ? 'Your LinkedIn post has been scheduled successfully!' : 'Your LinkedIn post has been generated and posted successfully!');
-      setSuccessModal(true);
+      // Always request fresh LinkedIn authentication for every post
+      console.log('Always requesting fresh LinkedIn authentication for post generation...');
+      setPendingPostData({ ...postData, isScheduled });
+      await initiateLinkedInConnect();
       
     } catch (error) {
       console.error('Unexpected error generating LinkedIn post:', error);
@@ -241,22 +165,71 @@ const BuildProfile: React.FC = () => {
     }
   };
   
-  const handleLinkedInConnect = () => {
+  const handleLinkedInConnect = async () => {
     console.log('User confirmed LinkedIn connection');
-    initiateLinkedInConnect();
+    await initiateLinkedInConnect();
   };
 
   const handleLinkedInConnectSuccess = async () => {
     console.log('LinkedIn connected successfully, processing pending post...');
     dismissModal();
     
-    // Recheck token status
-    await recheckToken();
-    
     if (pendingPostData) {
       console.log('Processing pending post data:', pendingPostData);
-      await generateLinkedInPost(pendingPostData, pendingPostData.isScheduled);
-      setPendingPostData(null);
+      
+      try {
+        const { data, error } = await supabase.functions.invoke('generate-linkedin-post', {
+          body: {
+            niche: pendingPostData.niche,
+            tone: pendingPostData.tone,
+            contentPrompt: pendingPostData.content,
+            scheduleDate: pendingPostData.isScheduled ? pendingPostData.scheduledDate : null,
+            scheduleTime: pendingPostData.isScheduled ? pendingPostData.scheduledTime : null
+          }
+        });
+
+        if (error) {
+          console.error('LinkedIn post generation error:', error);
+          toast.error(`Failed to generate LinkedIn post: ${error.message}`);
+          return;
+        }
+
+        if (data?.error) {
+          console.error('LinkedIn post generation failed:', data.error);
+          toast.error(`Failed to generate LinkedIn post: ${data.error}`);
+          return;
+        }
+
+        console.log('LinkedIn post generation successful:', data);
+        
+        // Refresh posts list
+        const updatedPosts = await linkedinService.getPosts();
+        setPosts(updatedPosts);
+        
+        // Reset form
+        if (pendingPostData.isScheduled) {
+          setScheduledContent('');
+          setScheduledDate(null);
+          setScheduledTime(null);
+          setScheduledCustomNiche('');
+          setScheduledNiche('');
+          setOpenScheduleDialog(false);
+        } else {
+          setPostContent('');
+          setCustomNiche('');
+          setSelectedNiche('');
+        }
+        
+        // Show success modal
+        setSuccessMessage(data.scheduled ? 'Your LinkedIn post has been scheduled successfully!' : 'Your LinkedIn post has been generated and posted successfully!');
+        setSuccessModal(true);
+        
+      } catch (error) {
+        console.error('Error processing post after LinkedIn connection:', error);
+        toast.error('Failed to process post after LinkedIn connection');
+      } finally {
+        setPendingPostData(null);
+      }
     }
   };
 

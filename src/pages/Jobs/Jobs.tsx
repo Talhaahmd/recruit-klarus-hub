@@ -76,9 +76,9 @@ const Jobs = () => {
     setPendingJobData(data);
     setIsAddJobModalOpen(false);
     
-    // Always request fresh LinkedIn authentication
+    // Always request fresh LinkedIn authentication - await the async function
     toast.info('Requesting fresh LinkedIn authentication...');
-    initiateLinkedInConnect(data);
+    await initiateLinkedInConnect(data);
   };
 
   const handleEditJob = (id: string) => {
@@ -106,12 +106,12 @@ const Jobs = () => {
     setIsDetailsModalOpen(true);
   };
 
-  const handleLinkedInConnect = () => {
+  const handleLinkedInConnect = async () => {
     console.log('User confirmed fresh LinkedIn connection');
     if (pendingJobData) {
-      initiateLinkedInConnect(pendingJobData);
+      await initiateLinkedInConnect(pendingJobData);
     } else {
-      initiateLinkedInConnect();
+      await initiateLinkedInConnect();
     }
   };
 
