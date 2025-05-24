@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
@@ -42,7 +41,7 @@ export const cvSubmissionService = {
           .eq('id', jobId)
           .single();
         
-        // Create job application
+        // Create job application - remove explicit typing to fix TS error
         const { error: appError } = await supabase
           .from('job_applications')
           .insert({
