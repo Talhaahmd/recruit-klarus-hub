@@ -12,12 +12,14 @@ export const useLinkedInPrompt = () => {
 
   const checkLinkedInToken = async () => {
     if (!user || !isAuthenticated) {
+      console.log('No user or not authenticated, skipping LinkedIn token check');
       return;
     }
 
     setIsCheckingToken(true);
     
     try {
+      console.log('Checking LinkedIn token for user:', user.id);
       const { data, error } = await supabase
         .from('linkedin_tokens')
         .select('*')
@@ -27,6 +29,7 @@ export const useLinkedInPrompt = () => {
       if (error && error.code !== 'PGRST116') {
         console.error('Error checking LinkedIn token:', error);
         setHasLinkedInToken(false);
+        setShowModal(true);
         return;
       }
 
@@ -35,6 +38,7 @@ export const useLinkedInPrompt = () => {
         const expiresAt = new Date(data.expires_at);
         const now = new Date();
         const tokenValid = expiresAt > now;
+        console.log('LinkedIn token found, valid:', tokenValid, 'expires:', expiresAt);
         setHasLinkedInToken(tokenValid);
         
         if (!tokenValid) {
@@ -42,12 +46,14 @@ export const useLinkedInPrompt = () => {
           setShowModal(true);
         }
       } else {
+        console.log('No LinkedIn token found, prompting for connection');
         setHasLinkedInToken(false);
         setShowModal(true);
       }
     } catch (error) {
       console.error('Error checking LinkedIn token:', error);
       setHasLinkedInToken(false);
+      setShowModal(true);
     } finally {
       setIsCheckingToken(false);
     }
@@ -55,11 +61,14 @@ export const useLinkedInPrompt = () => {
 
   const initiateLinkedInConnect = () => {
     try {
+      console.log('Initiating LinkedIn OAuth connection...');
+      
       // Generate secure state value
       const state = crypto.randomUUID();
       sessionStorage.setItem('linkedin_oauth_state', state);
+      console.log('Generated OAuth state:', state);
 
-      // Construct LinkedIn OAuth URL
+      // Construct LinkedIn OAuth URL with exact parameters
       const authUrl = `https://www.linkedin.com/oauth/v2/authorization?response_type=code&client_id=771girpp9fv439&redirect_uri=https://klarushr.com/linkedin-token-callback&scope=r_liteprofile%20r_emailaddress%20w_member_social&state=${state}`;
 
       console.log('Redirecting to LinkedIn OAuth:', authUrl);
@@ -71,11 +80,13 @@ export const useLinkedInPrompt = () => {
   };
 
   const dismissModal = () => {
+    console.log('Dismissing LinkedIn prompt modal');
     setShowModal(false);
   };
 
   useEffect(() => {
     if (isAuthenticated && user) {
+      console.log('User authenticated, checking LinkedIn token...');
       checkLinkedInToken();
     }
   }, [isAuthenticated, user]);

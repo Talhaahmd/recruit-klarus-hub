@@ -13,17 +13,23 @@ const LinkedInTokenCallback: React.FC = () => {
   useEffect(() => {
     const handleCallback = async () => {
       try {
+        console.log('LinkedIn callback page loaded');
+        console.log('Current URL:', window.location.href);
+        
         // Get URL parameters
         const urlParams = new URLSearchParams(window.location.search);
         const code = urlParams.get('code');
         const state = urlParams.get('state');
         const error = urlParams.get('error');
+        const errorDescription = urlParams.get('error_description');
+
+        console.log('URL parameters:', { code: !!code, state, error, errorDescription });
 
         // Check for LinkedIn OAuth errors
         if (error) {
-          console.error('LinkedIn OAuth error:', error);
+          console.error('LinkedIn OAuth error:', error, errorDescription);
           setStatus('error');
-          setMessage('LinkedIn authorization was cancelled or failed.');
+          setMessage(`LinkedIn authorization failed: ${errorDescription || error}`);
           toast.error('LinkedIn connection failed');
           setTimeout(() => navigate('/dashboard'), 3000);
           return;
@@ -31,21 +37,23 @@ const LinkedInTokenCallback: React.FC = () => {
 
         // Validate required parameters
         if (!code || !state) {
-          console.error('Missing code or state parameter');
+          console.error('Missing code or state parameter', { code: !!code, state: !!state });
           setStatus('error');
-          setMessage('Invalid callback parameters.');
-          toast.error('LinkedIn connection failed');
+          setMessage('Invalid callback parameters from LinkedIn.');
+          toast.error('LinkedIn connection failed - missing parameters');
           setTimeout(() => navigate('/dashboard'), 3000);
           return;
         }
 
         // Verify state matches what we stored
         const storedState = sessionStorage.getItem('linkedin_oauth_state');
+        console.log('State verification:', { received: state, stored: storedState });
+        
         if (state !== storedState) {
-          console.error('State mismatch:', { received: state, stored: storedState });
+          console.error('State mismatch - possible CSRF attack', { received: state, stored: storedState });
           setStatus('error');
-          setMessage('Security validation failed.');
-          toast.error('LinkedIn connection failed');
+          setMessage('Security validation failed - state mismatch.');
+          toast.error('LinkedIn connection failed - security error');
           setTimeout(() => navigate('/dashboard'), 3000);
           return;
         }
@@ -54,18 +62,31 @@ const LinkedInTokenCallback: React.FC = () => {
         sessionStorage.removeItem('linkedin_oauth_state');
 
         // Get current user session
+        console.log('Getting user session...');
         const { data: { session }, error: sessionError } = await supabase.auth.getSession();
         
-        if (sessionError || !session) {
-          console.error('No valid session:', sessionError);
+        if (sessionError) {
+          console.error('Session error:', sessionError);
           setStatus('error');
-          setMessage('Please log in first.');
+          setMessage('Authentication error. Please log in again.');
           toast.error('Please log in to connect LinkedIn');
           setTimeout(() => navigate('/login'), 3000);
           return;
         }
 
+        if (!session) {
+          console.error('No valid session found');
+          setStatus('error');
+          setMessage('No valid session. Please log in first.');
+          toast.error('Please log in to connect LinkedIn');
+          setTimeout(() => navigate('/login'), 3000);
+          return;
+        }
+
+        console.log('Valid session found, user ID:', session.user.id);
+
         // Send code to our edge function
+        console.log('Sending authorization code to edge function...');
         const response = await fetch(
           'https://bzddkmmjqwgylckimwiq.supabase.co/functions/v1/linkedin-token-store',
           {
@@ -78,11 +99,13 @@ const LinkedInTokenCallback: React.FC = () => {
           }
         );
 
+        console.log('Edge function response status:', response.status);
+
         if (!response.ok) {
-          const errorData = await response.json();
-          console.error('Token store failed:', errorData);
+          const errorText = await response.text();
+          console.error('Token store failed:', response.status, errorText);
           setStatus('error');
-          setMessage('Failed to connect LinkedIn account.');
+          setMessage('Failed to connect LinkedIn account. Please try again.');
           toast.error('LinkedIn connection failed');
           setTimeout(() => navigate('/dashboard'), 3000);
           return;

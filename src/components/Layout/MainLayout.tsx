@@ -33,8 +33,8 @@ const MainLayout: React.FC = () => {
   
   useEffect(() => {
     console.log('🏠 MainLayout rendered, authenticated:', isAuthenticated, 'loading:', isLoading, 'path:', location.pathname);
-    console.log('🔗 LinkedIn token status:', hasLinkedInToken, 'show modal:', showModal);
-  }, [isAuthenticated, isLoading, location.pathname, hasLinkedInToken, showModal]);
+    console.log('🔗 LinkedIn token status:', hasLinkedInToken, 'show modal:', showModal, 'checking:', isCheckingToken);
+  }, [isAuthenticated, isLoading, location.pathname, hasLinkedInToken, showModal, isCheckingToken]);
   
   // If still loading auth state, show loading
   if (isLoading) {
