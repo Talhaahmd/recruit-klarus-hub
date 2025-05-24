@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Header } from '@/components/Layout/MainLayout';
 import { toast } from 'sonner';
@@ -6,9 +7,10 @@ import JobsTable from '@/components/UI/JobsTable';
 import AddJobModal, { NewJobData } from '@/components/UI/JobsComponents/AddJobModal';
 import JobDetailsModal from '@/components/UI/JobDetailsModal';
 import { Job, jobsService } from '@/services/jobsService';
-import { PlusCircle, Loader2 } from 'lucide-react';
+import { PlusCircle, Loader2, AlertCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useLinkedInAutoPost } from '@/hooks/useLinkedInAutoPost';
+import LinkedInConnectButton from '@/components/UI/LinkedInConnectButton';
 
 const Jobs = () => {
   const [isAddJobModalOpen, setIsAddJobModalOpen] = useState(false);
@@ -118,6 +120,22 @@ const Jobs = () => {
         title="Jobs Management" 
         subtitle="Create and manage job postings"
       />
+
+      {/* LinkedIn Connection Status */}
+      <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <AlertCircle className="h-5 w-5 text-blue-600" />
+            <span className="text-sm font-medium text-blue-900">
+              LinkedIn Auto-Posting
+            </span>
+          </div>
+          <LinkedInConnectButton />
+        </div>
+        <p className="text-sm text-blue-700 mt-2">
+          Connect your LinkedIn account to automatically post new jobs to your LinkedIn profile.
+        </p>
+      </div>
 
       <div className="mb-6 flex justify-between items-center">
         <div>
