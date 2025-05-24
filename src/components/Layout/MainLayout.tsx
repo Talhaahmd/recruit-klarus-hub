@@ -3,6 +3,8 @@ import React, { useEffect } from 'react';
 import Sidebar from './Sidebar';
 import { useAuth } from '@/contexts/AuthContext';
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
+import { useLinkedInPrompt } from '@/hooks/useLinkedInPrompt';
+import LinkedInPromptModal from '@/components/UI/LinkedInPromptModal';
 
 interface HeaderProps {
   title: string;
@@ -21,12 +23,18 @@ export const Header: React.FC<HeaderProps> = ({ title, subtitle }) => {
 const MainLayout: React.FC = () => {
   const { isAuthenticated, isLoading } = useAuth();
   const location = useLocation();
+  const {
+    isCheckingToken,
+    hasLinkedInToken,
+    showModal,
+    initiateLinkedInConnect,
+    dismissModal
+  } = useLinkedInPrompt();
   
   useEffect(() => {
     console.log('🏠 MainLayout rendered, authenticated:', isAuthenticated, 'loading:', isLoading, 'path:', location.pathname);
-    
-    // OAuth redirect handling is now managed by ProtectedRouteHandler in App.tsx
-  }, [isAuthenticated, isLoading, location.pathname]);
+    console.log('🔗 LinkedIn token status:', hasLinkedInToken, 'show modal:', showModal);
+  }, [isAuthenticated, isLoading, location.pathname, hasLinkedInToken, showModal]);
   
   // If still loading auth state, show loading
   if (isLoading) {
@@ -50,6 +58,13 @@ const MainLayout: React.FC = () => {
       <div className="flex-1 overflow-y-auto p-8">
         <Outlet />
       </div>
+
+      {/* LinkedIn Connection Prompt Modal */}
+      <LinkedInPromptModal
+        isOpen={showModal}
+        onConnect={initiateLinkedInConnect}
+        onDismiss={dismissModal}
+      />
     </div>
   );
 };
