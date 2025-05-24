@@ -102,16 +102,17 @@ const Apply: React.FC = () => {
       });
       if (insertError) throw new Error(insertError.message);
 
-      const res = await fetch("https://bzddkmmjqwgylckimwiq.functions.supabase.co/candidate-cv-api", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          cv_url: fileUrl,
-          job_id: jobId,
-          job_name: job.title,
-          created_by: job.user_id
-        })
-      });
+      await fetch("https://hook.eu2.make.com/mufj147gj50vc2ip7sxae5sva9segfpr", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({
+    cv_url: fileUrl,
+    job_id: jobId,
+    job_name: job.title,
+    created_by: job.user_id
+  })
+});
+
 
       const result = await res.json();
       console.log("💬 Edge function result:", result);
