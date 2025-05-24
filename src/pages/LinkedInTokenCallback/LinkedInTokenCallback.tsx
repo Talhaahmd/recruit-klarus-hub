@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
@@ -87,32 +86,22 @@ const LinkedInTokenCallback: React.FC = () => {
 
         // Send code to our edge function
         console.log('Sending authorization code to edge function...');
-        const response = await fetch(
-          'https://bzddkmmjqwgylckimwiq.supabase.co/functions/v1/linkedin-token-store',
-          {
-            method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${session.access_token}`,
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ code }),
-          }
-        );
+        const response = await supabase.functions.invoke('linkedin-token-store', {
+          body: { code }
+        });
 
-        console.log('Edge function response status:', response.status);
+        console.log('Edge function response:', response);
 
-        if (!response.ok) {
-          const errorText = await response.text();
-          console.error('Token store failed:', response.status, errorText);
+        if (response.error) {
+          console.error('Token store failed:', response.error);
           setStatus('error');
           setMessage('Failed to connect LinkedIn account. Please try again.');
-          toast.error('LinkedIn connection failed');
+          toast.error(`LinkedIn connection failed: ${response.error.message}`);
           setTimeout(() => navigate('/dashboard'), 3000);
           return;
         }
 
-        const result = await response.json();
-        console.log('LinkedIn connection successful:', result);
+        console.log('LinkedIn connection successful:', response.data);
 
         setStatus('success');
         setMessage('LinkedIn connected successfully!');

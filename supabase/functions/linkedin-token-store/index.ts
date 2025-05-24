@@ -77,23 +77,12 @@ Deno.serve(async (req) => {
     console.log('Authorization code received:', code.substring(0, 10) + '...');
     console.log('Exchanging code for access token');
     
-    // Get LinkedIn credentials from environment
-    const linkedinClientId = Deno.env.get('LINKEDIN_CLIENT_ID');
-    const linkedinClientSecret = Deno.env.get('LINKEDIN_CLIENT_SECRET');
+    // Use the provided LinkedIn credentials
+    const linkedinClientId = '771girpp9fv439';
+    const linkedinClientSecret = 'WPL_AP1.P66OnLQbXKWBBjfM.EqymLg==';
     
     console.log('LinkedIn Client ID:', linkedinClientId);
     console.log('LinkedIn Client Secret available:', !!linkedinClientSecret);
-    
-    if (!linkedinClientId || !linkedinClientSecret) {
-      console.error('Missing LinkedIn credentials');
-      return new Response(
-        JSON.stringify({ error: 'Server configuration error' }),
-        { 
-          status: 500, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-        }
-      );
-    }
     
     // Exchange authorization code for access token
     const tokenRequestBody = new URLSearchParams({
