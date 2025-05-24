@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
@@ -190,28 +189,17 @@ export const submissionService = {
         return null;
       }
       
-      // Prepare the data for insertion with explicit typing
-      const interviewData: {
-        candidate_id: string;
-        interview_date: string;
-        interview_time: string;
-        interview_notes: string;
-        candidate_name: string;
-        candidate_email: string;
-        job_name: string;
-      } = {
-        candidate_id: candidateId,
-        interview_date: interviewDateString,
-        interview_time: interviewTime,
-        interview_notes: interviewNotes,
-        candidate_name: candidateName,
-        candidate_email: candidateEmail,
-        job_name: jobName
-      };
-      
       const { data, error } = await supabase
         .from('candidate_interviews')
-        .insert(interviewData)
+        .insert({
+          candidate_id: candidateId,
+          interview_date: interviewDateString,
+          interview_time: interviewTime,
+          interview_notes: interviewNotes,
+          candidate_name: candidateName,
+          candidate_email: candidateEmail,
+          job_name: jobName
+        })
         .select()
         .single();
         
