@@ -78,16 +78,15 @@ export const useLinkedInPrompt = () => {
       
       // Clear any existing LinkedIn tokens to force fresh authentication
       console.log('Clearing existing LinkedIn tokens for fresh authentication');
-      supabase
+      const clearTokensPromise = supabase
         .from('linkedin_tokens')
         .delete()
-        .eq('user_id', user.id)
-        .then(() => {
-          console.log('Existing tokens cleared');
-        })
-        .catch((error) => {
-          console.warn('Error clearing existing tokens:', error);
-        });
+        .eq('user_id', user.id);
+      
+      // Handle the promise properly
+      clearTokensPromise.then(() => {
+        console.log('Existing tokens cleared');
+      });
       
       // Generate secure state value and store it properly
       const state = crypto.randomUUID();
@@ -170,7 +169,7 @@ export const useLinkedInPrompt = () => {
 
       const createdJob = await jobsService.createJob(jobInput);
       if (createdJob) {
-        // Try to auto-post to LinkedIn with a delay to ensure fresh token is ready
+        // Try to auto-post to LinkedIn with a longer delay to ensure fresh token is ready
         setTimeout(async () => {
           try {
             const { data: linkedInResponse, error } = await supabase.functions.invoke('auto-linkedin-post', {
@@ -191,7 +190,7 @@ export const useLinkedInPrompt = () => {
             console.error('Error posting to LinkedIn:', linkedInError);
             toast.success('Job created successfully, but LinkedIn posting failed. Please try posting manually.');
           }
-        }, 3000); // Wait 3 seconds for token to be fully processed
+        }, 5000); // Increased to 5 seconds for token processing
         
         // Refresh page to show new job
         window.location.reload();
