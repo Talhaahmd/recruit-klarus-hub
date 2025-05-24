@@ -59,15 +59,46 @@ Deno.serve(async (req) => {
 
     console.log('User verified:', user.id);
 
-    // Get the request body - handle JSON properly
+    // Get the request body - check content-length first
+    const contentLength = req.headers.get('content-length');
+    console.log('Content-Length:', contentLength);
+    
+    if (!contentLength || contentLength === '0') {
+      console.error('Empty request body - content-length is 0');
+      return new Response(
+        JSON.stringify({ error: 'Empty request body', received_headers: Object.fromEntries(req.headers.entries()) }),
+        { 
+          status: 400, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
+    }
+
+    // Get request body as text first for debugging
+    const bodyText = await req.text();
+    console.log('Raw request body:', bodyText);
+    console.log('Body length:', bodyText.length);
+    
+    if (!bodyText || bodyText.trim() === '') {
+      console.error('Empty request body text');
+      return new Response(
+        JSON.stringify({ error: 'Empty request body text' }),
+        { 
+          status: 400, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
+    }
+
     let requestBody;
     try {
-      requestBody = await req.json();
-      console.log('Request body received:', requestBody);
+      requestBody = JSON.parse(bodyText);
+      console.log('Parsed request body:', requestBody);
     } catch (parseError) {
       console.error('Failed to parse request body as JSON:', parseError);
+      console.error('Body text was:', bodyText);
       return new Response(
-        JSON.stringify({ error: 'Invalid JSON in request body' }),
+        JSON.stringify({ error: 'Invalid JSON in request body', bodyReceived: bodyText }),
         { 
           status: 400, 
           headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
@@ -92,8 +123,8 @@ Deno.serve(async (req) => {
     console.log('Exchanging code for access token');
     
     // LinkedIn credentials
-    const linkedinClientId = '771girpp9fv439';
-    const linkedinClientSecret = 'WPL_AP1.P66OnLQbXKWBBjfM.EqymLg==';
+    const linkedinClientId = Deno.env.get('LINKEDIN_CLIENT_ID') || '771girpp9fv439';
+    const linkedinClientSecret = Deno.env.get('LINKEDIN_CLIENT_SECRET') || 'WPL_AP1.P66OnLQbXKWBBjfM.EqymLg==';
     
     console.log('LinkedIn Client ID:', linkedinClientId);
     console.log('LinkedIn Client Secret available:', !!linkedinClientSecret);
