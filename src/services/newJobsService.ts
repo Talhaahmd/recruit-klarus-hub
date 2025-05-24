@@ -18,6 +18,22 @@ export type NewJob = {
 
 export type NewJobInput = Omit<NewJob, 'id' | 'hr_user_id' | 'created_at' | 'updated_at'>;
 
+// Helper function to safely cast workplace_type
+const mapWorkplaceType = (type: string): 'remote' | 'hybrid' | 'onsite' => {
+  if (type === 'remote' || type === 'hybrid' || type === 'onsite') {
+    return type;
+  }
+  return 'remote'; // default fallback
+};
+
+// Helper function to safely cast job_type
+const mapJobType = (type: string): 'fulltime' | 'contract' | 'internship' => {
+  if (type === 'fulltime' || type === 'contract' || type === 'internship') {
+    return type;
+  }
+  return 'fulltime'; // default fallback
+};
+
 export const newJobsService = {
   getJobs: async (): Promise<NewJob[]> => {
     try {
@@ -44,13 +60,13 @@ export const newJobsService = {
       return (data || []).map(job => ({
         id: job.id,
         title: job.title,
-        workplace_type: job.workplace_type,
+        workplace_type: mapWorkplaceType(job.workplace_type),
         location: job.location,
-        job_type: job.type,
+        job_type: mapJobType(job.type),
         description: job.description,
         technologies: job.technologies || [],
         minimum_rating: 0, // Default since old schema doesn't have this
-        hr_user_id: job.user_id,
+        hr_user_id: job.user_id || user.id,
         created_at: job.created_at,
         updated_at: job.created_at
       }));
@@ -74,17 +90,19 @@ export const newJobsService = {
         throw error;
       }
       
+      const { data: { user } } = await supabase.auth.getUser();
+      
       // Transform old schema to new schema format
       return {
         id: data.id,
         title: data.title,
-        workplace_type: data.workplace_type,
+        workplace_type: mapWorkplaceType(data.workplace_type),
         location: data.location,
-        job_type: data.type,
+        job_type: mapJobType(data.type),
         description: data.description,
         technologies: data.technologies || [],
         minimum_rating: 0,
-        hr_user_id: data.user_id,
+        hr_user_id: data.user_id || user?.id || '',
         created_at: data.created_at,
         updated_at: data.created_at
       };
@@ -131,9 +149,9 @@ export const newJobsService = {
       return {
         id: data.id,
         title: data.title,
-        workplace_type: data.workplace_type,
+        workplace_type: mapWorkplaceType(data.workplace_type),
         location: data.location,
-        job_type: data.type,
+        job_type: mapJobType(data.type),
         description: data.description,
         technologies: data.technologies || [],
         minimum_rating: 0,
@@ -184,9 +202,9 @@ export const newJobsService = {
       return {
         id: data.id,
         title: data.title,
-        workplace_type: data.workplace_type,
+        workplace_type: mapWorkplaceType(data.workplace_type),
         location: data.location,
-        job_type: data.type,
+        job_type: mapJobType(data.type),
         description: data.description,
         technologies: data.technologies || [],
         minimum_rating: 0,
