@@ -125,6 +125,39 @@ Deno.serve(async (req) => {
       rssContent = 'No recent RSS content available';
     }
 
+    console.log('Generating image for the post...');
+
+    // Generate an image using OpenAI DALL-E
+    let imageUrl = null;
+    try {
+      const imagePrompt = `Create a professional, modern image related to ${niche}. The image should be suitable for LinkedIn and convey ${tone.toLowerCase()} tone. Make it clean, professional, and visually appealing.`;
+      
+      const imageResponse = await fetch('https://api.openai.com/v1/images/generations', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${openAIApiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'dall-e-3',
+          prompt: imagePrompt,
+          n: 1,
+          size: '1024x1024',
+          quality: 'standard'
+        }),
+      });
+
+      if (imageResponse.ok) {
+        const imageData = await imageResponse.json();
+        imageUrl = imageData.data[0].url;
+        console.log('Image generated successfully:', imageUrl);
+      } else {
+        console.warn('Image generation failed, continuing without image');
+      }
+    } catch (error) {
+      console.warn('Image generation error:', error);
+    }
+
     // Generate LinkedIn post content using ChatGPT with strict length limits
     const postPrompt = `Create a professional LinkedIn post based on the following requirements:
 
@@ -145,8 +178,11 @@ CRITICAL REQUIREMENTS:
 - Include a call to action
 - Structure it with line breaks for readability
 - Focus on quality over quantity - be concise but impactful
+- DO NOT use asterisks (*) around headings or any text formatting
+- Use plain text only - no markdown formatting like **bold** or *italic*
+- Keep headings as plain text without any special characters
 
-The post should feel authentic and provide value to the LinkedIn audience. Remember: STAY UNDER 2800 CHARACTERS.`;
+The post should feel authentic and provide value to the LinkedIn audience. Remember: STAY UNDER 2800 CHARACTERS and NO ASTERISKS OR MARKDOWN FORMATTING.`;
 
     console.log('Generating post content with ChatGPT...');
 
@@ -161,7 +197,7 @@ The post should feel authentic and provide value to the LinkedIn audience. Remem
         messages: [
           { 
             role: 'system', 
-            content: 'You are a professional LinkedIn content creator who creates engaging, valuable posts that resonate with professional audiences. Always maintain the specified tone, include relevant hashtags, and CRITICALLY IMPORTANT: keep posts under 2800 characters to ensure they fit within LinkedIn\'s limits.' 
+            content: 'You are a professional LinkedIn content creator who creates engaging, valuable posts that resonate with professional audiences. Always maintain the specified tone, include relevant hashtags, and CRITICALLY IMPORTANT: keep posts under 2800 characters to ensure they fit within LinkedIn\'s limits. NEVER use asterisks (*) or any markdown formatting - use plain text only.' 
           },
           { role: 'user', content: postPrompt }
         ],
@@ -184,6 +220,9 @@ The post should feel authentic and provide value to the LinkedIn audience. Remem
 
     const openAIData = await openAIResponse.json();
     let generatedContent = openAIData.choices[0].message.content;
+    
+    // Remove any asterisks that might have been added for formatting
+    generatedContent = generatedContent.replace(/\*\*/g, '').replace(/\*/g, '');
     
     // Validate and truncate content if necessary
     if (generatedContent.length > 2800) {
@@ -234,7 +273,8 @@ The post should feel authentic and provide value to the LinkedIn audience. Remem
           message: 'Post scheduled successfully',
           content: generatedContent,
           scheduled: true,
-          postId: savedPost.id
+          postId: savedPost.id,
+          imageUrl: imageUrl
         }),
         { 
           status: 200, 
@@ -247,23 +287,58 @@ The post should feel authentic and provide value to the LinkedIn audience. Remem
     console.log('Posting to LinkedIn...');
     console.log('LinkedIn member ID:', linkedinToken.linkedin_id);
     console.log('Content length:', generatedContent.length);
+    console.log('Image URL:', imageUrl);
 
-    // Prepare LinkedIn post data
-    const linkedinPostData = {
-      author: `urn:li:person:${linkedinToken.linkedin_id}`,
-      lifecycleState: 'PUBLISHED',
-      specificContent: {
-        'com.linkedin.ugc.ShareContent': {
-          shareCommentary: {
-            text: generatedContent
-          },
-          shareMediaCategory: 'NONE'
+    // Prepare LinkedIn post data with image if available
+    let linkedinPostData;
+
+    if (imageUrl) {
+      // Post with image
+      linkedinPostData = {
+        author: `urn:li:person:${linkedinToken.linkedin_id}`,
+        lifecycleState: 'PUBLISHED',
+        specificContent: {
+          'com.linkedin.ugc.ShareContent': {
+            shareCommentary: {
+              text: generatedContent
+            },
+            shareMediaCategory: 'IMAGE',
+            media: [
+              {
+                status: 'READY',
+                description: {
+                  text: 'Generated image for LinkedIn post'
+                },
+                media: imageUrl,
+                title: {
+                  text: 'LinkedIn Post Image'
+                }
+              }
+            ]
+          }
+        },
+        visibility: {
+          'com.linkedin.ugc.MemberNetworkVisibility': 'PUBLIC'
         }
-      },
-      visibility: {
-        'com.linkedin.ugc.MemberNetworkVisibility': 'PUBLIC'
-      }
-    };
+      };
+    } else {
+      // Post without image (text only)
+      linkedinPostData = {
+        author: `urn:li:person:${linkedinToken.linkedin_id}`,
+        lifecycleState: 'PUBLISHED',
+        specificContent: {
+          'com.linkedin.ugc.ShareContent': {
+            shareCommentary: {
+              text: generatedContent
+            },
+            shareMediaCategory: 'NONE'
+          }
+        },
+        visibility: {
+          'com.linkedin.ugc.MemberNetworkVisibility': 'PUBLIC'
+        }
+      };
+    }
 
     console.log('Posting to LinkedIn with content length:', generatedContent.length);
 
@@ -336,7 +411,8 @@ The post should feel authentic and provide value to the LinkedIn audience. Remem
         message: 'Post created and posted to LinkedIn successfully',
         content: generatedContent,
         linkedinPostId: linkedinResult.id,
-        posted: true
+        posted: true,
+        imageUrl: imageUrl
       }),
       { 
         status: 200, 
