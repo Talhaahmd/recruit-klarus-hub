@@ -209,8 +209,22 @@ Make the post sound professional, exciting, and include a call to action. Includ
     if (!linkedinResponse.ok) {
       const errorText = await linkedinResponse.text();
       console.error('LinkedIn posting failed:', errorText);
+      
+      // Parse the error to provide specific feedback
+      let errorMessage = 'Failed to post to LinkedIn';
+      try {
+        const errorData = JSON.parse(errorText);
+        if (errorData.serviceErrorCode === 65601 || errorData.code === 'REVOKED_ACCESS_TOKEN') {
+          errorMessage = 'LinkedIn token expired. Please reconnect your LinkedIn account.';
+        } else if (errorData.message) {
+          errorMessage = `LinkedIn error: ${errorData.message}`;
+        }
+      } catch (parseError) {
+        console.error('Error parsing LinkedIn response:', parseError);
+      }
+      
       return new Response(
-        JSON.stringify({ error: 'Failed to post to LinkedIn', details: errorText }),
+        JSON.stringify({ error: errorMessage }),
         { 
           status: 400, 
           headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
