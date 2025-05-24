@@ -1,4 +1,3 @@
-// pages/Apply.tsx
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { ArrowLeft, Upload, FileType, CheckCircle2 } from 'lucide-react';
@@ -102,20 +101,17 @@ const Apply: React.FC = () => {
       });
       if (insertError) throw new Error(insertError.message);
 
-      const res = await fetch("https://hook.eu2.make.com/mufj147gj50vc2ip7sxae5sva9segfpr", {
-  method: "POST",
-  headers: { "Content-Type": "application/json" },
-  body: JSON.stringify({
-    cv_url: fileUrl,
-    job_id: jobId,
-    job_name: job.title,
-    created_by: job.user_id
-  })
-});
-
-
-      const result = await res.json();
-      console.log("💬 Edge function result:", result);
+      // Call Make webhook
+      await fetch("https://hook.eu2.make.com/mufj147gj50vc2ip7sxae5sva9segfpr", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          cv_url: fileUrl,
+          job_id: jobId,
+          job_name: job.title,
+          created_by: job.user_id
+        })
+      });
 
       await supabase.rpc('increment_job_applicants', { job_id: jobId });
       setSuccess(true);
@@ -129,7 +125,7 @@ const Apply: React.FC = () => {
     }
   };
 
-  return <div>... [RENDERING SECTION OMITTED FOR BREVITY] ...</div>;
+  return <div className="text-center py-12">Apply page content goes here.</div>;
 };
 
 export default Apply;
