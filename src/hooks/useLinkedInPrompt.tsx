@@ -1,5 +1,4 @@
 
-
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/lib/supabase';
@@ -76,6 +75,19 @@ export const useLinkedInPrompt = () => {
         console.log('Storing post data for after OAuth:', postData);
         sessionStorage.setItem('pending_post_data', JSON.stringify(postData));
       }
+      
+      // Clear any existing LinkedIn tokens to force fresh authentication
+      console.log('Clearing existing LinkedIn tokens for fresh authentication');
+      supabase
+        .from('linkedin_tokens')
+        .delete()
+        .eq('user_id', user.id)
+        .then(() => {
+          console.log('Existing tokens cleared');
+        })
+        .catch((error) => {
+          console.warn('Error clearing existing tokens:', error);
+        });
       
       // Generate secure state value and store it properly
       const state = crypto.randomUUID();
@@ -158,26 +170,28 @@ export const useLinkedInPrompt = () => {
 
       const createdJob = await jobsService.createJob(jobInput);
       if (createdJob) {
-        // Try to auto-post to LinkedIn
-        try {
-          const { data: linkedInResponse, error } = await supabase.functions.invoke('auto-linkedin-post', {
-            body: { jobId: createdJob.id }
-          });
+        // Try to auto-post to LinkedIn with a delay to ensure fresh token is ready
+        setTimeout(async () => {
+          try {
+            const { data: linkedInResponse, error } = await supabase.functions.invoke('auto-linkedin-post', {
+              body: { jobId: createdJob.id }
+            });
 
-          if (error) {
-            console.error('LinkedIn auto-post error:', error);
+            if (error) {
+              console.error('LinkedIn auto-post error:', error);
+              toast.success('Job created successfully, but LinkedIn posting failed. Please try posting manually.');
+            } else if (linkedInResponse?.error) {
+              console.error('LinkedIn auto-post failed:', linkedInResponse.error);
+              toast.success('Job created successfully, but LinkedIn posting failed. Please try posting manually.');
+            } else {
+              console.log('Job created and posted to LinkedIn successfully');
+              toast.success('Job created and posted to LinkedIn successfully!');
+            }
+          } catch (linkedInError) {
+            console.error('Error posting to LinkedIn:', linkedInError);
             toast.success('Job created successfully, but LinkedIn posting failed. Please try posting manually.');
-          } else if (linkedInResponse?.error) {
-            console.error('LinkedIn auto-post failed:', linkedInResponse.error);
-            toast.success('Job created successfully, but LinkedIn posting failed. Please try posting manually.');
-          } else {
-            console.log('Job created and posted to LinkedIn successfully');
-            toast.success('Job created and posted to LinkedIn successfully!');
           }
-        } catch (linkedInError) {
-          console.error('Error posting to LinkedIn:', linkedInError);
-          toast.success('Job created successfully, but LinkedIn posting failed. Please try posting manually.');
-        }
+        }, 3000); // Wait 3 seconds for token to be fully processed
         
         // Refresh page to show new job
         window.location.reload();
@@ -188,13 +202,15 @@ export const useLinkedInPrompt = () => {
     }
   };
 
-  // Only check token when user is authenticated and we have a valid user
+  // Reset LinkedIn token state when user changes
   useEffect(() => {
-    if (isAuthenticated && user) {
-      console.log('User authenticated, checking LinkedIn token...');
-      // Add a small delay to ensure auth state is stable
+    if (user) {
+      console.log('User changed, resetting LinkedIn token state for fresh check');
+      setHasLinkedInToken(null);
+      
+      // Add a delay to ensure auth state is stable
       const timeoutId = setTimeout(() => {
-        checkLinkedInToken();
+        checkLinkedInToken(true);
       }, 1000);
       
       return () => clearTimeout(timeoutId);
@@ -202,7 +218,7 @@ export const useLinkedInPrompt = () => {
       setHasLinkedInToken(null);
       setShowModal(false);
     }
-  }, [isAuthenticated, user, checkLinkedInToken]);
+  }, [user?.id, checkLinkedInToken]); // Watch user.id specifically for account switches
 
   return {
     isCheckingToken,
@@ -213,4 +229,3 @@ export const useLinkedInPrompt = () => {
     recheckToken: () => checkLinkedInToken(true) // Force recheck
   };
 };
-

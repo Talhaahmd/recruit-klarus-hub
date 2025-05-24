@@ -1,5 +1,4 @@
 
-
 import React, { useState, useEffect } from 'react';
 import { Header } from '@/components/Layout/MainLayout';
 import { toast } from 'sonner';
@@ -71,11 +70,14 @@ const Jobs = () => {
   };
 
   const handleSaveJob = async (data: NewJobData) => {
-    console.log('Job data received, requesting LinkedIn connection for fresh tokens...');
+    console.log('Job data received, requesting fresh LinkedIn authentication...');
     
-    // Always prompt for LinkedIn connection to get fresh tokens
+    // Always prompt for fresh LinkedIn connection for account switches and token issues
     setPendingJobData(data);
     setIsAddJobModalOpen(false);
+    
+    // Force fresh LinkedIn authentication every time
+    toast.info('Connecting to LinkedIn for fresh authentication...');
     initiateLinkedInConnect(data);
   };
 
@@ -105,7 +107,7 @@ const Jobs = () => {
   };
 
   const handleLinkedInConnect = () => {
-    console.log('User confirmed LinkedIn connection');
+    console.log('User confirmed fresh LinkedIn connection');
     if (pendingJobData) {
       initiateLinkedInConnect(pendingJobData);
     } else {
@@ -164,11 +166,11 @@ const Jobs = () => {
         <div className="flex items-center gap-2">
           <AlertCircle className="h-5 w-5 text-blue-600" />
           <span className="text-sm font-medium text-blue-900">
-            LinkedIn Auto-Posting
+            Fresh LinkedIn Authentication
           </span>
         </div>
         <p className="text-sm text-blue-700 mt-2">
-          When you create a new job, we'll ask for LinkedIn permission to automatically post it to your profile with fresh authorization every time.
+          Each job posting requires fresh LinkedIn authentication to ensure proper account access and avoid token conflicts when switching between accounts.
         </p>
       </div>
 
@@ -242,4 +244,3 @@ const Jobs = () => {
 };
 
 export default Jobs;
-
