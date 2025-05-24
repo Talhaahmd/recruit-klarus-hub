@@ -107,37 +107,21 @@ const LinkedInTokenCallback: React.FC = () => {
         }
 
         console.log('Valid session found, user ID:', session.user.id);
-        console.log('Sending authorization code to edge function...');
+        console.log('Calling edge function with authorization code...');
         
-        // Call the edge function with explicit POST method and proper headers
-        console.log('Calling edge function with code:', code.substring(0, 10) + '...');
-        
-        const functionUrl = `https://bzddkmmjqwgylckimwiq.supabase.co/functions/v1/linkedin-token-store`;
-        
-        const response = await fetch(functionUrl, {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${session.access_token}`,
-            'Content-Type': 'application/json',
-            'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ6ZGRrbW1qcXdneWxja2ltd2lxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc3MDUyNTIsImV4cCI6MjA2MzI4MTI1Mn0.TJ-WarxEHdsEbsychuwRHaKDtWQcWK3Yl5-zqAO4Ow0'
-          },
-          body: JSON.stringify({ code })
+        // Call the edge function using Supabase client
+        const { data: functionResponse, error: functionError } = await supabase.functions.invoke('linkedin-token-store', {
+          body: { code }
         });
 
-        console.log('Function response status:', response.status);
-        
-        if (!response.ok) {
-          const errorText = await response.text();
-          console.error('Function call failed:', response.status, errorText);
+        if (functionError) {
+          console.error('Function call failed:', functionError);
           setStatus('error');
-          setMessage(`Failed to connect LinkedIn: HTTP ${response.status}`);
-          toast.error(`LinkedIn connection failed: HTTP ${response.status}`);
+          setMessage(`Failed to connect LinkedIn: ${functionError.message}`);
+          toast.error(`LinkedIn connection failed: ${functionError.message}`);
           setTimeout(() => navigate('/dashboard'), 3000);
           return;
         }
-
-        const functionResponse = await response.json();
-        console.log('Function response data:', functionResponse);
 
         if (functionResponse?.error) {
           console.error('Function response error:', functionResponse.error);
