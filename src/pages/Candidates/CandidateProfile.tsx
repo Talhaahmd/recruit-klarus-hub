@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { 
@@ -223,7 +224,7 @@ const CandidateProfile: React.FC = () => {
       <div className="sticky top-0 z-10 bg-background pb-4">
         <Header 
           title="Candidate Profile" 
-          subtitle={loading ? "Loading candidate information..." : `Viewing profile for ${candidate?.name || 'Unknown candidate'}`}
+          subtitle={loading ? "Loading candidate information..." : `Viewing profile for ${candidate?.full_name || 'Unknown candidate'}`}
         />
         <div className="ml-4 mt-2">
           <Button 
@@ -283,7 +284,7 @@ const CandidateProfile: React.FC = () => {
                 <CardContent className="p-6">
                   <div className="flex items-start justify-between">
                     <div>
-                      <h2 className="text-2xl font-bold">{candidate.name}</h2>
+                      <h2 className="text-2xl font-bold">{candidate.full_name}</h2>
                       <p className="text-gray-500">{candidate.current_job_title || 'Job Seeker'}</p>
 
                       {/* Show Applied Job Name if available */}

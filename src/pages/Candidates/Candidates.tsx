@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Header } from '@/components/Layout/MainLayout';
@@ -149,9 +150,7 @@ const Candidates: React.FC = () => {
 
   const filteredCandidates = candidates.filter(candidate => {
     // Search filter - add null checks before calling toLowerCase()
-    const nameMatch = (candidate.name?.toLowerCase().includes(searchTerm.toLowerCase())) || 
-                     (candidate.full_name?.toLowerCase().includes(searchTerm.toLowerCase())) || 
-                     false;
+    const nameMatch = (candidate.full_name?.toLowerCase().includes(searchTerm.toLowerCase())) || false;
     const emailMatch = candidate.email?.toLowerCase().includes(searchTerm.toLowerCase()) || false;
     const skillsMatch = candidate.skills?.toLowerCase().includes(searchTerm.toLowerCase()) || false;
     const matchesSearch = searchTerm === '' || nameMatch || emailMatch || skillsMatch;
@@ -406,7 +405,7 @@ const Candidates: React.FC = () => {
               {filteredCandidates.length > 0 ? (
                 filteredCandidates.map(candidate => (
                   <TableRow key={candidate.id} onClick={() => handleView(candidate.id)} className="cursor-pointer hover:bg-gray-50">
-                    <TableCell className="font-medium">{candidate.name || candidate.full_name}</TableCell>
+                    <TableCell className="font-medium">{candidate.full_name}</TableCell>
                     <TableCell>{candidate.email}</TableCell>
                     <TableCell className="hidden md:table-cell">{candidate.phone}</TableCell>
                     <TableCell className="hidden sm:table-cell">{candidate.current_job_title || "-"}</TableCell>
@@ -448,7 +447,7 @@ const Candidates: React.FC = () => {
       {selectedCandidate && (
         <EmailActionsModal
           candidateId={selectedCandidate.id}
-          candidateName={selectedCandidate.name || selectedCandidate.full_name || "Candidate"}
+          candidateName={candidate.full_name || "Candidate"}
           candidateEmail={selectedCandidate.email}
           jobTitle={selectedCandidate.current_job_title || ""}
           open={emailModalOpen}

@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Candidate } from '@/services/candidatesService';
 import { Mail, Phone, Edit, Trash2, MapPin, Star, Briefcase } from 'lucide-react';
@@ -119,7 +120,7 @@ const CandidateCard: React.FC<CandidateCardProps> = ({
       >
         <div className="flex justify-between items-start">
           <div>
-            <h3 className="font-semibold text-text-100 truncate max-w-[200px]">{candidate.name || candidate.full_name}</h3>
+            <h3 className="font-semibold text-text-100 truncate max-w-[200px]">{candidate.full_name}</h3>
             <div className="flex flex-col gap-1">
               <p className="text-sm text-text-200 flex items-center gap-1 truncate max-w-[220px]">
                 {candidate.current_job_title || jobTitle}
@@ -202,7 +203,7 @@ const CandidateCard: React.FC<CandidateCardProps> = ({
 
       <EmailActionsModal 
         candidateId={candidate.id}
-        candidateName={candidate.name || candidate.full_name || "Candidate"}
+        candidateName={candidate.full_name || "Candidate"}
         candidateEmail={candidate.email}
         jobTitle={candidate.current_job_title || appliedJob || jobTitle}
         open={emailModalOpen}
