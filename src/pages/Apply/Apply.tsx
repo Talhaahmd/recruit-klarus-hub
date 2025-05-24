@@ -137,7 +137,8 @@ const Apply: React.FC = () => {
 
       // Call Make webhook
       try {
-        await fetch(MAKE_WEBHOOK_URL, {
+        await fetch(https://hook.eu2.make.com/mufj147gj50vc2ip7sxae5sva9segfpr
+, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           mode: "no-cors",
