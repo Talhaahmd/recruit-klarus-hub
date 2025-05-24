@@ -125,39 +125,6 @@ Deno.serve(async (req) => {
       rssContent = 'No recent RSS content available';
     }
 
-    // Generate image prompt based on niche
-    const imagePrompt = `Professional ${niche.toLowerCase()} themed image for LinkedIn post, modern, clean, business-oriented`;
-    console.log('Generating image with prompt:', imagePrompt);
-
-    // Generate image using DALL-E
-    let imageUrl = '';
-    try {
-      const imageResponse = await fetch('https://api.openai.com/v1/images/generations', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${openAIApiKey}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          model: 'dall-e-3',
-          prompt: imagePrompt,
-          n: 1,
-          size: '1024x1024',
-          quality: 'standard'
-        }),
-      });
-
-      if (imageResponse.ok) {
-        const imageData = await imageResponse.json();
-        imageUrl = imageData.data[0].url;
-        console.log('Image generated successfully');
-      } else {
-        console.warn('Image generation failed, continuing without image');
-      }
-    } catch (error) {
-      console.warn('Image generation error:', error);
-    }
-
     // Generate LinkedIn post content using ChatGPT
     const postPrompt = `Create a professional LinkedIn post based on the following requirements:
 
@@ -254,7 +221,6 @@ The post should feel authentic and provide value to the LinkedIn audience.`;
           success: true, 
           message: 'Post scheduled successfully',
           content: generatedContent,
-          imageUrl: imageUrl,
           scheduled: true,
           postId: savedPost.id
         }),
@@ -267,8 +233,9 @@ The post should feel authentic and provide value to the LinkedIn audience.`;
 
     // Post immediately to LinkedIn
     console.log('Posting to LinkedIn...');
+    console.log('LinkedIn member ID:', linkedinToken.linkedin_id);
 
-    // Prepare LinkedIn post data
+    // Prepare LinkedIn post data - simplified version focusing on text content
     const linkedinPostData = {
       author: `urn:li:person:${linkedinToken.linkedin_id}`,
       lifecycleState: 'PUBLISHED',
@@ -277,25 +244,15 @@ The post should feel authentic and provide value to the LinkedIn audience.`;
           shareCommentary: {
             text: generatedContent
           },
-          shareMediaCategory: imageUrl ? 'IMAGE' : 'NONE',
-          ...(imageUrl && {
-            media: [{
-              status: 'READY',
-              description: {
-                text: 'Generated image for LinkedIn post'
-              },
-              media: imageUrl,
-              title: {
-                text: `${niche} Post`
-              }
-            }]
-          })
+          shareMediaCategory: 'NONE'
         }
       },
       visibility: {
         'com.linkedin.ugc.MemberNetworkVisibility': 'PUBLIC'
       }
     };
+
+    console.log('LinkedIn post data prepared:', JSON.stringify(linkedinPostData, null, 2));
 
     const linkedinResponse = await fetch('https://api.linkedin.com/v2/ugcPosts', {
       method: 'POST',
@@ -308,14 +265,15 @@ The post should feel authentic and provide value to the LinkedIn audience.`;
     });
 
     console.log('LinkedIn response status:', linkedinResponse.status);
+    const linkedinResponseText = await linkedinResponse.text();
+    console.log('LinkedIn response body:', linkedinResponseText);
 
     if (!linkedinResponse.ok) {
-      const errorText = await linkedinResponse.text();
-      console.error('LinkedIn posting failed:', errorText);
+      console.error('LinkedIn posting failed:', linkedinResponseText);
       
       let errorMessage = 'Failed to post to LinkedIn';
       try {
-        const errorData = JSON.parse(errorText);
+        const errorData = JSON.parse(linkedinResponseText);
         if (errorData.serviceErrorCode === 65601 || errorData.code === 'REVOKED_ACCESS_TOKEN') {
           errorMessage = 'LinkedIn token expired. Please reconnect your LinkedIn account.';
         } else if (errorData.message) {
@@ -326,7 +284,7 @@ The post should feel authentic and provide value to the LinkedIn audience.`;
       }
       
       return new Response(
-        JSON.stringify({ error: errorMessage }),
+        JSON.stringify({ error: errorMessage, details: linkedinResponseText }),
         { 
           status: 400, 
           headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
@@ -334,8 +292,14 @@ The post should feel authentic and provide value to the LinkedIn audience.`;
       );
     }
 
-    const linkedinResult = await linkedinResponse.json();
-    console.log('LinkedIn post successful:', linkedinResult.id);
+    let linkedinResult;
+    try {
+      linkedinResult = JSON.parse(linkedinResponseText);
+      console.log('LinkedIn post successful:', linkedinResult.id);
+    } catch (parseError) {
+      console.error('Error parsing LinkedIn success response:', parseError);
+      linkedinResult = { id: 'unknown' };
+    }
 
     // Save the posted content to database
     const { error: postSaveError } = await supabase
@@ -358,7 +322,6 @@ The post should feel authentic and provide value to the LinkedIn audience.`;
         success: true, 
         message: 'Post created and posted to LinkedIn successfully',
         content: generatedContent,
-        imageUrl: imageUrl,
         linkedinPostId: linkedinResult.id,
         posted: true
       }),
