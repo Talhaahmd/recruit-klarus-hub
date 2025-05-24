@@ -125,6 +125,9 @@ Deno.serve(async (req) => {
 
     console.log('LinkedIn token valid, generating post content...');
 
+    // Generate the application link
+    const applicationLink = `https://klarushr.com/apply/${jobId}`;
+
     // Generate LinkedIn post content using ChatGPT
     const postPrompt = `Create a professional LinkedIn job posting for the following position. Make it engaging and include relevant hashtags. Keep it under 280 characters for optimal engagement.
 
@@ -136,7 +139,9 @@ Job Details:
 - Technologies: ${job.technologies?.join(', ') || 'Not specified'}
 - Description: ${job.description}
 
-Make the post sound professional, exciting, and include a call to action. Include 3-5 relevant hashtags.`;
+IMPORTANT: You MUST include this exact application link at the end of the post: "Apply here: ${applicationLink}"
+
+Make the post sound professional, exciting, and include a call to action. Include 3-5 relevant hashtags. The application link should be prominently featured.`;
 
     const openAIResponse = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -149,7 +154,7 @@ Make the post sound professional, exciting, and include a call to action. Includ
         messages: [
           { 
             role: 'system', 
-            content: 'You are a professional HR specialist who creates engaging LinkedIn job posts. Keep posts concise, professional, and include relevant hashtags.' 
+            content: 'You are a professional HR specialist who creates engaging LinkedIn job posts. Always include the application link provided in the prompt. Keep posts concise, professional, and include relevant hashtags.' 
           },
           { role: 'user', content: postPrompt }
         ],
