@@ -1,28 +1,28 @@
+
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { ArrowLeft, Upload, FileType, CheckCircle2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { supabase } from '@/integrations/supabase/client';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { toast } from 'sonner';
+import { newJobsService, NewJob } from '@/services/newJobsService';
+import { newApplicationService } from '@/services/newApplicationService';
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
 const ALLOWED_FILE_TYPES = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
 const ALLOWED_FILE_EXTENSIONS = ['.pdf', '.doc', '.docx'];
-const MAKE_WEBHOOK_URL = 'https://hook.eu2.make.com/mufj147gj50vc2ip7sxae5sva9segfpr';
 
-const Apply: React.FC = () => {
+const NewApply: React.FC = () => {
   const { jobId } = useParams<{ jobId: string }>();
-  const [job, setJob] = useState<{ title: string; description: string; user_id: string } | null>(null);
+  const [job, setJob] = useState<NewJob | null>(null);
   const [file, setFile] = useState<File | null>(null);
   const [applicantName, setApplicantName] = useState<string>('');
   const [applicantEmail, setApplicantEmail] = useState<string>('');
   const [isDragging, setIsDragging] = useState<boolean>(false);
-  const [isUploading, setIsUploading] = useState<boolean>(false);
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [success, setSuccess] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -36,16 +36,11 @@ const Apply: React.FC = () => {
       }
 
       try {
-        const { data, error } = await supabase
-          .from('jobs')
-          .select('title, description, user_id')
-          .eq('id', jobId)
-          .single();
-
-        if (error || !data) {
+        const jobData = await newJobsService.getJobById(jobId);
+        if (!jobData) {
           setError('Job not found or has been removed');
         } else {
-          setJob(data);
+          setJob(jobData);
         }
       } catch (err) {
         console.error('Error fetching job:', err);
@@ -93,69 +88,21 @@ const Apply: React.FC = () => {
       return;
     }
 
-    setIsUploading(true);
+    setIsSubmitting(true);
     setError(null);
 
-    try {
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${Date.now()}_${Math.random().toString(36).substring(2)}.${fileExt}`;
-      const filePath = `applications/${jobId}/${fileName}`;
+    const success = await newApplicationService.submitApplication(
+      jobId,
+      applicantName.trim(),
+      applicantEmail.trim(),
+      file
+    );
 
-      // Upload file to new cv-bucket
-      const { error: uploadError } = await supabase.storage
-        .from('cv-bucket')
-        .upload(filePath, file, {
-          cacheControl: '3600',
-          upsert: false
-        });
-
-      if (uploadError) throw new Error(uploadError.message);
-
-      // Get public URL
-      const { data: urlData } = supabase.storage
-        .from('cv-bucket')
-        .getPublicUrl(filePath);
-      const fileUrl = urlData.publicUrl;
-
-      // Insert application into job_applications table
-      const { error: insertError } = await supabase
-        .from('job_applications')
-        .insert({
-          job_id: jobId,
-          job_name: job.title,
-          link_for_cv: fileUrl
-        });
-
-      if (insertError) throw new Error(insertError.message);
-
-      // Call Make webhook
-      try {
-        await fetch(MAKE_WEBHOOK_URL, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          mode: "no-cors",
-          body: JSON.stringify({
-            cv_url: fileUrl,
-            job_id: jobId,
-            job_name: job.title,
-            hr_user_id: job.user_id,
-            applicant_name: applicantName.trim(),
-            applicant_email: applicantEmail.trim()
-          })
-        });
-      } catch (webhookError) {
-        console.error('Webhook error (non-critical):', webhookError);
-      }
-
+    if (success) {
       setSuccess(true);
-      toast.success('Application submitted successfully!');
-    } catch (err: any) {
-      console.error('Error submitting application:', err);
-      setError(err.message || 'Failed to submit application');
-      toast.error(`Application failed: ${err.message}`);
-    } finally {
-      setIsUploading(false);
     }
+    
+    setIsSubmitting(false);
   };
 
   if (isLoading) {
@@ -229,7 +176,7 @@ const Apply: React.FC = () => {
             <CardHeader>
               <CardTitle className="text-2xl">{job?.title}</CardTitle>
               <CardDescription>
-                Submit your application for this position
+                {job?.workplace_type} • {job?.location} • {job?.job_type}
               </CardDescription>
             </CardHeader>
           </Card>
@@ -237,7 +184,7 @@ const Apply: React.FC = () => {
 
         <Card>
           <CardHeader>
-            <CardTitle>Application Form</CardTitle>
+            <CardTitle>Submit Your Application</CardTitle>
             <CardDescription>
               Please fill in your details and upload your resume
             </CardDescription>
@@ -326,9 +273,9 @@ const Apply: React.FC = () => {
               <Button
                 type="submit"
                 className="w-full"
-                disabled={isUploading || !file || !applicantName.trim() || !applicantEmail.trim()}
+                disabled={isSubmitting || !file || !applicantName.trim() || !applicantEmail.trim()}
               >
-                {isUploading ? (
+                {isSubmitting ? (
                   <>
                     <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
                     Submitting Application...
@@ -345,4 +292,4 @@ const Apply: React.FC = () => {
   );
 };
 
-export default Apply;
+export default NewApply;
