@@ -10,7 +10,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Upload, File } from 'lucide-react';
 import { toast } from 'sonner';
-import { supabase } from '@/integrations/supabase/client'; // Corrected import path
+import { supabase } from '@/integrations/supabase/client';
 
 interface AddCandidateModalProps {
   isOpen: boolean;
@@ -34,49 +34,67 @@ const AddCandidateModal: React.FC<AddCandidateModalProps> = ({ isOpen, onClose, 
       return;
     }
 
-    const filePath = `${Date.now()}-${selectedFile.name}`;
-    const { data: uploadData, error: uploadError } = await supabase
-      .storage
-      .from('candidate-files')
-      .upload(filePath, selectedFile);
+    try {
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast.error('You must be logged in to upload CVs');
+        return;
+      }
 
-    if (uploadError) {
-      console.error('Upload error:', uploadError);
-      toast.error('CV Upload failed');
-      return;
+      const filePath = `${Date.now()}-${selectedFile.name}`;
+      const { data: uploadData, error: uploadError } = await supabase
+        .storage
+        .from('candidate-files')
+        .upload(filePath, selectedFile);
+
+      if (uploadError) {
+        console.error('Upload error:', uploadError);
+        toast.error('CV Upload failed');
+        return;
+      }
+
+      const { data: publicUrlData } = supabase
+        .storage
+        .from('candidate-files')
+        .getPublicUrl(filePath);
+
+      // Insert into candidate_cvs table instead of cv_links
+      const { error: insertError } = await supabase
+        .from('candidate_cvs')
+        .insert([
+          {
+            cv_file_name: selectedFile.name,
+            cv_file_url: publicUrlData.publicUrl,
+            cv_file_size: selectedFile.size,
+            cv_file_type: selectedFile.type,
+            user_id: user.id,
+            job_id: '00000000-0000-0000-0000-000000000000', // Default job_id since it's required
+            status: 'new'
+          },
+        ]);
+
+      if (insertError) {
+        console.error('Insert error:', insertError);
+        toast.error('Failed to save CV');
+        return;
+      }
+
+      toast.success(`CV "${selectedFile.name}" uploaded and saved!`);
+      
+      onSave({
+        type: 'cv',
+        file: selectedFile,
+        url: publicUrlData.publicUrl,
+      });
+
+      setSelectedFile(null);
+      setMode('initial');
+      onClose();
+    } catch (error) {
+      console.error('Error uploading CV:', error);
+      toast.error('Failed to upload CV');
     }
-
-    const { data: publicUrlData } = supabase
-      .storage
-      .from('candidate-files')
-      .getPublicUrl(filePath);
-
-    const { error: insertError } = await supabase
-      .from('cv_links')
-      .insert([
-        {
-          file_name: selectedFile.name,
-          file_url: publicUrlData.publicUrl,
-        },
-      ]);
-
-    if (insertError) {
-      console.error('Insert error:', insertError);
-      toast.error('Failed to save CV link');
-      return;
-    }
-
-    toast.success(`CV "${selectedFile.name}" uploaded and saved!`);
-    
-    onSave({
-      type: 'cv',
-      file: selectedFile,
-      url: publicUrlData.publicUrl,
-    });
-
-    setSelectedFile(null);
-    setMode('initial');
-    onClose();
   };
   
   const handleBulkUpload = () => {
