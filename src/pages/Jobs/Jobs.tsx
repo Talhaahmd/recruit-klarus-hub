@@ -20,10 +20,9 @@ const Jobs = () => {
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
   const [jobs, setJobs] = useState<Job[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [pendingJobData, setPendingJobData] = useState<NewJobData | null>(null);
   const navigate = useNavigate();
   const { autoPostToLinkedIn, isPosting } = useLinkedInAutoPost();
-  const { showModal, initiateLinkedInConnect, dismissModal, recheckToken } = useLinkedInPrompt();
+  const { showModal, initiateLinkedInConnect, dismissModal } = useLinkedInPrompt();
 
   // Fetch jobs on mount
   useEffect(() => {
@@ -36,13 +35,15 @@ const Jobs = () => {
     const linkedInConnected = urlParams.get('linkedin_connected');
     
     if (linkedInConnected === 'true') {
-      console.log('LinkedIn connected callback detected, cleaning URL...');
+      console.log('LinkedIn connected callback detected, refreshing jobs...');
       
       // Clean up URL
       window.history.replaceState({}, document.title, window.location.pathname);
       
-      // Refresh jobs to show the newly created job
-      fetchJobs();
+      // Refresh jobs to show any newly created job
+      setTimeout(() => {
+        fetchJobs();
+      }, 3000);
     }
   }, []);
 
@@ -66,18 +67,16 @@ const Jobs = () => {
 
   const handleCloseModal = () => {
     setIsAddJobModalOpen(false);
-    setPendingJobData(null);
   };
 
   const handleSaveJob = async (data: NewJobData) => {
-    console.log('Job data received, requesting fresh LinkedIn authentication...');
+    console.log('Job data received, always requesting fresh LinkedIn authentication...');
     
-    // Always prompt for fresh LinkedIn connection for every job post
-    setPendingJobData(data);
+    // Close the add job modal
     setIsAddJobModalOpen(false);
     
-    // Always request fresh LinkedIn authentication - await the async function
-    toast.info('Requesting fresh LinkedIn authentication...');
+    // Always request fresh LinkedIn authentication for every job post
+    toast.info('Requesting fresh LinkedIn authentication for job posting...');
     await initiateLinkedInConnect(data);
   };
 
@@ -107,51 +106,14 @@ const Jobs = () => {
   };
 
   const handleLinkedInConnect = async () => {
-    console.log('User confirmed fresh LinkedIn connection');
-    if (pendingJobData) {
-      await initiateLinkedInConnect(pendingJobData);
-    } else {
-      await initiateLinkedInConnect();
-    }
+    console.log('User confirmed LinkedIn connection for job posting');
+    // The flow is already handled by the hook
   };
 
   const handleLinkedInDismiss = () => {
     console.log('User dismissed LinkedIn connection');
     dismissModal();
-    
-    // If user dismisses, create job without LinkedIn posting
-    if (pendingJobData) {
-      createJobWithoutLinkedIn(pendingJobData);
-    }
-    setPendingJobData(null);
-  };
-
-  const createJobWithoutLinkedIn = async (data: NewJobData) => {
-    console.log('Creating job without LinkedIn posting...');
-    try {
-      // Map NewJobData to JobInput format
-      const jobInput: JobInput = {
-        title: data.title,
-        description: data.description,
-        location: data.location,
-        type: data.type,
-        workplace_type: data.workplaceType,
-        technologies: data.technologies,
-        status: 'Active',
-        posted_date: new Date().toISOString().split('T')[0],
-        active_days: data.activeDays,
-        applicants: 0
-      };
-
-      const createdJob = await jobsService.createJob(jobInput);
-      if (createdJob) {
-        toast.success('Job created successfully!');
-        await fetchJobs();
-      }
-    } catch (error) {
-      console.error('Error creating job:', error);
-      toast.error('Failed to create job');
-    }
+    toast.info('Job posting cancelled - LinkedIn authentication required');
   };
 
   return (
@@ -205,9 +167,9 @@ const Jobs = () => {
       ) : jobs.length > 0 ? (
         <JobsTable 
           jobs={jobs} 
-          onEdit={() => {}} 
-          onDelete={() => {}} 
-          onView={() => {}} 
+          onEdit={handleEditJob} 
+          onDelete={handleDeleteJob} 
+          onView={handleViewJob} 
         />
       ) : (
         <div className="glass-card p-8 text-center">
@@ -235,7 +197,7 @@ const Jobs = () => {
       )}
 
       <LinkedInPromptModal
-        isOpen={showModal && pendingJobData !== null}
+        isOpen={showModal}
         onConnect={handleLinkedInConnect}
         onDismiss={handleLinkedInDismiss}
       />
