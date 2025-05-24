@@ -60,7 +60,7 @@ export const useLinkedInPrompt = () => {
     }
   }, [user, isAuthenticated]);
 
-  const initiateLinkedInConnect = (postData?: any) => {
+  const initiateLinkedInConnect = async (postData?: any) => {
     if (!user) {
       toast.error('Please log in first');
       return;
@@ -78,16 +78,20 @@ export const useLinkedInPrompt = () => {
       
       // Always clear existing LinkedIn tokens to force fresh authentication
       console.log('Clearing existing LinkedIn tokens for fresh authentication');
-      supabase
-        .from('linkedin_tokens')
-        .delete()
-        .eq('user_id', user.id)
-        .then(() => {
-          console.log('Existing tokens cleared successfully');
-        })
-        .catch((error) => {
+      try {
+        const { error } = await supabase
+          .from('linkedin_tokens')
+          .delete()
+          .eq('user_id', user.id);
+        
+        if (error) {
           console.warn('Error clearing existing tokens:', error);
-        });
+        } else {
+          console.log('Existing tokens cleared successfully');
+        }
+      } catch (error) {
+        console.warn('Error clearing existing tokens:', error);
+      }
       
       // Generate secure state value and store it properly
       const state = crypto.randomUUID();
