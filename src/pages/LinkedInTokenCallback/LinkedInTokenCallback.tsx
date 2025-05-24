@@ -34,10 +34,12 @@ const LinkedInTokenCallback: React.FC = () => {
         return;
       }
 
-      // Verify state parameter
-      const storedState = sessionStorage.getItem('linkedin_oauth_state');
+      // Verify state parameter - check both storage locations
+      const storedState = sessionStorage.getItem('linkedin_oauth_state') || localStorage.getItem('linkedin_oauth_state');
+      console.log('State verification:', { received: state, stored: storedState });
+      
       if (state !== storedState) {
-        console.error('OAuth state mismatch');
+        console.error('OAuth state mismatch - security verification failed');
         toast.error('LinkedIn connection failed. Security verification failed.');
         navigate('/jobs');
         return;
@@ -67,8 +69,9 @@ const LinkedInTokenCallback: React.FC = () => {
         console.log('LinkedIn token stored successfully');
         toast.success('LinkedIn connected successfully!');
         
-        // Clean up
+        // Clean up state from both storage locations
         sessionStorage.removeItem('linkedin_oauth_state');
+        localStorage.removeItem('linkedin_oauth_state');
         
         // Check for pending job data
         const pendingJobData = sessionStorage.getItem('pending_job_data');
@@ -100,17 +103,19 @@ const LinkedInTokenCallback: React.FC = () => {
               console.log('Job created successfully:', savedJob);
               toast.success('Job created successfully');
               
-              // Auto-post to LinkedIn with fresh token
+              // Auto-post to LinkedIn with fresh token - add delay to ensure token is ready
               console.log('Attempting LinkedIn auto-post with fresh token...');
-              const linkedInSuccess = await autoPostToLinkedIn(savedJob.id);
-              
-              if (linkedInSuccess) {
-                console.log('LinkedIn auto-post completed successfully');
-                toast.success('Job posted to LinkedIn successfully!');
-              } else {
-                console.log('LinkedIn auto-post failed, but job was created');
-                toast.error('Job created but LinkedIn posting failed. You can try posting manually.');
-              }
+              setTimeout(async () => {
+                const linkedInSuccess = await autoPostToLinkedIn(savedJob.id);
+                
+                if (linkedInSuccess) {
+                  console.log('LinkedIn auto-post completed successfully');
+                  toast.success('Job posted to LinkedIn successfully!');
+                } else {
+                  console.log('LinkedIn auto-post failed, but job was created');
+                  toast.error('Job created but LinkedIn posting failed. You can try posting manually.');
+                }
+              }, 2000); // Wait 2 seconds for token to be fully processed
             } else {
               console.error('Job creation failed - no job returned');
               toast.error('Failed to create job');

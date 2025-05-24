@@ -73,24 +73,24 @@ export const useLinkedInPrompt = () => {
         sessionStorage.setItem('pending_job_data', JSON.stringify(jobData));
       }
       
-      // Generate secure state value
+      // Generate secure state value and store it properly
       const state = crypto.randomUUID();
-      sessionStorage.setItem('linkedin_oauth_state', state);
       console.log('Generated OAuth state:', state);
+      
+      // Store state in both sessionStorage and localStorage for redundancy
+      sessionStorage.setItem('linkedin_oauth_state', state);
+      localStorage.setItem('linkedin_oauth_state', state);
 
       // Use basic supported scopes
       const clientId = '771girpp9fv439';
       const redirectUri = encodeURIComponent('https://klarushr.com/linkedin-token-callback');
-      // Using only basic scopes: openid, profile, email, and w_member_social
       const scope = encodeURIComponent('openid profile email w_member_social');
       const authUrl = `https://www.linkedin.com/oauth/v2/authorization?response_type=code&client_id=${clientId}&redirect_uri=${redirectUri}&scope=${scope}&state=${state}`;
 
-      console.log('Redirecting to LinkedIn OAuth with basic scopes:', authUrl);
+      console.log('Redirecting to LinkedIn OAuth:', authUrl);
       
-      // Add a small delay to ensure state is properly set
-      setTimeout(() => {
-        window.location.href = authUrl;
-      }, 100);
+      // Redirect immediately
+      window.location.href = authUrl;
     } catch (error) {
       console.error('Error initiating LinkedIn OAuth:', error);
       toast.error('Failed to initiate LinkedIn connection');

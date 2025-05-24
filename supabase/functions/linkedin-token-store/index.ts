@@ -112,9 +112,28 @@ Deno.serve(async (req) => {
     const tokenData = await tokenResponse.json();
     console.log('Token exchange successful, expires in:', tokenData.expires_in);
 
-    // Generate a unique LinkedIn ID for this user since we can't fetch profile
-    const linkedinId = `linkedin_${user.id}_${Date.now()}`;
-    console.log('Generated LinkedIn ID:', linkedinId);
+    // Get LinkedIn profile to get the proper member ID
+    let linkedinId = null;
+    try {
+      console.log('Fetching LinkedIn profile...');
+      const profileResponse = await fetch('https://api.linkedin.com/v2/userinfo', {
+        headers: {
+          'Authorization': `Bearer ${tokenData.access_token}`,
+        },
+      });
+
+      if (profileResponse.ok) {
+        const profile = await profileResponse.json();
+        linkedinId = profile.sub; // This is the proper LinkedIn member ID
+        console.log('LinkedIn profile fetched, member ID:', linkedinId);
+      } else {
+        console.warn('Failed to fetch LinkedIn profile, using fallback ID');
+        linkedinId = `member_${user.id}_${Date.now()}`;
+      }
+    } catch (profileError) {
+      console.warn('Error fetching LinkedIn profile:', profileError);
+      linkedinId = `member_${user.id}_${Date.now()}`;
+    }
 
     // Calculate expiration time
     const expiresAt = new Date(Date.now() + (tokenData.expires_in * 1000)).toISOString();

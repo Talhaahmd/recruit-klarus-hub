@@ -175,7 +175,7 @@ Make the post sound professional, exciting, and include a call to action. Includ
     
     console.log('Generated post content:', postContent);
 
-    // Post to LinkedIn
+    // Post to LinkedIn using correct format for member ID
     const linkedinPostData = {
       author: `urn:li:person:${linkedinToken.linkedin_id}`,
       lifecycleState: 'PUBLISHED',
@@ -192,7 +192,7 @@ Make the post sound professional, exciting, and include a call to action. Includ
       }
     };
 
-    console.log('Posting to LinkedIn...');
+    console.log('Posting to LinkedIn with author:', linkedinPostData.author);
 
     const linkedinResponse = await fetch('https://api.linkedin.com/v2/ugcPosts', {
       method: 'POST',
