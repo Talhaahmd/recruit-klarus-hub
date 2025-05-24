@@ -61,9 +61,6 @@ const Navbar: React.FC = () => {
             >
               Book a Demo
             </button>
-            <Link to="/linkedin-signup" className="text-base font-normal text-cyan-400 transition-all duration-200 hover:text-cyan-300 font-medium">
-              LinkedIn Zero
-            </Link>
             <Link to="/signup" className="text-base font-normal text-gray-400 transition-all duration-200 hover:text-white">
               Sign Up
             </Link>
@@ -93,13 +90,6 @@ const Navbar: React.FC = () => {
               >
                 Book a Demo
               </button>
-              <Link 
-                to="/linkedin-signup" 
-                className="text-base font-normal text-cyan-400 transition-all duration-200 hover:text-cyan-300 font-medium"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                LinkedIn Zero
-              </Link>
               <Link 
                 to="/signup" 
                 className="text-base font-normal text-gray-400 transition-all duration-200 hover:text-white"
