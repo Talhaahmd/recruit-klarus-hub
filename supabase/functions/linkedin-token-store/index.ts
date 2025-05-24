@@ -58,10 +58,36 @@ Deno.serve(async (req) => {
 
     console.log('User verified:', user.id);
 
-    const requestBody = await req.text();
-    console.log('Request body received:', requestBody);
+    // Get the request body and handle empty body
+    let requestBody;
+    try {
+      const bodyText = await req.text();
+      console.log('Request body received:', bodyText);
+      
+      if (!bodyText || bodyText.trim() === '') {
+        console.error('Empty request body');
+        return new Response(
+          JSON.stringify({ error: 'Empty request body' }),
+          { 
+            status: 400, 
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+          }
+        );
+      }
+      
+      requestBody = JSON.parse(bodyText);
+    } catch (parseError) {
+      console.error('Failed to parse request body:', parseError);
+      return new Response(
+        JSON.stringify({ error: 'Invalid JSON in request body' }),
+        { 
+          status: 400, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
+    }
     
-    const { code } = JSON.parse(requestBody);
+    const { code } = requestBody;
     
     if (!code) {
       console.error('Missing authorization code');

@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
@@ -108,22 +107,21 @@ const LinkedInTokenCallback: React.FC = () => {
         }
 
         console.log('Valid session found, user ID:', session.user.id);
-
-        // Send code to our edge function
         console.log('Sending authorization code to edge function...');
         
-        const { data: responseData, error: functionError } = await supabase.functions.invoke('linkedin-token-store', {
-          body: { code },
+        // Call the edge function with proper JSON body
+        const { data: functionResponse, error: functionError } = await supabase.functions.invoke('linkedin-token-store', {
+          body: JSON.stringify({ code }),
           headers: {
             'Authorization': `Bearer ${session.access_token}`,
             'Content-Type': 'application/json'
           }
         });
 
-        console.log('Edge function response:', { data: responseData, error: functionError });
+        console.log('Edge function response:', { data: functionResponse, error: functionError });
 
         if (functionError) {
-          console.error('Token store function error:', functionError);
+          console.error('Edge function invocation error:', functionError);
           setStatus('error');
           setMessage(`Failed to connect LinkedIn: ${functionError.message}`);
           toast.error(`LinkedIn connection failed: ${functionError.message}`);
@@ -131,16 +129,16 @@ const LinkedInTokenCallback: React.FC = () => {
           return;
         }
 
-        if (responseData?.error) {
-          console.error('Token store response error:', responseData.error);
+        if (functionResponse?.error) {
+          console.error('Edge function response error:', functionResponse.error);
           setStatus('error');
-          setMessage(`Failed to connect LinkedIn: ${responseData.error}`);
-          toast.error(`LinkedIn connection failed: ${responseData.error}`);
+          setMessage(`Failed to connect LinkedIn: ${functionResponse.error}`);
+          toast.error(`LinkedIn connection failed: ${functionResponse.error}`);
           setTimeout(() => navigate('/dashboard'), 3000);
           return;
         }
 
-        console.log('LinkedIn connection successful:', responseData);
+        console.log('LinkedIn connection successful:', functionResponse);
 
         setStatus('success');
         setMessage('LinkedIn connected successfully!');
