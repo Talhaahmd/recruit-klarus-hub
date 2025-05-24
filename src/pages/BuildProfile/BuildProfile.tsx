@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Header } from '@/components/Layout/MainLayout';
 import { Calendar, Clock, Send, Plus, Trash2, Check, ThumbsUp, Loader2 } from 'lucide-react';
@@ -68,6 +69,108 @@ const BuildProfile: React.FC = () => {
     fetchPosts();
   }, []);
 
+  // Handle LinkedIn connection callback specifically for BuildProfile
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const linkedInConnected = urlParams.get('linkedin_connected');
+    
+    if (linkedInConnected === 'true') {
+      console.log('LinkedIn connected callback detected in BuildProfile...');
+      
+      // Clean up URL
+      window.history.replaceState({}, document.title, window.location.pathname);
+      
+      // Check for pending post data specific to BuildProfile
+      const pendingPostData = sessionStorage.getItem('pending_post_data');
+      if (pendingPostData) {
+        console.log('Found pending post data for BuildProfile');
+        try {
+          const postData = JSON.parse(pendingPostData);
+          
+          // Check if this is BuildProfile data (not Jobs data)
+          if (postData.content && postData.niche && postData.tone) {
+            console.log('Processing LinkedIn post generation...');
+            sessionStorage.removeItem('pending_post_data');
+            
+            // Add delay to ensure token is processed
+            setTimeout(() => {
+              processLinkedInPost(postData);
+            }, 3000);
+          } else {
+            console.log('Post data is for Jobs, not BuildProfile - ignoring');
+          }
+        } catch (error) {
+          console.error('Error parsing pending post data:', error);
+          toast.error('Failed to process post data after LinkedIn connection');
+        }
+      } else {
+        console.log('No pending post data found');
+        toast.success('LinkedIn connected successfully!');
+      }
+    }
+  }, []);
+
+  const processLinkedInPost = async (postData: any) => {
+    try {
+      console.log('Processing LinkedIn post generation with data:', postData);
+      
+      const { data, error } = await supabase.functions.invoke('generate-linkedin-post', {
+        body: {
+          niche: postData.niche,
+          tone: postData.tone,
+          contentPrompt: postData.content,
+          scheduleDate: postData.isScheduled ? postData.scheduledDate : null,
+          scheduleTime: postData.isScheduled ? postData.scheduledTime : null
+        }
+      });
+
+      if (error) {
+        console.error('LinkedIn post generation error:', error);
+        toast.error(`Failed to generate LinkedIn post: ${error.message}`);
+        return;
+      }
+
+      if (data?.error) {
+        console.error('LinkedIn post generation failed:', data.error);
+        toast.error(`Failed to generate LinkedIn post: ${data.error}`);
+        return;
+      }
+
+      console.log('LinkedIn post generation successful:', data);
+      
+      // Refresh posts list
+      const updatedPosts = await linkedinService.getPosts();
+      setPosts(updatedPosts);
+      
+      // Reset form
+      if (postData.isScheduled) {
+        setScheduledContent('');
+        setScheduledDate(null);
+        setScheduledTime(null);
+        setScheduledCustomNiche('');
+        setScheduledNiche('');
+        setOpenScheduleDialog(false);
+      } else {
+        setPostContent('');
+        setCustomNiche('');
+        setSelectedNiche('');
+      }
+      
+      // Show success modal
+      setSuccessMessage(data.scheduled ? 'Your LinkedIn post has been scheduled successfully!' : 'Your LinkedIn post has been generated and posted successfully!');
+      setSuccessModal(true);
+      
+    } catch (error) {
+      console.error('Error processing LinkedIn post:', error);
+      toast.error('Failed to process LinkedIn post');
+    } finally {
+      setIsSubmitting(false);
+      setIsScheduleSubmitting(false);
+      setIsGenerating(false);
+      setPendingPostData(null);
+    }
+  };
+
   const tones = [
     'Professional',
     'Inspirational',
@@ -95,12 +198,21 @@ const BuildProfile: React.FC = () => {
       // Always request fresh LinkedIn authentication for every post
       console.log('Always requesting fresh LinkedIn authentication for post generation...');
       setPendingPostData({ ...postData, isScheduled });
+      
+      // Store the data with a flag to identify it's from BuildProfile
+      const dataWithMetadata = {
+        ...postData,
+        isScheduled,
+        source: 'BuildProfile',
+        timestamp: Date.now()
+      };
+      
+      sessionStorage.setItem('pending_post_data', JSON.stringify(dataWithMetadata));
       await initiateLinkedInConnect();
       
     } catch (error) {
       console.error('Unexpected error generating LinkedIn post:', error);
       toast.error('Failed to generate LinkedIn post. Please try again.');
-    } finally {
       setIsGenerating(false);
     }
   };
@@ -129,7 +241,6 @@ const BuildProfile: React.FC = () => {
     } catch (error) {
       console.error('Error creating post:', error);
       toast.error('Failed to create LinkedIn post');
-    } finally {
       setIsSubmitting(false);
     }
   };
@@ -160,83 +271,22 @@ const BuildProfile: React.FC = () => {
     } catch (error) {
       console.error('Error scheduling post:', error);
       toast.error('Failed to schedule LinkedIn post');
-    } finally {
       setIsScheduleSubmitting(false);
     }
   };
   
   const handleLinkedInConnect = async () => {
-    console.log('User confirmed LinkedIn connection');
-    await initiateLinkedInConnect();
-  };
-
-  const handleLinkedInConnectSuccess = async () => {
-    console.log('LinkedIn connected successfully, processing pending post...');
-    dismissModal();
-    
-    if (pendingPostData) {
-      console.log('Processing pending post data:', pendingPostData);
-      
-      try {
-        const { data, error } = await supabase.functions.invoke('generate-linkedin-post', {
-          body: {
-            niche: pendingPostData.niche,
-            tone: pendingPostData.tone,
-            contentPrompt: pendingPostData.content,
-            scheduleDate: pendingPostData.isScheduled ? pendingPostData.scheduledDate : null,
-            scheduleTime: pendingPostData.isScheduled ? pendingPostData.scheduledTime : null
-          }
-        });
-
-        if (error) {
-          console.error('LinkedIn post generation error:', error);
-          toast.error(`Failed to generate LinkedIn post: ${error.message}`);
-          return;
-        }
-
-        if (data?.error) {
-          console.error('LinkedIn post generation failed:', data.error);
-          toast.error(`Failed to generate LinkedIn post: ${data.error}`);
-          return;
-        }
-
-        console.log('LinkedIn post generation successful:', data);
-        
-        // Refresh posts list
-        const updatedPosts = await linkedinService.getPosts();
-        setPosts(updatedPosts);
-        
-        // Reset form
-        if (pendingPostData.isScheduled) {
-          setScheduledContent('');
-          setScheduledDate(null);
-          setScheduledTime(null);
-          setScheduledCustomNiche('');
-          setScheduledNiche('');
-          setOpenScheduleDialog(false);
-        } else {
-          setPostContent('');
-          setCustomNiche('');
-          setSelectedNiche('');
-        }
-        
-        // Show success modal
-        setSuccessMessage(data.scheduled ? 'Your LinkedIn post has been scheduled successfully!' : 'Your LinkedIn post has been generated and posted successfully!');
-        setSuccessModal(true);
-        
-      } catch (error) {
-        console.error('Error processing post after LinkedIn connection:', error);
-        toast.error('Failed to process post after LinkedIn connection');
-      } finally {
-        setPendingPostData(null);
-      }
-    }
+    console.log('User confirmed LinkedIn connection from BuildProfile');
+    // The authentication flow is already handled by the hook
   };
 
   const handleLinkedInDismiss = () => {
-    console.log('User dismissed LinkedIn connection');
+    console.log('User dismissed LinkedIn connection from BuildProfile');
     dismissModal();
     setPendingPostData(null);
+    setIsSubmitting(false);
+    setIsScheduleSubmitting(false);
+    setIsGenerating(false);
   };
   
   const handleMarkAsPosted = async (id: string) => {
