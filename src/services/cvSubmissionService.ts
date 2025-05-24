@@ -41,14 +41,16 @@ export const cvSubmissionService = {
           .eq('id', jobId)
           .single();
         
-        // Create job application - remove explicit typing to fix TS error
+        // Create job application with simplified object structure
+        const applicationData = {
+          job_id: jobId,
+          job_name: jobData?.title || 'Unknown Job',
+          link_for_cv: fileUrl
+        };
+        
         const { error: appError } = await supabase
           .from('job_applications')
-          .insert({
-            job_id: jobId,
-            job_name: jobData?.title || 'Unknown Job',
-            link_for_cv: fileUrl
-          });
+          .insert(applicationData);
           
         if (appError) throw appError;
         
