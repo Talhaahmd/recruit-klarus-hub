@@ -67,7 +67,7 @@ export const useLinkedInPrompt = () => {
     }
 
     try {
-      console.log('Initiating LinkedIn OAuth connection...');
+      console.log('Initiating fresh LinkedIn OAuth connection...');
       setShowModal(true);
       
       // Store post data in sessionStorage before redirect
@@ -78,17 +78,16 @@ export const useLinkedInPrompt = () => {
       
       // Always clear existing LinkedIn tokens to force fresh authentication
       console.log('Clearing existing LinkedIn tokens for fresh authentication');
-      const clearTokensPromise = supabase
+      supabase
         .from('linkedin_tokens')
         .delete()
-        .eq('user_id', user.id);
-      
-      // Handle the promise properly but don't wait for it
-      clearTokensPromise.then(() => {
-        console.log('Existing tokens cleared');
-      }).catch((error) => {
-        console.warn('Error clearing existing tokens:', error);
-      });
+        .eq('user_id', user.id)
+        .then(() => {
+          console.log('Existing tokens cleared successfully');
+        })
+        .catch((error) => {
+          console.warn('Error clearing existing tokens:', error);
+        });
       
       // Generate secure state value and store it properly
       const state = crypto.randomUUID();

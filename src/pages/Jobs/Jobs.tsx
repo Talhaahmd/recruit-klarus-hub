@@ -72,12 +72,12 @@ const Jobs = () => {
   const handleSaveJob = async (data: NewJobData) => {
     console.log('Job data received, requesting fresh LinkedIn authentication...');
     
-    // Always prompt for fresh LinkedIn connection for account switches and token issues
+    // Always prompt for fresh LinkedIn connection for every job post
     setPendingJobData(data);
     setIsAddJobModalOpen(false);
     
-    // Force fresh LinkedIn authentication every time
-    toast.info('Connecting to LinkedIn for fresh authentication...');
+    // Always request fresh LinkedIn authentication
+    toast.info('Requesting fresh LinkedIn authentication...');
     initiateLinkedInConnect(data);
   };
 
@@ -166,11 +166,11 @@ const Jobs = () => {
         <div className="flex items-center gap-2">
           <AlertCircle className="h-5 w-5 text-blue-600" />
           <span className="text-sm font-medium text-blue-900">
-            Fresh LinkedIn Authentication
+            Fresh LinkedIn Authentication Required
           </span>
         </div>
         <p className="text-sm text-blue-700 mt-2">
-          Each job posting requires fresh LinkedIn authentication to ensure proper account access and avoid token conflicts when switching between accounts.
+          Each job posting will request fresh LinkedIn authentication to ensure proper account access and avoid token conflicts.
         </p>
       </div>
 
@@ -205,9 +205,9 @@ const Jobs = () => {
       ) : jobs.length > 0 ? (
         <JobsTable 
           jobs={jobs} 
-          onEdit={handleEditJob} 
-          onDelete={handleDeleteJob} 
-          onView={handleViewJob} 
+          onEdit={() => {}} 
+          onDelete={() => {}} 
+          onView={() => {}} 
         />
       ) : (
         <div className="glass-card p-8 text-center">
