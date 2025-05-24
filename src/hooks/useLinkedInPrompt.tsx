@@ -57,7 +57,7 @@ export const useLinkedInPrompt = () => {
     }
   };
 
-  const initiateLinkedInConnect = () => {
+  const initiateLinkedInConnect = (jobData?: any) => {
     if (!user) {
       toast.error('Please log in first');
       return;
@@ -66,6 +66,12 @@ export const useLinkedInPrompt = () => {
     try {
       console.log('Initiating LinkedIn OAuth connection...');
       setShowModal(true);
+      
+      // Store job data in sessionStorage before redirect
+      if (jobData) {
+        console.log('Storing job data for after OAuth:', jobData);
+        sessionStorage.setItem('pending_job_data', JSON.stringify(jobData));
+      }
       
       // Generate secure state value
       const state = crypto.randomUUID();
