@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
@@ -10,7 +10,7 @@ export const useLinkedInPrompt = () => {
   const [hasLinkedInToken, setHasLinkedInToken] = useState<boolean | null>(null);
   const [showModal, setShowModal] = useState(false);
 
-  const checkLinkedInToken = async () => {
+  const checkLinkedInToken = useCallback(async () => {
     if (!user || !isAuthenticated) {
       console.log('No user or not authenticated, skipping LinkedIn token check');
       setHasLinkedInToken(null);
@@ -55,9 +55,9 @@ export const useLinkedInPrompt = () => {
     } finally {
       setIsCheckingToken(false);
     }
-  };
+  }, [user, isAuthenticated]);
 
-  const initiateLinkedInConnect = (jobData?: any) => {
+  const initiateLinkedInConnect = (postData?: any) => {
     if (!user) {
       toast.error('Please log in first');
       return;
@@ -67,10 +67,10 @@ export const useLinkedInPrompt = () => {
       console.log('Initiating LinkedIn OAuth connection...');
       setShowModal(true);
       
-      // Store job data in sessionStorage before redirect
-      if (jobData) {
-        console.log('Storing job data for after OAuth:', jobData);
-        sessionStorage.setItem('pending_job_data', JSON.stringify(jobData));
+      // Store post data in sessionStorage before redirect
+      if (postData) {
+        console.log('Storing post data for after OAuth:', postData);
+        sessionStorage.setItem('pending_post_data', JSON.stringify(postData));
       }
       
       // Generate secure state value and store it properly
@@ -103,6 +103,35 @@ export const useLinkedInPrompt = () => {
     setShowModal(false);
   };
 
+  // Check for LinkedIn connection callback and handle post data
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const linkedInConnected = urlParams.get('linkedin_connected');
+    
+    if (linkedInConnected === 'true') {
+      console.log('LinkedIn connected callback detected...');
+      
+      // Clean up URL
+      window.history.replaceState({}, document.title, window.location.pathname);
+      
+      // Recheck token
+      setTimeout(() => {
+        checkLinkedInToken();
+      }, 1000);
+      
+      // Check for pending post data
+      const pendingPostData = sessionStorage.getItem('pending_post_data');
+      if (pendingPostData) {
+        console.log('Found pending post data after LinkedIn connection');
+        sessionStorage.removeItem('pending_post_data');
+        // Note: The component using this hook should handle the post generation
+        toast.success('LinkedIn connected! Processing your post...');
+      } else {
+        toast.success('LinkedIn connected successfully!');
+      }
+    }
+  }, [checkLinkedInToken]);
+
   // Only check token when user is authenticated and we have a valid user
   useEffect(() => {
     if (isAuthenticated && user) {
@@ -117,7 +146,7 @@ export const useLinkedInPrompt = () => {
       setHasLinkedInToken(null);
       setShowModal(false);
     }
-  }, [isAuthenticated, user]);
+  }, [isAuthenticated, user, checkLinkedInToken]);
 
   return {
     isCheckingToken,

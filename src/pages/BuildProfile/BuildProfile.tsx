@@ -1,7 +1,6 @@
-
 import React, { useState, useEffect } from 'react';
 import { Header } from '@/components/Layout/MainLayout';
-import { Calendar, Clock, Send, Plus, Trash2, Check, ThumbsUp } from 'lucide-react';
+import { Calendar, Clock, Send, Plus, Trash2, Check, ThumbsUp, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { Button } from '@/components/ui/button';
@@ -30,6 +29,9 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { linkedinService, LinkedInPost } from '@/services/linkedinService';
+import { useLinkedInPrompt } from '@/hooks/useLinkedInPrompt';
+import LinkedInPromptModal from '@/components/UI/LinkedInPromptModal';
+import { supabase } from '@/lib/supabase';
 
 const BuildProfile: React.FC = () => {
   const [posts, setPosts] = useState<LinkedInPost[]>([]);
@@ -48,7 +50,11 @@ const BuildProfile: React.FC = () => {
   const [isScheduleSubmitting, setIsScheduleSubmitting] = useState(false);
   const [successModal, setSuccessModal] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
+  const [pendingPostData, setPendingPostData] = useState<any>(null);
+  const [isGenerating, setIsGenerating] = useState(false);
   
+  const { showModal, initiateLinkedInConnect, dismissModal, hasLinkedInToken, recheckToken } = useLinkedInPrompt();
+
   useEffect(() => {
     const fetchPosts = async () => {
       try {
@@ -80,6 +86,82 @@ const BuildProfile: React.FC = () => {
     'Professional Development'
   ];
   
+  const generateLinkedInPost = async (postData: any, isScheduled: boolean = false) => {
+    setIsGenerating(true);
+    
+    try {
+      console.log('Generating LinkedIn post with data:', postData);
+      
+      const { data, error } = await supabase.functions.invoke('generate-linkedin-post', {
+        body: {
+          niche: postData.niche,
+          tone: postData.tone,
+          contentPrompt: postData.content,
+          scheduleDate: isScheduled ? postData.scheduledDate : null,
+          scheduleTime: isScheduled ? postData.scheduledTime : null
+        }
+      });
+
+      if (error) {
+        console.error('LinkedIn post generation error:', error);
+        
+        if (error.message.includes('LinkedIn not connected') || error.message.includes('token')) {
+          // Store post data and show LinkedIn consent
+          setPendingPostData({ ...postData, isScheduled });
+          initiateLinkedInConnect();
+          return;
+        }
+        
+        toast.error(`Failed to generate LinkedIn post: ${error.message}`);
+        return;
+      }
+
+      if (data?.error) {
+        console.error('LinkedIn post generation failed:', data.error);
+        
+        if (data.error.includes('LinkedIn not connected') || data.error.includes('token')) {
+          // Store post data and show LinkedIn consent
+          setPendingPostData({ ...postData, isScheduled });
+          initiateLinkedInConnect();
+          return;
+        }
+        
+        toast.error(`Failed to generate LinkedIn post: ${data.error}`);
+        return;
+      }
+
+      console.log('LinkedIn post generation successful:', data);
+      
+      // Refresh posts list
+      const updatedPosts = await linkedinService.getPosts();
+      setPosts(updatedPosts);
+      
+      // Reset form
+      if (isScheduled) {
+        setScheduledContent('');
+        setScheduledDate(null);
+        setScheduledTime(null);
+        setScheduledCustomNiche('');
+        setScheduledNiche('');
+        setOpenScheduleDialog(false);
+      } else {
+        setPostContent('');
+        setCustomNiche('');
+        setSelectedNiche('');
+      }
+      
+      // Show success modal
+      setSuccessMessage(data.scheduled ? 'Your LinkedIn post has been scheduled successfully!' : 'Your LinkedIn post has been generated and posted successfully!');
+      setSuccessModal(true);
+      
+    } catch (error) {
+      console.error('Unexpected error generating LinkedIn post:', error);
+      toast.error('Failed to generate LinkedIn post. Please try again.');
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+  
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
@@ -93,26 +175,14 @@ const BuildProfile: React.FC = () => {
       
       const finalNiche = selectedNiche === 'Custom' ? customNiche : selectedNiche;
       
-      // Create the LinkedIn post
-      const newPost = await linkedinService.createPost({
+      const postData = {
         content: postContent,
-        scheduled_date: null,
-        scheduled_time: null,
         niche: finalNiche || 'General',
         tone: selectedTone
-      });
+      };
+
+      await generateLinkedInPost(postData, false);
       
-      if (newPost) {
-        // Add the new post to the posts list
-        setPosts([newPost, ...posts]);
-        setPostContent('');
-        setCustomNiche('');
-        setSelectedNiche('');
-        
-        // Show success modal
-        setSuccessMessage('Your LinkedIn post has been created successfully!');
-        setSuccessModal(true);
-      }
     } catch (error) {
       console.error('Error creating post:', error);
       toast.error('Failed to create LinkedIn post');
@@ -134,35 +204,47 @@ const BuildProfile: React.FC = () => {
       
       const finalNiche = scheduledNiche === 'Custom' ? scheduledCustomNiche : scheduledNiche;
       
-      // Create the scheduled LinkedIn post
-      const newPost = await linkedinService.createPost({
+      const postData = {
         content: scheduledContent,
-        scheduled_date: scheduledDate,
-        scheduled_time: scheduledTime,
+        scheduledDate: scheduledDate,
+        scheduledTime: scheduledTime,
         niche: finalNiche || 'General',
         tone: scheduledTone
-      });
+      };
+
+      await generateLinkedInPost(postData, true);
       
-      if (newPost) {
-        // Add the new scheduled post to the posts list
-        setPosts([newPost, ...posts]);
-        setScheduledContent('');
-        setScheduledDate(null);
-        setScheduledTime(null);
-        setScheduledCustomNiche('');
-        setScheduledNiche('');
-        setOpenScheduleDialog(false);
-        
-        // Show success modal
-        setSuccessMessage('Your LinkedIn post has been scheduled successfully!');
-        setSuccessModal(true);
-      }
     } catch (error) {
       console.error('Error scheduling post:', error);
       toast.error('Failed to schedule LinkedIn post');
     } finally {
       setIsScheduleSubmitting(false);
     }
+  };
+  
+  const handleLinkedInConnect = () => {
+    console.log('User confirmed LinkedIn connection');
+    initiateLinkedInConnect();
+  };
+
+  const handleLinkedInConnectSuccess = async () => {
+    console.log('LinkedIn connected successfully, processing pending post...');
+    dismissModal();
+    
+    // Recheck token status
+    await recheckToken();
+    
+    if (pendingPostData) {
+      console.log('Processing pending post data:', pendingPostData);
+      await generateLinkedInPost(pendingPostData, pendingPostData.isScheduled);
+      setPendingPostData(null);
+    }
+  };
+
+  const handleLinkedInDismiss = () => {
+    console.log('User dismissed LinkedIn connection');
+    dismissModal();
+    setPendingPostData(null);
   };
   
   const handleMarkAsPosted = async (id: string) => {
@@ -212,7 +294,7 @@ const BuildProfile: React.FC = () => {
     <div>
       <Header 
         title="Build Your Profile" 
-        subtitle="Create and schedule LinkedIn posts to build your professional brand."
+        subtitle="Create and schedule AI-powered LinkedIn posts to build your professional brand."
       />
       
       <Tabs defaultValue="create" className="w-full">
@@ -296,7 +378,7 @@ const BuildProfile: React.FC = () => {
                     Post Content Prompt
                   </label>
                   <Textarea
-                    placeholder="Explain in your words what you want to convey to the users"
+                    placeholder="Explain in your words what you want to convey to the users. Our AI will generate a comprehensive LinkedIn post using latest industry trends and relevant images."
                     className="min-h-[200px] focus:ring-2 focus:ring-primary/30 transition-all duration-200"
                     value={postContent}
                     onChange={(e) => setPostContent(e.target.value)}
@@ -322,18 +404,18 @@ const BuildProfile: React.FC = () => {
                   
                   <Button 
                     type="submit" 
-                    disabled={isSubmitting}
+                    disabled={isSubmitting || isGenerating}
                     className="bg-primary hover:bg-primary/90 transition-all duration-200 hover:shadow-md hover:-translate-y-0.5"
                   >
-                    {isSubmitting ? (
+                    {isSubmitting || isGenerating ? (
                       <>
-                        <div className="animate-spin mr-2 h-4 w-4 border-2 border-white border-t-transparent rounded-full" />
-                        Posting...
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Generating AI Post...
                       </>
                     ) : (
                       <>
                         <Send className="mr-2 h-4 w-4 group-hover:scale-110 transition-transform duration-200" />
-                        Post Now
+                        Generate & Post Now
                       </>
                     )}
                   </Button>
@@ -419,7 +501,7 @@ const BuildProfile: React.FC = () => {
               ))
             ) : (
               <div className="text-center py-12 glass-card">
-                <p className="text-text-200">No posts yet. Create your first LinkedIn post!</p>
+                <p className="text-text-200">No posts yet. Create your first AI-powered LinkedIn post!</p>
                 <Button
                   variant="outline"
                   className="mt-4 hover:bg-gray-100 transition-all duration-200 group"
@@ -438,7 +520,7 @@ const BuildProfile: React.FC = () => {
       <Dialog open={openScheduleDialog} onOpenChange={setOpenScheduleDialog}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Schedule LinkedIn Post</DialogTitle>
+            <DialogTitle>Schedule AI LinkedIn Post</DialogTitle>
           </DialogHeader>
           
           <form onSubmit={handleScheduleSubmit}>
@@ -514,7 +596,7 @@ const BuildProfile: React.FC = () => {
                   Post Content Prompt
                 </label>
                 <Textarea
-                  placeholder="Explain in your words what you want to convey to the users"
+                  placeholder="Explain in your words what you want to convey to the users. Our AI will generate a comprehensive LinkedIn post using latest industry trends and relevant images."
                   className="min-h-[150px] focus:ring-2 focus:ring-primary/30 transition-all duration-200"
                   value={scheduledContent}
                   onChange={(e) => setScheduledContent(e.target.value)}
@@ -592,18 +674,18 @@ const BuildProfile: React.FC = () => {
             <DialogFooter>
               <Button 
                 type="submit" 
-                disabled={isScheduleSubmitting}
+                disabled={isScheduleSubmitting || isGenerating}
                 className="bg-primary hover:bg-primary/90 transition-all duration-200 hover:shadow-md hover:-translate-y-0.5"
               >
-                {isScheduleSubmitting ? (
+                {isScheduleSubmitting || isGenerating ? (
                   <>
-                    <div className="animate-spin mr-2 h-4 w-4 border-2 border-white border-t-transparent rounded-full" />
-                    Scheduling...
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Scheduling AI Post...
                   </>
                 ) : (
                   <>
                     <Calendar className="mr-2 h-4 w-4" />
-                    Schedule Post
+                    Schedule AI Post
                   </>
                 )}
               </Button>
@@ -636,6 +718,13 @@ const BuildProfile: React.FC = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* LinkedIn Prompt Modal */}
+      <LinkedInPromptModal
+        isOpen={showModal && pendingPostData !== null}
+        onConnect={handleLinkedInConnect}
+        onDismiss={handleLinkedInDismiss}
+      />
     </div>
   );
 };
