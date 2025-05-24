@@ -85,7 +85,7 @@ export const useLinkedInPrompt = () => {
       sessionStorage.setItem('linkedin_oauth_state', state);
       localStorage.setItem('linkedin_oauth_state', state);
 
-      // Use basic supported scopes
+      // Use the updated scope that includes profile and email access
       const clientId = '771girpp9fv439';
       const redirectUri = encodeURIComponent('https://klarushr.com/linkedin-token-callback');
       const scope = encodeURIComponent('openid profile email w_member_social');

@@ -1,3 +1,4 @@
+
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
@@ -102,46 +103,6 @@ Deno.serve(async (req) => {
     }
 
     console.log('LinkedIn token valid, expires at:', expiresAt);
-
-    // Test LinkedIn token validity by making a simple API call
-    const testResponse = await fetch('https://api.linkedin.com/v2/me', {
-      headers: {
-        'Authorization': `Bearer ${linkedinToken.access_token}`,
-        'X-Restli-Protocol-Version': '2.0.0',
-      },
-    });
-
-    if (!testResponse.ok) {
-      console.error('LinkedIn token validation failed:', testResponse.status);
-      const errorText = await testResponse.text();
-      console.error('LinkedIn validation error:', errorText);
-      
-      // Check for specific revocation error
-      try {
-        const errorData = JSON.parse(errorText);
-        if (errorData.serviceErrorCode === 65601 || errorData.code === 'REVOKED_ACCESS_TOKEN') {
-          return new Response(
-            JSON.stringify({ error: 'LinkedIn token has been revoked. Please reconnect your LinkedIn account.' }),
-            { 
-              status: 400, 
-              headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-            }
-          );
-        }
-      } catch (parseError) {
-        console.error('Error parsing LinkedIn validation response:', parseError);
-      }
-      
-      return new Response(
-        JSON.stringify({ error: 'LinkedIn token is invalid. Please reconnect your LinkedIn account.' }),
-        { 
-          status: 400, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-        }
-      );
-    }
-
-    console.log('LinkedIn token validated successfully');
 
     // Fetch RSS feed content based on niche
     let rssContent = '';
@@ -290,150 +251,27 @@ The post should feel authentic and provide value to the LinkedIn audience. Remem
       );
     }
 
-    // Generate an image using OpenAI DALL-E for immediate posts
-    console.log('Generating image for the post...');
-    let imageAsset = null;
-
-    try {
-      const imagePrompt = `Create a professional, modern image related to ${niche}. The image should be suitable for LinkedIn and convey ${tone.toLowerCase()} tone. Make it clean, professional, and visually appealing. Style: minimalist, corporate, high-quality.`;
-      
-      const imageResponse = await fetch('https://api.openai.com/v1/images/generations', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${openAIApiKey}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          model: 'dall-e-3',
-          prompt: imagePrompt,
-          n: 1,
-          size: '1024x1024',
-          quality: 'standard'
-        }),
-      });
-
-      if (imageResponse.ok) {
-        const imageData = await imageResponse.json();
-        const imageUrl = imageData.data[0].url;
-        console.log('Image generated successfully:', imageUrl);
-
-        // Download the image
-        const imageDownloadResponse = await fetch(imageUrl);
-        const imageBuffer = await imageDownloadResponse.arrayBuffer();
-        
-        console.log('Image downloaded, uploading to LinkedIn...');
-
-        // Step 1: Register upload with LinkedIn
-        const registerUploadResponse = await fetch('https://api.linkedin.com/v2/assets?action=registerUpload', {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${linkedinToken.access_token}`,
-            'Content-Type': 'application/json',
-            'X-Restli-Protocol-Version': '2.0.0',
-          },
-          body: JSON.stringify({
-            registerUploadRequest: {
-              recipes: ['urn:li:digitalmediaRecipe:feedshare-image'],
-              owner: `urn:li:person:${linkedinToken.linkedin_id}`,
-              serviceRelationships: [
-                {
-                  relationshipType: 'OWNER',
-                  identifier: 'urn:li:userGeneratedContent'
-                }
-              ]
-            }
-          })
-        });
-
-        if (registerUploadResponse.ok) {
-          const uploadData = await registerUploadResponse.json();
-          const uploadUrl = uploadData.value.uploadMechanism['com.linkedin.digitalmedia.uploading.MediaUploadHttpRequest'].uploadUrl;
-          const asset = uploadData.value.asset;
-          
-          console.log('Upload URL received:', uploadUrl);
-          console.log('Asset URN:', asset);
-
-          // Step 2: Upload the image binary data
-          const uploadResponse = await fetch(uploadUrl, {
-            method: 'PUT',
-            headers: {
-              'Authorization': `Bearer ${linkedinToken.access_token}`,
-            },
-            body: new Uint8Array(imageBuffer)
-          });
-
-          if (uploadResponse.ok) {
-            console.log('Image uploaded successfully');
-            imageAsset = asset;
-          } else {
-            console.warn('Image upload failed:', await uploadResponse.text());
-          }
-        } else {
-          console.warn('Upload registration failed:', await registerUploadResponse.text());
-        }
-      } else {
-        console.warn('Image generation failed:', await imageResponse.text());
-      }
-    } catch (error) {
-      console.warn('Image generation/upload error:', error);
-    }
-
-    // Post to LinkedIn
+    // For immediate posts, post to LinkedIn using simplified approach
     console.log('Posting to LinkedIn...');
     console.log('LinkedIn member ID:', linkedinToken.linkedin_id);
     console.log('Content length:', generatedContent.length);
-    console.log('Image asset:', imageAsset);
 
-    // Prepare LinkedIn post data
-    let linkedinPostData;
-
-    if (imageAsset) {
-      // Post with image
-      linkedinPostData = {
-        author: `urn:li:person:${linkedinToken.linkedin_id}`,
-        lifecycleState: 'PUBLISHED',
-        specificContent: {
-          'com.linkedin.ugc.ShareContent': {
-            shareCommentary: {
-              text: generatedContent
-            },
-            shareMediaCategory: 'IMAGE',
-            media: [
-              {
-                status: 'READY',
-                description: {
-                  text: 'Generated image for LinkedIn post'
-                },
-                media: imageAsset,
-                title: {
-                  text: 'LinkedIn Post Image'
-                }
-              }
-            ]
-          }
-        },
-        visibility: {
-          'com.linkedin.ugc.MemberNetworkVisibility': 'PUBLIC'
+    // Prepare LinkedIn post data (text only for now to avoid complexity)
+    const linkedinPostData = {
+      author: `urn:li:person:${linkedinToken.linkedin_id}`,
+      lifecycleState: 'PUBLISHED',
+      specificContent: {
+        'com.linkedin.ugc.ShareContent': {
+          shareCommentary: {
+            text: generatedContent
+          },
+          shareMediaCategory: 'NONE'
         }
-      };
-    } else {
-      // Post without image (text only)
-      linkedinPostData = {
-        author: `urn:li:person:${linkedinToken.linkedin_id}`,
-        lifecycleState: 'PUBLISHED',
-        specificContent: {
-          'com.linkedin.ugc.ShareContent': {
-            shareCommentary: {
-              text: generatedContent
-            },
-            shareMediaCategory: 'NONE'
-          }
-        },
-        visibility: {
-          'com.linkedin.ugc.MemberNetworkVisibility': 'PUBLIC'
-        }
-      };
-    }
+      },
+      visibility: {
+        'com.linkedin.ugc.MemberNetworkVisibility': 'PUBLIC'
+      }
+    };
 
     console.log('Posting to LinkedIn with payload:', JSON.stringify(linkedinPostData, null, 2));
 
@@ -503,10 +341,10 @@ The post should feel authentic and provide value to the LinkedIn audience. Remem
     return new Response(
       JSON.stringify({ 
         success: true, 
-        message: 'LinkedIn post generated successfully but could not be posted due to token issues. Please reconnect your LinkedIn account and try again.',
+        message: 'LinkedIn post generated and posted successfully',
         content: generatedContent,
-        posted: false,
-        requiresReconnection: true
+        posted: true,
+        linkedinPostId: linkedinResult.id
       }),
       { 
         status: 200, 
