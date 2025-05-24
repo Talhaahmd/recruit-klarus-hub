@@ -210,17 +210,26 @@ Make the post sound professional, exciting, and include a call to action. Includ
     });
 
     console.log('LinkedIn response status:', linkedinResponse.status);
+    const linkedinResponseText = await linkedinResponse.text();
+    console.log('LinkedIn response body:', linkedinResponseText);
 
     if (!linkedinResponse.ok) {
-      const errorText = await linkedinResponse.text();
-      console.error('LinkedIn posting failed:', errorText);
+      console.error('LinkedIn posting failed:', linkedinResponseText);
       
       // Parse the error to provide specific feedback
       let errorMessage = 'Failed to post to LinkedIn';
       try {
-        const errorData = JSON.parse(errorText);
+        const errorData = JSON.parse(linkedinResponseText);
         if (errorData.serviceErrorCode === 65601 || errorData.code === 'REVOKED_ACCESS_TOKEN') {
-          errorMessage = 'LinkedIn token expired. Please reconnect your LinkedIn account.';
+          errorMessage = 'REVOKED_ACCESS_TOKEN: LinkedIn token expired or was revoked. Please reconnect your LinkedIn account.';
+          
+          // Clear the invalid token from database
+          await supabase
+            .from('linkedin_tokens')
+            .delete()
+            .eq('user_id', user.id);
+            
+          console.log('Cleared invalid LinkedIn token from database');
         } else if (errorData.message) {
           errorMessage = `LinkedIn error: ${errorData.message}`;
         }
