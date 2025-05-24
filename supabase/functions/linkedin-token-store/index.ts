@@ -77,7 +77,7 @@ Deno.serve(async (req) => {
     console.log('Authorization code received (first 10 chars):', code.substring(0, 10) + '...');
     console.log('Exchanging code for access token');
     
-    // LinkedIn credentials
+    // LinkedIn credentials - use the exact values you provided
     const linkedinClientId = '771girpp9fv439';
     const linkedinClientSecret = 'WPL_AP1.P66OnLQbXKWBBjfM.EqymLg==';
     
@@ -94,6 +94,12 @@ Deno.serve(async (req) => {
     });
 
     console.log('Making token exchange request to LinkedIn...');
+    console.log('Token request params:', {
+      grant_type: 'authorization_code',
+      redirect_uri: 'https://klarushr.com/linkedin-token-callback',
+      client_id: linkedinClientId,
+      code_length: code.length
+    });
 
     const tokenResponse = await fetch('https://www.linkedin.com/oauth/v2/accessToken', {
       method: 'POST',
@@ -110,8 +116,22 @@ Deno.serve(async (req) => {
 
     if (!tokenResponse.ok) {
       console.error('LinkedIn token exchange failed:', tokenResponseText);
+      let errorMessage = 'Token exchange failed';
+      
+      try {
+        const errorData = JSON.parse(tokenResponseText);
+        if (errorData.error_description) {
+          errorMessage = errorData.error_description;
+        } else if (errorData.error) {
+          errorMessage = errorData.error;
+        }
+      } catch (e) {
+        // If we can't parse the error, use the raw response
+        errorMessage = tokenResponseText;
+      }
+      
       return new Response(
-        JSON.stringify({ error: 'Token exchange failed', details: tokenResponseText }),
+        JSON.stringify({ error: 'LinkedIn token exchange failed', details: errorMessage }),
         { 
           status: 400, 
           headers: { ...corsHeaders, 'Content-Type': 'application/json' } 

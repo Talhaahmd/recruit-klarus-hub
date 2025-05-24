@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
@@ -29,22 +30,41 @@ const LinkedInTokenCallback: React.FC = () => {
           errorDescription 
         });
 
-        // Check for LinkedIn OAuth errors
+        // Check for LinkedIn OAuth errors first
         if (error) {
           console.error('LinkedIn OAuth error:', error, errorDescription);
           setStatus('error');
-          setMessage(`LinkedIn authorization failed: ${errorDescription || error}`);
-          toast.error('LinkedIn connection failed');
+          let errorMsg = 'LinkedIn authorization failed';
+          
+          if (error === 'access_denied') {
+            errorMsg = 'LinkedIn access denied. Please try again and approve the connection.';
+          } else if (error === 'invalid_request') {
+            errorMsg = 'Invalid LinkedIn request. Please check your configuration.';
+          } else if (errorDescription) {
+            errorMsg = `LinkedIn error: ${errorDescription}`;
+          }
+          
+          setMessage(errorMsg);
+          toast.error(errorMsg);
           setTimeout(() => navigate('/dashboard'), 3000);
           return;
         }
 
         // Validate required parameters
-        if (!code || !state) {
-          console.error('Missing code or state parameter', { code: !!code, state: !!state });
+        if (!code) {
+          console.error('Missing authorization code');
           setStatus('error');
-          setMessage('Invalid callback parameters from LinkedIn.');
-          toast.error('LinkedIn connection failed - missing parameters');
+          setMessage('Missing authorization code from LinkedIn.');
+          toast.error('LinkedIn connection failed - missing authorization code');
+          setTimeout(() => navigate('/dashboard'), 3000);
+          return;
+        }
+
+        if (!state) {
+          console.error('Missing state parameter');
+          setStatus('error');
+          setMessage('Missing state parameter from LinkedIn.');
+          toast.error('LinkedIn connection failed - missing state parameter');
           setTimeout(() => navigate('/dashboard'), 3000);
           return;
         }
@@ -91,6 +111,7 @@ const LinkedInTokenCallback: React.FC = () => {
 
         // Send code to our edge function
         console.log('Sending authorization code to edge function...');
+        
         const { data: responseData, error: functionError } = await supabase.functions.invoke('linkedin-token-store', {
           body: { code },
           headers: {
@@ -104,7 +125,7 @@ const LinkedInTokenCallback: React.FC = () => {
         if (functionError) {
           console.error('Token store function error:', functionError);
           setStatus('error');
-          setMessage('Failed to connect LinkedIn account. Please try again.');
+          setMessage(`Failed to connect LinkedIn: ${functionError.message}`);
           toast.error(`LinkedIn connection failed: ${functionError.message}`);
           setTimeout(() => navigate('/dashboard'), 3000);
           return;
@@ -113,7 +134,7 @@ const LinkedInTokenCallback: React.FC = () => {
         if (responseData?.error) {
           console.error('Token store response error:', responseData.error);
           setStatus('error');
-          setMessage('Failed to connect LinkedIn account. Please try again.');
+          setMessage(`Failed to connect LinkedIn: ${responseData.error}`);
           toast.error(`LinkedIn connection failed: ${responseData.error}`);
           setTimeout(() => navigate('/dashboard'), 3000);
           return;
@@ -131,7 +152,7 @@ const LinkedInTokenCallback: React.FC = () => {
       } catch (error) {
         console.error('Error handling LinkedIn callback:', error);
         setStatus('error');
-        setMessage('An unexpected error occurred.');
+        setMessage(`An unexpected error occurred: ${error instanceof Error ? error.message : 'Unknown error'}`);
         toast.error('LinkedIn connection failed');
         setTimeout(() => navigate('/dashboard'), 3000);
       }

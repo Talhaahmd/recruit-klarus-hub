@@ -64,6 +64,11 @@ export const useLinkedInPrompt = () => {
   };
 
   const initiateLinkedInConnect = () => {
+    if (!user) {
+      toast.error('Please log in first');
+      return;
+    }
+
     try {
       console.log('Initiating LinkedIn OAuth connection...');
       
@@ -72,7 +77,7 @@ export const useLinkedInPrompt = () => {
       sessionStorage.setItem('linkedin_oauth_state', state);
       console.log('Generated OAuth state:', state);
 
-      // Use the correct LinkedIn client ID and construct OAuth URL
+      // Use the exact redirect URI from your LinkedIn app configuration
       const clientId = '771girpp9fv439';
       const redirectUri = encodeURIComponent('https://klarushr.com/linkedin-token-callback');
       const scope = encodeURIComponent('r_liteprofile r_emailaddress w_member_social');
