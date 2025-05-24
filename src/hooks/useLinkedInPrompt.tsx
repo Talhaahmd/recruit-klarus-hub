@@ -31,7 +31,6 @@ export const useLinkedInPrompt = () => {
       if (error && error.code !== 'PGRST116') {
         console.error('Error checking LinkedIn token:', error);
         setHasLinkedInToken(false);
-        setShowModal(true);
         return;
       }
 
@@ -44,20 +43,15 @@ export const useLinkedInPrompt = () => {
         setHasLinkedInToken(tokenValid);
         
         if (!tokenValid) {
-          console.log('LinkedIn token expired, prompting for reconnection');
-          setShowModal(true);
-        } else {
-          setShowModal(false);
+          console.log('LinkedIn token expired');
         }
       } else {
-        console.log('No LinkedIn token found, prompting for connection');
+        console.log('No LinkedIn token found');
         setHasLinkedInToken(false);
-        setShowModal(true);
       }
     } catch (error) {
       console.error('Error checking LinkedIn token:', error);
       setHasLinkedInToken(false);
-      setShowModal(true);
     } finally {
       setIsCheckingToken(false);
     }
@@ -71,6 +65,7 @@ export const useLinkedInPrompt = () => {
 
     try {
       console.log('Initiating LinkedIn OAuth connection...');
+      setShowModal(true);
       
       // Generate secure state value
       const state = crypto.randomUUID();
@@ -85,10 +80,15 @@ export const useLinkedInPrompt = () => {
       const authUrl = `https://www.linkedin.com/oauth/v2/authorization?response_type=code&client_id=${clientId}&redirect_uri=${redirectUri}&scope=${scope}&state=${state}`;
 
       console.log('Redirecting to LinkedIn OAuth with basic scopes:', authUrl);
-      window.location.href = authUrl;
+      
+      // Add a small delay to ensure state is properly set
+      setTimeout(() => {
+        window.location.href = authUrl;
+      }, 100);
     } catch (error) {
       console.error('Error initiating LinkedIn OAuth:', error);
       toast.error('Failed to initiate LinkedIn connection');
+      setShowModal(false);
     }
   };
 
