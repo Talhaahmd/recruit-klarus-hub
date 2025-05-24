@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
@@ -109,9 +110,9 @@ const LinkedInTokenCallback: React.FC = () => {
         console.log('Valid session found, user ID:', session.user.id);
         console.log('Sending authorization code to edge function...');
         
-        // Call the edge function with proper JSON body
+        // Call the edge function with proper body (don't stringify - Supabase handles it)
         const { data: functionResponse, error: functionError } = await supabase.functions.invoke('linkedin-token-store', {
-          body: JSON.stringify({ code }),
+          body: { code },
           headers: {
             'Authorization': `Bearer ${session.access_token}`,
             'Content-Type': 'application/json'

@@ -58,24 +58,32 @@ Deno.serve(async (req) => {
 
     console.log('User verified:', user.id);
 
-    // Get the request body and handle empty body
+    // Get the request body - handle both JSON and text
     let requestBody;
     try {
-      const bodyText = await req.text();
-      console.log('Request body received:', bodyText);
+      // First try to get as JSON (when called via Supabase client)
+      const contentType = req.headers.get('content-type') || '';
       
-      if (!bodyText || bodyText.trim() === '') {
-        console.error('Empty request body');
-        return new Response(
-          JSON.stringify({ error: 'Empty request body' }),
-          { 
-            status: 400, 
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-          }
-        );
+      if (contentType.includes('application/json')) {
+        requestBody = await req.json();
+        console.log('Request body received as JSON:', requestBody);
+      } else {
+        const bodyText = await req.text();
+        console.log('Request body received as text:', bodyText);
+        
+        if (!bodyText || bodyText.trim() === '') {
+          console.error('Empty request body');
+          return new Response(
+            JSON.stringify({ error: 'Empty request body' }),
+            { 
+              status: 400, 
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+            }
+          );
+        }
+        
+        requestBody = JSON.parse(bodyText);
       }
-      
-      requestBody = JSON.parse(bodyText);
     } catch (parseError) {
       console.error('Failed to parse request body:', parseError);
       return new Response(
