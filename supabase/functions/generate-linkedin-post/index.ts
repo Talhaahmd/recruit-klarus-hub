@@ -125,40 +125,7 @@ Deno.serve(async (req) => {
       rssContent = 'No recent RSS content available';
     }
 
-    console.log('Generating image for the post...');
-
-    // Generate an image using OpenAI DALL-E
-    let imageUrl = null;
-    try {
-      const imagePrompt = `Create a professional, modern image related to ${niche}. The image should be suitable for LinkedIn and convey ${tone.toLowerCase()} tone. Make it clean, professional, and visually appealing.`;
-      
-      const imageResponse = await fetch('https://api.openai.com/v1/images/generations', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${openAIApiKey}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          model: 'dall-e-3',
-          prompt: imagePrompt,
-          n: 1,
-          size: '1024x1024',
-          quality: 'standard'
-        }),
-      });
-
-      if (imageResponse.ok) {
-        const imageData = await imageResponse.json();
-        imageUrl = imageData.data[0].url;
-        console.log('Image generated successfully:', imageUrl);
-      } else {
-        console.warn('Image generation failed, continuing without image');
-      }
-    } catch (error) {
-      console.warn('Image generation error:', error);
-    }
-
-    // Generate LinkedIn post content using ChatGPT with strict length limits
+    // Generate LinkedIn post content using ChatGPT with strict length limits and no formatting
     const postPrompt = `Create a professional LinkedIn post based on the following requirements:
 
 Niche: ${niche}
@@ -179,8 +146,10 @@ CRITICAL REQUIREMENTS:
 - Structure it with line breaks for readability
 - Focus on quality over quantity - be concise but impactful
 - DO NOT use asterisks (*) around headings or any text formatting
-- Use plain text only - no markdown formatting like **bold** or *italic*
-- Keep headings as plain text without any special characters
+- DO NOT use markdown formatting like **bold** or *italic*
+- Use plain text only - no special characters for formatting
+- Keep headings as plain text without any asterisks or special characters
+- Write naturally without any formatting symbols
 
 The post should feel authentic and provide value to the LinkedIn audience. Remember: STAY UNDER 2800 CHARACTERS and NO ASTERISKS OR MARKDOWN FORMATTING.`;
 
@@ -197,7 +166,7 @@ The post should feel authentic and provide value to the LinkedIn audience. Remem
         messages: [
           { 
             role: 'system', 
-            content: 'You are a professional LinkedIn content creator who creates engaging, valuable posts that resonate with professional audiences. Always maintain the specified tone, include relevant hashtags, and CRITICALLY IMPORTANT: keep posts under 2800 characters to ensure they fit within LinkedIn\'s limits. NEVER use asterisks (*) or any markdown formatting - use plain text only.' 
+            content: 'You are a professional LinkedIn content creator who creates engaging, valuable posts that resonate with professional audiences. Always maintain the specified tone, include relevant hashtags, and CRITICALLY IMPORTANT: keep posts under 2800 characters to ensure they fit within LinkedIn\'s limits. NEVER use asterisks (*) or any markdown formatting - use plain text only. Write headings as normal text without any special formatting characters.' 
           },
           { role: 'user', content: postPrompt }
         ],
@@ -273,8 +242,7 @@ The post should feel authentic and provide value to the LinkedIn audience. Remem
           message: 'Post scheduled successfully',
           content: generatedContent,
           scheduled: true,
-          postId: savedPost.id,
-          imageUrl: imageUrl
+          postId: savedPost.id
         }),
         { 
           status: 200, 
@@ -283,16 +251,104 @@ The post should feel authentic and provide value to the LinkedIn audience. Remem
       );
     }
 
-    // Post immediately to LinkedIn
+    // Generate an image using OpenAI DALL-E for immediate posts
+    console.log('Generating image for the post...');
+    let imageAsset = null;
+
+    try {
+      const imagePrompt = `Create a professional, modern image related to ${niche}. The image should be suitable for LinkedIn and convey ${tone.toLowerCase()} tone. Make it clean, professional, and visually appealing. Style: minimalist, corporate, high-quality.`;
+      
+      const imageResponse = await fetch('https://api.openai.com/v1/images/generations', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${openAIApiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'dall-e-3',
+          prompt: imagePrompt,
+          n: 1,
+          size: '1024x1024',
+          quality: 'standard'
+        }),
+      });
+
+      if (imageResponse.ok) {
+        const imageData = await imageResponse.json();
+        const imageUrl = imageData.data[0].url;
+        console.log('Image generated successfully:', imageUrl);
+
+        // Download the image
+        const imageDownloadResponse = await fetch(imageUrl);
+        const imageBuffer = await imageDownloadResponse.arrayBuffer();
+        
+        console.log('Image downloaded, uploading to LinkedIn...');
+
+        // Step 1: Register upload with LinkedIn
+        const registerUploadResponse = await fetch('https://api.linkedin.com/v2/assets?action=registerUpload', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${linkedinToken.access_token}`,
+            'Content-Type': 'application/json',
+            'X-Restli-Protocol-Version': '2.0.0',
+          },
+          body: JSON.stringify({
+            registerUploadRequest: {
+              recipes: ['urn:li:digitalmediaRecipe:feedshare-image'],
+              owner: `urn:li:person:${linkedinToken.linkedin_id}`,
+              serviceRelationships: [
+                {
+                  relationshipType: 'OWNER',
+                  identifier: 'urn:li:userGeneratedContent'
+                }
+              ]
+            }
+          })
+        });
+
+        if (registerUploadResponse.ok) {
+          const uploadData = await registerUploadResponse.json();
+          const uploadUrl = uploadData.value.uploadMechanism['com.linkedin.digitalmedia.uploading.MediaUploadHttpRequest'].uploadUrl;
+          const asset = uploadData.value.asset;
+          
+          console.log('Upload URL received:', uploadUrl);
+          console.log('Asset URN:', asset);
+
+          // Step 2: Upload the image binary data
+          const uploadResponse = await fetch(uploadUrl, {
+            method: 'PUT',
+            headers: {
+              'Authorization': `Bearer ${linkedinToken.access_token}`,
+            },
+            body: new Uint8Array(imageBuffer)
+          });
+
+          if (uploadResponse.ok) {
+            console.log('Image uploaded successfully');
+            imageAsset = asset;
+          } else {
+            console.warn('Image upload failed:', await uploadResponse.text());
+          }
+        } else {
+          console.warn('Upload registration failed:', await registerUploadResponse.text());
+        }
+      } else {
+        console.warn('Image generation failed:', await imageResponse.text());
+      }
+    } catch (error) {
+      console.warn('Image generation/upload error:', error);
+    }
+
+    // Post to LinkedIn
     console.log('Posting to LinkedIn...');
     console.log('LinkedIn member ID:', linkedinToken.linkedin_id);
     console.log('Content length:', generatedContent.length);
-    console.log('Image URL:', imageUrl);
+    console.log('Image asset:', imageAsset);
 
-    // Prepare LinkedIn post data with image if available
+    // Prepare LinkedIn post data
     let linkedinPostData;
 
-    if (imageUrl) {
+    if (imageAsset) {
       // Post with image
       linkedinPostData = {
         author: `urn:li:person:${linkedinToken.linkedin_id}`,
@@ -309,7 +365,7 @@ The post should feel authentic and provide value to the LinkedIn audience. Remem
                 description: {
                   text: 'Generated image for LinkedIn post'
                 },
-                media: imageUrl,
+                media: imageAsset,
                 title: {
                   text: 'LinkedIn Post Image'
                 }
@@ -340,7 +396,7 @@ The post should feel authentic and provide value to the LinkedIn audience. Remem
       };
     }
 
-    console.log('Posting to LinkedIn with content length:', generatedContent.length);
+    console.log('Posting to LinkedIn with payload:', JSON.stringify(linkedinPostData, null, 2));
 
     const linkedinResponse = await fetch('https://api.linkedin.com/v2/ugcPosts', {
       method: 'POST',
@@ -412,7 +468,7 @@ The post should feel authentic and provide value to the LinkedIn audience. Remem
         content: generatedContent,
         linkedinPostId: linkedinResult.id,
         posted: true,
-        imageUrl: imageUrl
+        hasImage: !!imageAsset
       }),
       { 
         status: 200, 
