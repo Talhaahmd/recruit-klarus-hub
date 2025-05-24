@@ -1,5 +1,4 @@
 
-
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 const corsHeaders = {
@@ -60,31 +59,15 @@ Deno.serve(async (req) => {
 
     console.log('User verified:', user.id);
 
-    // Get the request body as text first, then parse
-    const bodyText = await req.text();
-    console.log('Raw request body:', bodyText);
-    console.log('Body length:', bodyText.length);
-    
-    if (!bodyText || bodyText.trim() === '') {
-      console.error('Empty request body received');
-      return new Response(
-        JSON.stringify({ error: 'Empty request body' }),
-        { 
-          status: 400, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-        }
-      );
-    }
-
+    // Get the request body - handle JSON properly
     let requestBody;
     try {
-      requestBody = JSON.parse(bodyText);
-      console.log('Parsed request body:', requestBody);
+      requestBody = await req.json();
+      console.log('Request body received:', requestBody);
     } catch (parseError) {
       console.error('Failed to parse request body as JSON:', parseError);
-      console.error('Body text was:', bodyText);
       return new Response(
-        JSON.stringify({ error: 'Invalid JSON in request body', bodyReceived: bodyText }),
+        JSON.stringify({ error: 'Invalid JSON in request body' }),
         { 
           status: 400, 
           headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
@@ -251,4 +234,3 @@ Deno.serve(async (req) => {
     );
   }
 });
-
