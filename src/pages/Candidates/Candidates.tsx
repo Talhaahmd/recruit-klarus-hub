@@ -447,7 +447,7 @@ const Candidates: React.FC = () => {
       {selectedCandidate && (
         <EmailActionsModal
           candidateId={selectedCandidate.id}
-          candidateName={candidate.full_name || "Candidate"}
+          candidateName={selectedCandidate.full_name || "Candidate"}
           candidateEmail={selectedCandidate.email}
           jobTitle={selectedCandidate.current_job_title || ""}
           open={emailModalOpen}
