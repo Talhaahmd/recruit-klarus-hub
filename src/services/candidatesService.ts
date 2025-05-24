@@ -5,7 +5,6 @@ import { toast } from 'sonner';
 export type Candidate = {
   id: string;
   job_id?: string;
-  name?: string;
   email: string;
   phone?: string;
   resume_url?: string;
@@ -104,7 +103,7 @@ export const candidatesService = {
         throw error;
       }
       
-      console.log('Fetched candidate:', data?.full_name || data?.name);
+      console.log('Fetched candidate:', data?.full_name);
       return { ...data, rating: data.ai_rating || 0 };
     } catch (error: any) {
       console.error('Error in getCandidateById:', error.message);
@@ -117,7 +116,7 @@ export const candidatesService = {
     try {
       const { data: { user } } = await supabase.auth.getUser();
 
-      console.log('Creating candidate:', candidate.full_name || candidate.name);
+      console.log('Creating candidate:', candidate.full_name);
 
       const candidateData: any = {
         ...candidate,
