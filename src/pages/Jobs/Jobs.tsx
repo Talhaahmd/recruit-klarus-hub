@@ -10,7 +10,8 @@ import { Job, jobsService } from '@/services/jobsService';
 import { PlusCircle, Loader2, AlertCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useLinkedInAutoPost } from '@/hooks/useLinkedInAutoPost';
-import LinkedInConnectButton from '@/components/UI/LinkedInConnectButton';
+import { useLinkedInPrompt } from '@/hooks/useLinkedInPrompt';
+import LinkedInPromptModal from '@/components/UI/LinkedInPromptModal';
 
 const Jobs = () => {
   const [isAddJobModalOpen, setIsAddJobModalOpen] = useState(false);
@@ -18,8 +19,10 @@ const Jobs = () => {
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
   const [jobs, setJobs] = useState<Job[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [pendingJobData, setPendingJobData] = useState<NewJobData | null>(null);
   const navigate = useNavigate();
   const { autoPostToLinkedIn, isPosting } = useLinkedInAutoPost();
+  const { showModal, initiateLinkedInConnect, dismissModal } = useLinkedInPrompt();
 
   // Fetch jobs on mount
   useEffect(() => {
@@ -46,31 +49,45 @@ const Jobs = () => {
 
   const handleCloseModal = () => {
     setIsAddJobModalOpen(false);
+    setPendingJobData(null);
   };
 
   const handleSaveJob = async (data: NewJobData) => {
+    // Store the job data and prompt for LinkedIn consent first
+    setPendingJobData(data);
+    setIsAddJobModalOpen(false);
+    
+    // Show LinkedIn consent modal
+    console.log('Prompting for LinkedIn consent before creating job...');
+    dismissModal(); // Reset any existing modal state
+    setTimeout(() => {
+      initiateLinkedInConnect();
+    }, 100);
+  };
+
+  const createJobAfterConsent = async (jobData: NewJobData) => {
     try {
-      const jobData = {
-        title: data.title,
-        description: data.description,
-        location: data.location,
-        type: data.type,
+      const jobPayload = {
+        title: jobData.title,
+        description: jobData.description,
+        location: jobData.location,
+        type: jobData.type,
         status: 'Active',
         posted_date: new Date().toISOString().split('T')[0],
-        active_days: data.activeDays,
-        technologies: data.technologies,
-        workplace_type: data.workplaceType,
+        active_days: jobData.activeDays,
+        technologies: jobData.technologies,
+        workplace_type: jobData.workplaceType,
         applicants: 0
       };
 
-      const savedJob = await jobsService.createJob(jobData);
+      const savedJob = await jobsService.createJob(jobPayload);
 
       if (savedJob) {
         toast.success('Job created successfully');
         fetchJobs();
         
-        // Automatically post to LinkedIn
-        console.log('Job created, attempting LinkedIn auto-post...');
+        // Automatically post to LinkedIn with fresh token
+        console.log('Job created, attempting LinkedIn auto-post with fresh token...');
         const linkedInSuccess = await autoPostToLinkedIn(savedJob.id);
         
         if (linkedInSuccess) {
@@ -85,9 +102,28 @@ const Jobs = () => {
       console.error('Error creating job:', error);
       toast.error('An error occurred while creating the job');
     } finally {
-      setIsAddJobModalOpen(false);
+      setPendingJobData(null);
     }
   };
+
+  // Handle LinkedIn consent completion
+  useEffect(() => {
+    const handleLinkedInCallback = () => {
+      console.log('LinkedIn consent completed, checking for pending job...');
+      if (pendingJobData) {
+        console.log('Creating job with fresh LinkedIn token...');
+        createJobAfterConsent(pendingJobData);
+      }
+    };
+
+    // Listen for LinkedIn callback completion
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('linkedin_connected') === 'true' && pendingJobData) {
+      handleLinkedInCallback();
+      // Clean up URL
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+  }, [pendingJobData]);
 
   const handleEditJob = (id: string) => {
     console.log('Edit job:', id);
@@ -114,6 +150,15 @@ const Jobs = () => {
     setIsDetailsModalOpen(true);
   };
 
+  const handleLinkedInConnect = () => {
+    initiateLinkedInConnect();
+  };
+
+  const handleLinkedInDismiss = () => {
+    dismissModal();
+    setPendingJobData(null);
+  };
+
   return (
     <div className="container mx-auto p-4">
       <Header 
@@ -121,19 +166,16 @@ const Jobs = () => {
         subtitle="Create and manage job postings"
       />
 
-      {/* LinkedIn Connection Status */}
+      {/* LinkedIn Connection Info */}
       <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <AlertCircle className="h-5 w-5 text-blue-600" />
-            <span className="text-sm font-medium text-blue-900">
-              LinkedIn Auto-Posting
-            </span>
-          </div>
-          <LinkedInConnectButton />
+        <div className="flex items-center gap-2">
+          <AlertCircle className="h-5 w-5 text-blue-600" />
+          <span className="text-sm font-medium text-blue-900">
+            LinkedIn Auto-Posting
+          </span>
         </div>
         <p className="text-sm text-blue-700 mt-2">
-          Connect your LinkedIn account to automatically post new jobs to your LinkedIn profile.
+          When you create a new job, we'll ask for LinkedIn permission to automatically post it to your profile with fresh authorization.
         </p>
       </div>
 
@@ -196,6 +238,12 @@ const Jobs = () => {
           onClose={() => setIsDetailsModalOpen(false)}
         />
       )}
+
+      <LinkedInPromptModal
+        isOpen={showModal && pendingJobData !== null}
+        onConnect={handleLinkedInConnect}
+        onDismiss={handleLinkedInDismiss}
+      />
     </div>
   );
 };
