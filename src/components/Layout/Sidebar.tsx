@@ -7,7 +7,8 @@ import {
   Users, 
   FileEdit, 
   Settings, 
-  LogOut 
+  LogOut,
+  FileText
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -18,6 +19,7 @@ const Sidebar: React.FC = () => {
     { icon: LayoutDashboard, name: 'Dashboard', path: '/dashboard' },
     { icon: Briefcase, name: 'Active Jobs', path: '/jobs' },
     { icon: Users, name: 'Candidates', path: '/candidates' },
+    { icon: FileText, name: 'Candidate CV', path: '/candidate-cv' },
     { icon: FileEdit, name: 'Build Profile', path: '/build-profile' },
     { icon: Settings, name: 'Settings', path: '/settings' },
   ];

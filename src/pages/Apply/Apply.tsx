@@ -6,6 +6,7 @@ import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
@@ -14,8 +15,10 @@ const ALLOWED_FILE_EXTENSIONS = ['.pdf', '.doc', '.docx'];
 
 const Apply: React.FC = () => {
   const { jobId } = useParams<{ jobId: string }>();
-  const [job, setJob] = useState<{ title: string; description: string } | null>(null);
+  const [job, setJob] = useState<{ title: string; description: string; user_id: string } | null>(null);
   const [file, setFile] = useState<File | null>(null);
+  const [applicantName, setApplicantName] = useState<string>('');
+  const [applicantEmail, setApplicantEmail] = useState<string>('');
   const [isDragging, setIsDragging] = useState<boolean>(false);
   const [isUploading, setIsUploading] = useState<boolean>(false);
   const [success, setSuccess] = useState<boolean>(false);
@@ -32,7 +35,7 @@ const Apply: React.FC = () => {
 
         const { data, error } = await supabase
           .from('jobs')
-          .select('title, description')
+          .select('title, description, user_id')
           .eq('id', jobId)
           .single();
 
@@ -50,32 +53,6 @@ const Apply: React.FC = () => {
     };
 
     fetchJob();
-  }, [jobId]);
-
-  // Check if application already exists
-  useEffect(() => {
-    const checkExistingApplication = async () => {
-      if (!jobId) return;
-      
-      try {
-        const { data, error } = await supabase
-          .from('job_applications')
-          .select('id')
-          .eq('job_id', jobId)
-          .limit(1);
-          
-        if (error) throw error;
-        
-        // If application exists, show a different message
-        if (data && data.length > 0) {
-          // We don't prevent reapplying, but we could show a notice
-        }
-      } catch (err) {
-        console.error('Error checking existing application:', err);
-      }
-    };
-    
-    checkExistingApplication();
   }, [jobId]);
 
   // Handle drag events
@@ -136,8 +113,8 @@ const Apply: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!jobId || !file || !job) {
-      setError('Missing required information');
+    if (!jobId || !file || !job || !applicantName.trim() || !applicantEmail.trim()) {
+      setError('Please fill in all required fields');
       return;
     }
     
@@ -169,32 +146,19 @@ const Apply: React.FC = () => {
       
       const fileUrl = urlData.publicUrl;
       
-      // First insert a cv_link record to get an ID for cv_link_id
-      const { data: cvLinkData, error: cvLinkError } = await supabase
-        .from('cv_links')
-        .insert({
-          file_url: fileUrl,
-          file_name: file.name,
-          file_size: file.size,
-          file_type: file.type,
-          job_id: jobId,
-          status: 'new'
-        })
-        .select()
-        .single();
-        
-      if (cvLinkError || !cvLinkData) {
-        throw new Error(cvLinkError?.message || 'Failed to create CV link');
-      }
-      
-      // Now insert into job_applications table with the cv_link_id
+      // Insert into candidate_cvs table
       const { error: insertError } = await supabase
-        .from('job_applications')
+        .from('candidate_cvs')
         .insert({
           job_id: jobId,
-          link_for_cv: fileUrl,
-          job_name: job.title,
-          cv_link_id: cvLinkData.id // This was missing in the previous code
+          user_id: job.user_id, // Use the job owner's user_id
+          applicant_name: applicantName.trim(),
+          applicant_email: applicantEmail.trim(),
+          cv_file_url: fileUrl,
+          cv_file_name: file.name,
+          cv_file_size: file.size,
+          cv_file_type: file.type,
+          status: 'new'
         });
         
       if (insertError) {
@@ -276,67 +240,102 @@ const Apply: React.FC = () => {
               )}
               
               <div className="mt-6">
-                <h3 className="text-lg font-medium mb-3">Submit Your CV</h3>
+                <h3 className="text-lg font-medium mb-3">Submit Your Application</h3>
                 
-                <form onSubmit={handleSubmit}>
-                  <div
-                    className={cn(
-                      "border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors",
-                      isDragging ? "border-primary bg-primary/5" : "border-gray-300 hover:border-gray-400",
-                      file ? "bg-blue-50 border-blue-300" : ""
-                    )}
-                    onDragEnter={handleDrag}
-                    onDragLeave={handleDrag}
-                    onDragOver={handleDrag}
-                    onDrop={handleDrop}
-                    onClick={() => document.getElementById('file-input')?.click()}
-                  >
-                    <input
-                      id="file-input"
-                      type="file"
-                      className="hidden"
-                      onChange={handleFileChange}
-                      accept=".pdf,.doc,.docx"
+                <form onSubmit={handleSubmit} className="space-y-4">
+                  <div>
+                    <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
+                      Full Name *
+                    </label>
+                    <Input
+                      id="name"
+                      type="text"
+                      value={applicantName}
+                      onChange={(e) => setApplicantName(e.target.value)}
+                      placeholder="Enter your full name"
+                      required
+                      className="w-full"
                     />
-                    
-                    <div className="flex flex-col items-center justify-center space-y-3">
-                      {file ? (
-                        <>
-                          <FileType className="h-10 w-10 text-blue-500" />
-                          <div className="text-sm font-medium">{file.name}</div>
-                          <div className="text-xs text-gray-500">
-                            {(file.size / 1024 / 1024).toFixed(2)} MB
-                          </div>
-                          <Button
-                            type="button"
-                            variant="outline"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setFile(null);
-                            }}
-                            className="text-xs mt-2"
-                          >
-                            Change File
-                          </Button>
-                        </>
-                      ) : (
-                        <>
-                          <Upload className="h-10 w-10 text-gray-400" />
-                          <div className="text-gray-600">
-                            <span className="font-medium">Click to upload</span> or drag and drop
-                          </div>
-                          <p className="text-xs text-gray-500">
-                            PDF, DOC or DOCX (max 5MB)
-                          </p>
-                        </>
+                  </div>
+
+                  <div>
+                    <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+                      Email Address *
+                    </label>
+                    <Input
+                      id="email"
+                      type="email"
+                      value={applicantEmail}
+                      onChange={(e) => setApplicantEmail(e.target.value)}
+                      placeholder="Enter your email address"
+                      required
+                      className="w-full"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      CV/Resume *
+                    </label>
+                    <div
+                      className={cn(
+                        "border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors",
+                        isDragging ? "border-primary bg-primary/5" : "border-gray-300 hover:border-gray-400",
+                        file ? "bg-blue-50 border-blue-300" : ""
                       )}
+                      onDragEnter={handleDrag}
+                      onDragLeave={handleDrag}
+                      onDragOver={handleDrag}
+                      onDrop={handleDrop}
+                      onClick={() => document.getElementById('file-input')?.click()}
+                    >
+                      <input
+                        id="file-input"
+                        type="file"
+                        className="hidden"
+                        onChange={handleFileChange}
+                        accept=".pdf,.doc,.docx"
+                      />
+                      
+                      <div className="flex flex-col items-center justify-center space-y-3">
+                        {file ? (
+                          <>
+                            <FileType className="h-10 w-10 text-blue-500" />
+                            <div className="text-sm font-medium">{file.name}</div>
+                            <div className="text-xs text-gray-500">
+                              {(file.size / 1024 / 1024).toFixed(2)} MB
+                            </div>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setFile(null);
+                              }}
+                              className="text-xs mt-2"
+                            >
+                              Change File
+                            </Button>
+                          </>
+                        ) : (
+                          <>
+                            <Upload className="h-10 w-10 text-gray-400" />
+                            <div className="text-gray-600">
+                              <span className="font-medium">Click to upload</span> or drag and drop
+                            </div>
+                            <p className="text-xs text-gray-500">
+                              PDF, DOC or DOCX (max 5MB)
+                            </p>
+                          </>
+                        )}
+                      </div>
                     </div>
                   </div>
                   
                   <Button 
                     type="submit" 
                     className="w-full mt-6" 
-                    disabled={!file || isUploading}
+                    disabled={!file || !applicantName.trim() || !applicantEmail.trim() || isUploading}
                   >
                     {isUploading ? (
                       <>

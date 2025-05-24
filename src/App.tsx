@@ -24,13 +24,14 @@ import Signup from "./pages/Auth/Signup";
 
 // Public Pages
 import Home from "./pages/Home/Home";
-import Apply from "./pages/Apply/Apply"; // Import the Apply page
+import Apply from "./pages/Apply/Apply";
 
 // Dashboard Pages
 import Dashboard from "./pages/Dashboard/Dashboard";
 import Jobs from "./pages/Jobs/Jobs";
 import Candidates from "./pages/Candidates/Candidates";
 import CandidateProfile from "./pages/Candidates/CandidateProfile";
+import CandidateCV from "./pages/CandidateCV/CandidateCV";
 import Calendar from "./pages/Calendar/Calendar";
 import BuildProfile from "./pages/BuildProfile/BuildProfile";
 import Settings from "./pages/Settings/Settings";
@@ -109,7 +110,7 @@ const App = () => (
               <Route index element={<Home />} />
               <Route path="/login" element={<Login />} />
               <Route path="/signup" element={<Signup />} />
-              <Route path="/apply/:jobId" element={<Apply />} /> {/* The Apply route */}
+              <Route path="/apply/:jobId" element={<Apply />} />
 
               <Route
                 path="/"
@@ -123,6 +124,7 @@ const App = () => (
                 <Route path="jobs" element={<Jobs />} />
                 <Route path="candidates" element={<Candidates />} />
                 <Route path="candidates/:id" element={<CandidateProfile />} />
+                <Route path="candidate-cv" element={<CandidateCV />} />
                 <Route path="calendar" element={<Calendar />} />
                 <Route path="build-profile" element={<BuildProfile />} />
                 <Route path="settings" element={<Settings />} />

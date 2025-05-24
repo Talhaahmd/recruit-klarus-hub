@@ -9,6 +9,39 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      api_keys: {
+        Row: {
+          api_key: string
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          key_name: string
+          last_used: string | null
+          permissions: string[] | null
+          user_id: string
+        }
+        Insert: {
+          api_key: string
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          key_name: string
+          last_used?: string | null
+          permissions?: string[] | null
+          user_id: string
+        }
+        Update: {
+          api_key?: string
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          key_name?: string
+          last_used?: string | null
+          permissions?: string[] | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       calendar_events: {
         Row: {
           created_at: string | null
@@ -67,6 +100,65 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "candidate_applications_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      candidate_cvs: {
+        Row: {
+          applicant_email: string | null
+          applicant_name: string | null
+          application_date: string | null
+          created_at: string | null
+          cv_file_name: string
+          cv_file_size: number | null
+          cv_file_type: string | null
+          cv_file_url: string
+          id: string
+          job_id: string
+          notes: string | null
+          status: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          applicant_email?: string | null
+          applicant_name?: string | null
+          application_date?: string | null
+          created_at?: string | null
+          cv_file_name: string
+          cv_file_size?: number | null
+          cv_file_type?: string | null
+          cv_file_url: string
+          id?: string
+          job_id: string
+          notes?: string | null
+          status?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          applicant_email?: string | null
+          applicant_name?: string | null
+          application_date?: string | null
+          created_at?: string | null
+          cv_file_name?: string
+          cv_file_size?: number | null
+          cv_file_type?: string | null
+          cv_file_url?: string
+          id?: string
+          job_id?: string
+          notes?: string | null
+          status?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "candidate_cvs_job_id_fkey"
             columns: ["job_id"]
             isOneToOne: false
             referencedRelation: "jobs"
