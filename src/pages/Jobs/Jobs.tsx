@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Header } from '@/components/Layout/MainLayout';
 import { toast } from 'sonner';
@@ -9,7 +8,7 @@ import JobDetailsModal from '@/components/UI/JobDetailsModal';
 import { Job, jobsService } from '@/services/jobsService';
 import { PlusCircle, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from '@/integrations/supabase/client';
+import { useLinkedInAutoPost } from '@/hooks/useLinkedInAutoPost';
 
 const Jobs = () => {
   const [isAddJobModalOpen, setIsAddJobModalOpen] = useState(false);
@@ -18,6 +17,7 @@ const Jobs = () => {
   const [jobs, setJobs] = useState<Job[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
+  const { autoPostToLinkedIn, isPosting } = useLinkedInAutoPost();
 
   // Fetch jobs on mount
   useEffect(() => {
@@ -66,6 +66,16 @@ const Jobs = () => {
       if (savedJob) {
         toast.success('Job created successfully');
         fetchJobs();
+        
+        // Automatically post to LinkedIn
+        console.log('Job created, attempting LinkedIn auto-post...');
+        const linkedInSuccess = await autoPostToLinkedIn(savedJob.id);
+        
+        if (linkedInSuccess) {
+          console.log('LinkedIn auto-post completed successfully');
+        } else {
+          console.log('LinkedIn auto-post failed, but job was created');
+        }
       } else {
         toast.error('Failed to create job');
       }
@@ -114,9 +124,22 @@ const Jobs = () => {
           <h2 className="text-lg font-medium">All Jobs ({jobs.length})</h2>
           <p className="text-sm text-gray-500">Manage your active and closed job postings</p>
         </div>
-        <Button onClick={handleAddJobClick} className="flex items-center gap-2 bg-primary-100 hover:bg-primary-100/90">
-          <PlusCircle size={16} />
-          Post New Job
+        <Button 
+          onClick={handleAddJobClick} 
+          disabled={isPosting}
+          className="flex items-center gap-2 bg-primary-100 hover:bg-primary-100/90"
+        >
+          {isPosting ? (
+            <>
+              <Loader2 className="h-4 w-4 animate-spin" />
+              Creating & Posting...
+            </>
+          ) : (
+            <>
+              <PlusCircle size={16} />
+              Post New Job
+            </>
+          )}
         </Button>
       </div>
 
