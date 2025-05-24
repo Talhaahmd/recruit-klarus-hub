@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
@@ -39,6 +40,7 @@ export const candidatesService = {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return [];
 
+      // With new RLS policies, this will automatically filter to candidates for jobs owned by the user
       const { data, error } = await supabase.from('candidates').select('*');
       if (error) throw error;
 
@@ -55,26 +57,15 @@ export const candidatesService = {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return [];
 
-      const { data: applications, error: appError } = await supabase.from('job_applications').select('*').eq('job_id', jobId);
-      if (appError || !applications?.length) return [];
+      // With new RLS policies, this will automatically filter to candidates for jobs owned by the user
+      const { data, error } = await supabase
+        .from('candidates')
+        .select('*')
+        .eq('job_id', jobId);
+      
+      if (error) throw error;
 
-      const candidates: Candidate[] = [];
-      for (const app of applications) {
-        try {
-          let candidateId = '';
-          if (app.cv_link_id) {
-            const { data: cvLink } = await supabase.from('cv_links').select('id').eq('id', app.cv_link_id).single();
-            if (cvLink) candidateId = cvLink.id;
-          }
-          if (candidateId) {
-            const { data: candidate } = await supabase.from('candidates').select('*').eq('id', candidateId).single();
-            if (candidate) candidates.push({ ...candidate, rating: candidate.ai_rating || 0 });
-          }
-        } catch (err) {
-          console.error('Error fetching candidate details:', err);
-        }
-      }
-      return candidates;
+      return (data || []).map(c => ({ ...c, rating: c.ai_rating || 0 }));
     } catch (err: any) {
       console.error('Error in getCandidatesByJob:', err.message);
       return [];
@@ -100,22 +91,18 @@ export const candidatesService = {
     try {
       const { data: { user } } = await supabase.auth.getUser();
 
-     const candidateData: any = {
-  ...candidate,
-  rating: candidate.rating || candidate.ai_rating || 0,
-};
+      const candidateData: any = {
+        ...candidate,
+        rating: candidate.rating || candidate.ai_rating || 0,
+      };
 
-// Only add created_by and user_id if a user exists
-if (user?.id) {
-  candidateData.created_by = user.id;
-  candidateData.user_id = user.id;
-}
-
+      // With new RLS policy allowing public insertion, we don't need to set user_id for creation
+      // The RLS will handle viewing permissions based on job ownership
 
       const { data, error } = await supabase.from('candidates').insert(candidateData).select().single();
       if (error) throw error;
 
-      toast.success(user ? 'Candidate created successfully' : 'Candidate received (system)');
+      toast.success(user ? 'Candidate created successfully' : 'Candidate application received');
       return { ...data, rating: data.ai_rating || 0 };
     } catch (error: any) {
       console.error('Error in createCandidate:', error.message);

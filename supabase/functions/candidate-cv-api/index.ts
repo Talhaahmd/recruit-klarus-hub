@@ -51,7 +51,7 @@ serve(async (req) => {
     const method = req.method
 
     if (method === 'GET') {
-      // Get candidate CVs for the user
+      // Get candidate CVs for jobs created by the API key owner
       const { data, error } = await supabaseClient
         .from('candidate_cvs')
         .select(`
@@ -59,10 +59,11 @@ serve(async (req) => {
           jobs:job_id (
             title,
             location,
-            type
+            type,
+            created_by,
+            user_id
           )
         `)
-        .eq('user_id', keyData.user_id)
         .order('application_date', { ascending: false })
 
       if (error) {
@@ -72,21 +73,41 @@ serve(async (req) => {
         )
       }
 
+      // Filter CVs to only show those for jobs created by the API key owner
+      const filteredData = data?.filter(cv => 
+        cv.jobs?.created_by === keyData.user_id || cv.jobs?.user_id === keyData.user_id
+      ) || []
+
       return new Response(
-        JSON.stringify({ data }),
+        JSON.stringify({ data: filteredData }),
         { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
 
     if (method === 'POST') {
-      // Create new candidate CV entry
+      // Create new candidate CV entry - anyone can create but we need to ensure proper job ownership
       const body = await req.json()
       
+      // Verify the job exists and get its details
+      const { data: jobData, error: jobError } = await supabaseClient
+        .from('jobs')
+        .select('id, created_by, user_id')
+        .eq('id', body.job_id)
+        .single()
+
+      if (jobError || !jobData) {
+        return new Response(
+          JSON.stringify({ error: 'Job not found' }),
+          { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        )
+      }
+
+      // For CV creation, we use the job owner's user_id
       const { data, error } = await supabaseClient
         .from('candidate_cvs')
         .insert({
           ...body,
-          user_id: keyData.user_id
+          user_id: jobData.created_by || jobData.user_id
         })
         .select()
         .single()
@@ -105,7 +126,7 @@ serve(async (req) => {
     }
 
     if (method === 'PUT') {
-      // Update candidate CV
+      // Update candidate CV - only for CVs belonging to jobs owned by API key owner
       const cvId = url.searchParams.get('id')
       if (!cvId) {
         return new Response(
@@ -116,11 +137,38 @@ serve(async (req) => {
 
       const body = await req.json()
       
+      // First check if the CV belongs to a job owned by the API key owner
+      const { data: cvData, error: cvCheckError } = await supabaseClient
+        .from('candidate_cvs')
+        .select(`
+          id,
+          jobs:job_id (
+            created_by,
+            user_id
+          )
+        `)
+        .eq('id', cvId)
+        .single()
+
+      if (cvCheckError || !cvData) {
+        return new Response(
+          JSON.stringify({ error: 'CV not found' }),
+          { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        )
+      }
+
+      // Check ownership
+      if (cvData.jobs?.created_by !== keyData.user_id && cvData.jobs?.user_id !== keyData.user_id) {
+        return new Response(
+          JSON.stringify({ error: 'Unauthorized to update this CV' }),
+          { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        )
+      }
+      
       const { data, error } = await supabaseClient
         .from('candidate_cvs')
         .update(body)
         .eq('id', cvId)
-        .eq('user_id', keyData.user_id)
         .select()
         .single()
 
@@ -138,7 +186,7 @@ serve(async (req) => {
     }
 
     if (method === 'DELETE') {
-      // Delete candidate CV
+      // Delete candidate CV - only for CVs belonging to jobs owned by API key owner
       const cvId = url.searchParams.get('id')
       if (!cvId) {
         return new Response(
@@ -147,11 +195,38 @@ serve(async (req) => {
         )
       }
 
+      // First check if the CV belongs to a job owned by the API key owner
+      const { data: cvData, error: cvCheckError } = await supabaseClient
+        .from('candidate_cvs')
+        .select(`
+          id,
+          jobs:job_id (
+            created_by,
+            user_id
+          )
+        `)
+        .eq('id', cvId)
+        .single()
+
+      if (cvCheckError || !cvData) {
+        return new Response(
+          JSON.stringify({ error: 'CV not found' }),
+          { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        )
+      }
+
+      // Check ownership
+      if (cvData.jobs?.created_by !== keyData.user_id && cvData.jobs?.user_id !== keyData.user_id) {
+        return new Response(
+          JSON.stringify({ error: 'Unauthorized to delete this CV' }),
+          { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        )
+      }
+
       const { error } = await supabaseClient
         .from('candidate_cvs')
         .delete()
         .eq('id', cvId)
-        .eq('user_id', keyData.user_id)
 
       if (error) {
         return new Response(
@@ -172,6 +247,7 @@ serve(async (req) => {
     )
 
   } catch (error) {
+    console.error('API Error:', error)
     return new Response(
       JSON.stringify({ error: error.message }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }

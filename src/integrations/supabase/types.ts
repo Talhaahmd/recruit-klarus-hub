@@ -223,7 +223,6 @@ export type Database = {
           ai_summary: string | null
           certifications: string | null
           companies: string | null
-          created_by: string | null
           current_job_title: string | null
           degrees: string | null
           email: string | null
@@ -249,7 +248,6 @@ export type Database = {
           ai_summary?: string | null
           certifications?: string | null
           companies?: string | null
-          created_by?: string | null
           current_job_title?: string | null
           degrees?: string | null
           email?: string | null
@@ -275,7 +273,6 @@ export type Database = {
           ai_summary?: string | null
           certifications?: string | null
           companies?: string | null
-          created_by?: string | null
           current_job_title?: string | null
           degrees?: string | null
           email?: string | null
