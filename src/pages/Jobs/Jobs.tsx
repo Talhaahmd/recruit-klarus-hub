@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Header } from '@/components/Layout/MainLayout';
 import { toast } from 'sonner';
@@ -23,7 +22,7 @@ const Jobs = () => {
   const [pendingJobData, setPendingJobData] = useState<NewJobData | null>(null);
   const navigate = useNavigate();
   const { autoPostToLinkedIn, isPosting } = useLinkedInAutoPost();
-  const { showModal, initiateLinkedInConnect, dismissModal } = useLinkedInPrompt();
+  const { showModal, initiateLinkedInConnect, dismissModal, hasLinkedInToken, recheckToken } = useLinkedInPrompt();
 
   // Fetch jobs on mount
   useEffect(() => {
@@ -70,17 +69,37 @@ const Jobs = () => {
   };
 
   const handleSaveJob = async (data: NewJobData) => {
-    console.log('Job data received, prompting for LinkedIn consent...');
+    console.log('Job data received, checking LinkedIn connection status...');
     
-    // Store the job data and show LinkedIn consent modal
-    setPendingJobData(data);
-    setIsAddJobModalOpen(false);
-    
-    // Show LinkedIn consent modal and pass job data to the hook
-    dismissModal(); // Reset any existing modal state
-    setTimeout(() => {
+    // Only prompt for LinkedIn connection if we know the token is invalid
+    if (hasLinkedInToken === false) {
+      console.log('No valid LinkedIn token, requesting connection...');
+      setPendingJobData(data);
+      setIsAddJobModalOpen(false);
       initiateLinkedInConnect(data);
-    }, 100);
+      return;
+    }
+    
+    // If token status is unknown or valid, proceed with job creation
+    console.log('Proceeding with job creation...');
+    try {
+      const createdJob = await jobsService.createJob(data);
+      if (createdJob) {
+        // Auto-post to LinkedIn if token is available
+        const success = await autoPostToLinkedIn(createdJob.id);
+        if (success) {
+          toast.success('Job created and posted to LinkedIn successfully!');
+        } else {
+          toast.success('Job created successfully!');
+        }
+        await fetchJobs();
+      }
+    } catch (error) {
+      console.error('Error creating job:', error);
+      toast.error('Failed to create job');
+    } finally {
+      setIsAddJobModalOpen(false);
+    }
   };
 
   const handleEditJob = (id: string) => {

@@ -9,12 +9,24 @@ export const useLinkedInPrompt = () => {
   const [isCheckingToken, setIsCheckingToken] = useState(false);
   const [hasLinkedInToken, setHasLinkedInToken] = useState<boolean | null>(null);
   const [showModal, setShowModal] = useState(false);
+  const [tokenCheckCache, setTokenCheckCache] = useState<{ [key: string]: { valid: boolean, timestamp: number } }>({});
 
-  const checkLinkedInToken = useCallback(async () => {
+  const checkLinkedInToken = useCallback(async (forceCheck = false) => {
     if (!user || !isAuthenticated) {
       console.log('No user or not authenticated, skipping LinkedIn token check');
       setHasLinkedInToken(null);
       setShowModal(false);
+      return;
+    }
+
+    // Use cache if available and not forced check (cache for 5 minutes)
+    const cacheKey = user.id;
+    const cachedResult = tokenCheckCache[cacheKey];
+    const cacheExpiry = 5 * 60 * 1000; // 5 minutes
+    
+    if (!forceCheck && cachedResult && (Date.now() - cachedResult.timestamp) < cacheExpiry) {
+      console.log('Using cached LinkedIn token status:', cachedResult.valid);
+      setHasLinkedInToken(cachedResult.valid);
       return;
     }
 
@@ -31,31 +43,51 @@ export const useLinkedInPrompt = () => {
       if (error && error.code !== 'PGRST116') {
         console.error('Error checking LinkedIn token:', error);
         setHasLinkedInToken(false);
+        setTokenCheckCache(prev => ({
+          ...prev,
+          [cacheKey]: { valid: false, timestamp: Date.now() }
+        }));
         return;
       }
 
       if (data) {
-        // Check if token is still valid
+        // Check if token is still valid (with 1 hour buffer before actual expiry)
         const expiresAt = new Date(data.expires_at);
         const now = new Date();
-        const tokenValid = expiresAt > now;
+        const oneHourBuffer = 60 * 60 * 1000; // 1 hour in milliseconds
+        const tokenValid = expiresAt.getTime() > (now.getTime() + oneHourBuffer);
+        
         console.log('LinkedIn token found, valid:', tokenValid, 'expires:', expiresAt);
         setHasLinkedInToken(tokenValid);
         
+        // Cache the result
+        setTokenCheckCache(prev => ({
+          ...prev,
+          [cacheKey]: { valid: tokenValid, timestamp: Date.now() }
+        }));
+        
         if (!tokenValid) {
-          console.log('LinkedIn token expired');
+          console.log('LinkedIn token will expire soon or has expired');
         }
       } else {
         console.log('No LinkedIn token found');
         setHasLinkedInToken(false);
+        setTokenCheckCache(prev => ({
+          ...prev,
+          [cacheKey]: { valid: false, timestamp: Date.now() }
+        }));
       }
     } catch (error) {
       console.error('Error checking LinkedIn token:', error);
       setHasLinkedInToken(false);
+      setTokenCheckCache(prev => ({
+        ...prev,
+        [cacheKey]: { valid: false, timestamp: Date.now() }
+      }));
     } finally {
       setIsCheckingToken(false);
     }
-  }, [user, isAuthenticated]);
+  }, [user, isAuthenticated, tokenCheckCache]);
 
   const initiateLinkedInConnect = (postData?: any) => {
     if (!user) {
@@ -114,9 +146,12 @@ export const useLinkedInPrompt = () => {
       // Clean up URL
       window.history.replaceState({}, document.title, window.location.pathname);
       
-      // Recheck token
+      // Clear cache and force recheck
+      setTokenCheckCache({});
+      
+      // Recheck token with force
       setTimeout(() => {
-        checkLinkedInToken();
+        checkLinkedInToken(true);
       }, 1000);
       
       // Check for pending post data
@@ -124,7 +159,6 @@ export const useLinkedInPrompt = () => {
       if (pendingPostData) {
         console.log('Found pending post data after LinkedIn connection');
         sessionStorage.removeItem('pending_post_data');
-        // Note: The component using this hook should handle the post generation
         toast.success('LinkedIn connected! Processing your post...');
       } else {
         toast.success('LinkedIn connected successfully!');
@@ -154,6 +188,6 @@ export const useLinkedInPrompt = () => {
     showModal,
     initiateLinkedInConnect,
     dismissModal,
-    recheckToken: checkLinkedInToken
+    recheckToken: () => checkLinkedInToken(true) // Force recheck
   };
 };

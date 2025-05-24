@@ -92,6 +92,14 @@ const BuildProfile: React.FC = () => {
     try {
       console.log('Generating LinkedIn post with data:', postData);
       
+      // Only check LinkedIn connection if we know it's invalid, don't preemptively ask for consent
+      if (hasLinkedInToken === false) {
+        console.log('No valid LinkedIn token, requesting connection...');
+        setPendingPostData({ ...postData, isScheduled });
+        initiateLinkedInConnect();
+        return;
+      }
+      
       const { data, error } = await supabase.functions.invoke('generate-linkedin-post', {
         body: {
           niche: postData.niche,
@@ -105,9 +113,15 @@ const BuildProfile: React.FC = () => {
       if (error) {
         console.error('LinkedIn post generation error:', error);
         
-        if (error.message.includes('LinkedIn not connected') || error.message.includes('token')) {
-          // Store post data and show LinkedIn consent
+        // Only show LinkedIn consent if the error is specifically about connection
+        if (error.message.includes('LinkedIn not connected') || 
+            error.message.includes('token') || 
+            error.message.includes('expired') ||
+            error.message.includes('revoked')) {
+          console.log('LinkedIn connection error detected, requesting reconnection...');
           setPendingPostData({ ...postData, isScheduled });
+          // Force recheck to update hasLinkedInToken state
+          await recheckToken();
           initiateLinkedInConnect();
           return;
         }
@@ -119,9 +133,14 @@ const BuildProfile: React.FC = () => {
       if (data?.error) {
         console.error('LinkedIn post generation failed:', data.error);
         
-        if (data.error.includes('LinkedIn not connected') || data.error.includes('token')) {
-          // Store post data and show LinkedIn consent
+        // Only show LinkedIn consent if the error is specifically about connection
+        if (data.error.includes('LinkedIn not connected') || 
+            data.error.includes('token') || 
+            data.error.includes('expired') ||
+            data.error.includes('revoked')) {
+          console.log('LinkedIn connection error in response, requesting reconnection...');
           setPendingPostData({ ...postData, isScheduled });
+          await recheckToken();
           initiateLinkedInConnect();
           return;
         }
