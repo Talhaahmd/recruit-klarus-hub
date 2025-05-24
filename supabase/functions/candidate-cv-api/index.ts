@@ -21,10 +21,10 @@ serve(async (req) => {
     const method = req.method
 
     if (method === 'POST') {
-      // Handle both API key requests and direct Make.com webhook requests
+      // Handle both API key requests and direct application requests
       const body = await req.json()
       
-      console.log('Received data from Make.com:', body)
+      console.log('Received data:', body)
 
       // Check if this is an API key request
       const apiKey = req.headers.get('x-api-key')
@@ -55,71 +55,194 @@ serve(async (req) => {
           .eq('api_key', apiKey)
       }
 
-      // Map the Make.com data to the candidates table structure
-      const candidateData = {
-        full_name: body.full_name || body.name || 'Unknown Candidate',
-        email: body.email || body.candidate_email || null,
-        phone: body.phone || body.candidate_phone || null,
-        location: body.location || null,
-        linkedin: body.linkedin || body.linkedin_url || null,
-        current_job_title: body.current_job_title || body.job_title || null,
-        years_experience: body.years_experience || null,
-        skills: body.skills || null,
-        certifications: body.certifications || null,
-        companies: body.companies || body.previous_companies || null,
-        job_titles: body.job_titles || body.previous_job_titles || null,
-        degrees: body.degrees || body.education || null,
-        institutions: body.institutions || body.educational_institutions || null,
-        graduation_years: body.graduation_years || null,
-        experience_level: body.experience_level || null,
-        source: body.source || 'Make.com CV Upload',
-        timestamp: body.timestamp || new Date().toISOString(),
-        job_id: body.job_id || null,
-        ai_rating: body.ai_rating || body.rating || 0,
-        ai_summary: body.ai_summary || body.summary || null,
-        ai_content: body.ai_content || body.parsed_content || null
-      }
+      // Handle direct application requests (from Apply page)
+      if (body.cv_url && body.job_id && !body.full_name) {
+        console.log('Processing direct application request')
+        
+        // For direct applications, we'll create a basic candidate entry
+        // The Make.com webhook will later update it with parsed CV data
+        const candidateData = {
+          full_name: 'Processing CV...',
+          email: null,
+          phone: null,
+          location: null,
+          linkedin: null,
+          current_job_title: null,
+          years_experience: null,
+          skills: null,
+          certifications: null,
+          companies: null,
+          job_titles: null,
+          degrees: null,
+          institutions: null,
+          graduation_years: null,
+          experience_level: null,
+          source: body.source || 'Job Application',
+          timestamp: new Date().toISOString(),
+          job_id: body.job_id,
+          ai_rating: 0,
+          ai_summary: 'CV processing in progress...',
+          ai_content: body.cv_url
+        }
 
-      console.log('Inserting candidate data:', candidateData)
+        console.log('Creating candidate with data:', candidateData)
 
-      // Use service role key to bypass RLS for insertion
-      const { data, error } = await supabaseClient
-        .from('candidates')
-        .insert(candidateData)
-        .select()
-        .single()
+        // Use service role key to bypass RLS for insertion
+        const { data, error } = await supabaseClient
+          .from('candidates')
+          .insert(candidateData)
+          .select()
+          .single()
 
-      if (error) {
-        console.error('Error inserting candidate:', error)
+        if (error) {
+          console.error('Error inserting candidate:', error)
+          return new Response(
+            JSON.stringify({ error: error.message }),
+            { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          )
+        }
+
+        console.log('Successfully created candidate:', data.id)
+
+        // Increment the applicants count for the job
+        if (body.job_id) {
+          try {
+            const { error: jobUpdateError } = await supabaseClient
+              .rpc('increment_job_applicants', { job_id: body.job_id })
+              
+            if (jobUpdateError) {
+              console.error('Error updating job applicants count:', jobUpdateError)
+            } else {
+              console.log('Successfully incremented job applicants count')
+            }
+          } catch (updateError) {
+            console.error('Error incrementing job applicants:', updateError)
+          }
+        }
+
+        // Call Make.com webhook to process the CV
+        try {
+          const webhookResponse = await fetch('https://hook.eu2.make.com/mufj147gj50vc2ip7sxae5sva9segfpr', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              cv_url: body.cv_url,
+              job_id: body.job_id,
+              job_name: body.job_name,
+              hr_user_id: body.hr_user_id,
+              file_name: body.file_name,
+              candidate_id: data.id // Pass the candidate ID to update later
+            })
+          })
+          
+          console.log('Webhook called successfully, status:', webhookResponse.status)
+        } catch (webhookError) {
+          console.error('Webhook error (non-critical):', webhookError)
+        }
+
         return new Response(
-          JSON.stringify({ error: error.message }),
-          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          JSON.stringify({ data, message: 'Candidate created successfully, CV processing initiated' }),
+          { status: 201, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         )
       }
 
-      console.log('Successfully created candidate:', data.id)
+      // Handle Make.com webhook responses (parsed CV data)
+      if (body.full_name || body.name) {
+        console.log('Processing Make.com webhook response with parsed CV data')
+        
+        // Map the Make.com data to the candidates table structure
+        const candidateData = {
+          full_name: body.full_name || body.name || 'Unknown Candidate',
+          email: body.email || body.candidate_email || null,
+          phone: body.phone || body.candidate_phone || null,
+          location: body.location || null,
+          linkedin: body.linkedin || body.linkedin_url || null,
+          current_job_title: body.current_job_title || body.job_title || null,
+          years_experience: body.years_experience || null,
+          skills: body.skills || null,
+          certifications: body.certifications || null,
+          companies: body.companies || body.previous_companies || null,
+          job_titles: body.job_titles || body.previous_job_titles || null,
+          degrees: body.degrees || body.education || null,
+          institutions: body.institutions || body.educational_institutions || null,
+          graduation_years: body.graduation_years || null,
+          experience_level: body.experience_level || null,
+          source: body.source || 'Make.com CV Upload',
+          timestamp: body.timestamp || new Date().toISOString(),
+          job_id: body.job_id || null,
+          ai_rating: body.ai_rating || body.rating || 0,
+          ai_summary: body.ai_summary || body.summary || null,
+          ai_content: body.ai_content || body.parsed_content || null
+        }
 
-      // If there's a job_id, increment the applicants count
-      if (candidateData.job_id) {
-        try {
-          const { error: jobUpdateError } = await supabaseClient
-            .from('jobs')
-            .update({ 
-              applicants: supabaseClient.rpc('increment', { x: 1 }) 
-            })
-            .eq('id', candidateData.job_id)
-            
-          if (jobUpdateError) {
-            console.error('Error updating job applicants count:', jobUpdateError)
+        console.log('Updating/inserting candidate data:', candidateData)
+
+        // If candidate_id is provided, update existing candidate
+        if (body.candidate_id) {
+          const { data, error } = await supabaseClient
+            .from('candidates')
+            .update(candidateData)
+            .eq('id', body.candidate_id)
+            .select()
+            .single()
+
+          if (error) {
+            console.error('Error updating candidate:', error)
+            return new Response(
+              JSON.stringify({ error: error.message }),
+              { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+            )
           }
-        } catch (updateError) {
-          console.error('Error incrementing job applicants:', updateError)
+
+          console.log('Successfully updated candidate:', data.id)
+          return new Response(
+            JSON.stringify({ data, message: 'Candidate updated successfully' }),
+            { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          )
+        } else {
+          // Create new candidate
+          const { data, error } = await supabaseClient
+            .from('candidates')
+            .insert(candidateData)
+            .select()
+            .single()
+
+          if (error) {
+            console.error('Error inserting candidate:', error)
+            return new Response(
+              JSON.stringify({ error: error.message }),
+              { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+            )
+          }
+
+          console.log('Successfully created candidate:', data.id)
+
+          // If there's a job_id, increment the applicants count
+          if (candidateData.job_id) {
+            try {
+              const { error: jobUpdateError } = await supabaseClient
+                .rpc('increment_job_applicants', { job_id: candidateData.job_id })
+                
+              if (jobUpdateError) {
+                console.error('Error updating job applicants count:', jobUpdateError)
+              }
+            } catch (updateError) {
+              console.error('Error incrementing job applicants:', updateError)
+            }
+          }
+
+          return new Response(
+            JSON.stringify({ data, message: 'Candidate created successfully' }),
+            { status: 201, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          )
         }
       }
 
       return new Response(
-        JSON.stringify({ data, message: 'Candidate created successfully' }),
-        { status: 201, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        JSON.stringify({ error: 'Invalid request format' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
 
