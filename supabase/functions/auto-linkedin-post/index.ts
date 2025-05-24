@@ -210,6 +210,8 @@ Make the post sound professional, exciting, and include a call to action. Includ
     });
 
     console.log('LinkedIn response status:', linkedinResponse.status);
+    
+    // Fix: Only read the response body once
     const linkedinResponseText = await linkedinResponse.text();
     console.log('LinkedIn response body:', linkedinResponseText);
 
@@ -246,8 +248,16 @@ Make the post sound professional, exciting, and include a call to action. Includ
       );
     }
 
-    const linkedinResult = await linkedinResponse.json();
-    console.log('LinkedIn post successful:', linkedinResult.id);
+    // Parse the successful response
+    let linkedinResult;
+    try {
+      linkedinResult = JSON.parse(linkedinResponseText);
+      console.log('LinkedIn post successful:', linkedinResult.id);
+    } catch (parseError) {
+      console.error('Error parsing LinkedIn success response:', parseError);
+      // If we can't parse the response but the status was successful, continue
+      linkedinResult = { id: 'unknown' };
+    }
 
     // Store the generated post in linkedin_posts table for reference
     const { error: postSaveError } = await supabase
