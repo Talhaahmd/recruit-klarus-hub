@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Header } from '@/components/Layout/MainLayout';
 import { toast } from 'sonner';
@@ -5,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import JobsTable from '@/components/UI/JobsTable';
 import AddJobModal, { NewJobData } from '@/components/UI/JobsComponents/AddJobModal';
 import JobDetailsModal from '@/components/UI/JobDetailsModal';
-import { Job } from '@/services/jobsService';
+import { Job, JobInput } from '@/services/jobsService';
 import { PlusCircle, Loader2, AlertCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useLinkedInAutoPost } from '@/hooks/useLinkedInAutoPost';
@@ -83,7 +84,21 @@ const Jobs = () => {
     // If token status is unknown or valid, proceed with job creation
     console.log('Proceeding with job creation...');
     try {
-      const createdJob = await jobsService.createJob(data);
+      // Map NewJobData to JobInput format
+      const jobInput: JobInput = {
+        title: data.title,
+        description: data.description,
+        location: data.location,
+        type: data.type,
+        workplace_type: data.workplaceType,
+        technologies: data.technologies,
+        status: 'Active',
+        posted_date: new Date().toISOString().split('T')[0], // Current date in YYYY-MM-DD format
+        active_days: data.activeDays,
+        applicants: 0
+      };
+
+      const createdJob = await jobsService.createJob(jobInput);
       if (createdJob) {
         // Auto-post to LinkedIn if token is available
         const success = await autoPostToLinkedIn(createdJob.id);
