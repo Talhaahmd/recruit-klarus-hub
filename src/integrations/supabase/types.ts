@@ -302,47 +302,6 @@ export type Database = {
           },
         ]
       }
-      cv_links: {
-        Row: {
-          created_at: string | null
-          file_name: string
-          file_size: number | null
-          file_type: string | null
-          file_url: string
-          id: string
-          job_id: string | null
-          status: string | null
-        }
-        Insert: {
-          created_at?: string | null
-          file_name: string
-          file_size?: number | null
-          file_type?: string | null
-          file_url: string
-          id?: string
-          job_id?: string | null
-          status?: string | null
-        }
-        Update: {
-          created_at?: string | null
-          file_name?: string
-          file_size?: number | null
-          file_type?: string | null
-          file_url?: string
-          id?: string
-          job_id?: string | null
-          status?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "cv_links_job_id_fkey"
-            columns: ["job_id"]
-            isOneToOne: false
-            referencedRelation: "jobs"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       job_applications: {
         Row: {
           created_at: string | null
@@ -468,64 +427,26 @@ export type Database = {
         }
         Relationships: []
       }
-      linksubmissions: {
+      linkedin_tokens: {
         Row: {
-          id: string
-          link: string | null
+          access_token: string
+          expires_at: string | null
+          linkedin_id: string
+          user_id: string
         }
         Insert: {
-          id?: string
-          link?: string | null
+          access_token: string
+          expires_at?: string | null
+          linkedin_id: string
+          user_id: string
         }
         Update: {
-          id?: string
-          link?: string | null
+          access_token?: string
+          expires_at?: string | null
+          linkedin_id?: string
+          user_id?: string
         }
         Relationships: []
-      }
-      offer_letters: {
-        Row: {
-          candidate_email: string | null
-          candidate_id: string
-          candidate_name: string | null
-          created_at: string | null
-          document_name: string | null
-          document_url: string | null
-          email_sent: boolean | null
-          id: string
-          job_name: string | null
-        }
-        Insert: {
-          candidate_email?: string | null
-          candidate_id: string
-          candidate_name?: string | null
-          created_at?: string | null
-          document_name?: string | null
-          document_url?: string | null
-          email_sent?: boolean | null
-          id?: string
-          job_name?: string | null
-        }
-        Update: {
-          candidate_email?: string | null
-          candidate_id?: string
-          candidate_name?: string | null
-          created_at?: string | null
-          document_name?: string | null
-          document_url?: string | null
-          email_sent?: boolean | null
-          id?: string
-          job_name?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "offer_letters_candidate_id_fkey"
-            columns: ["candidate_id"]
-            isOneToOne: false
-            referencedRelation: "candidates"
-            referencedColumns: ["id"]
-          },
-        ]
       }
       profiles: {
         Row: {

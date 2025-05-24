@@ -1,4 +1,3 @@
-
 import React, { useEffect } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -25,6 +24,7 @@ import Signup from "./pages/Auth/Signup";
 // Public Pages
 import Home from "./pages/Home/Home";
 import Apply from "./pages/Apply/Apply";
+import LinkedInTokenCallback from "./pages/LinkedInTokenCallback/LinkedInTokenCallback";
 
 // Dashboard Pages
 import Dashboard from "./pages/Dashboard/Dashboard";
@@ -111,6 +111,7 @@ const App = () => (
               <Route path="/login" element={<Login />} />
               <Route path="/signup" element={<Signup />} />
               <Route path="/apply/:jobId" element={<Apply />} />
+              <Route path="/linkedin-token-callback" element={<LinkedInTokenCallback />} />
 
               <Route
                 path="/"
