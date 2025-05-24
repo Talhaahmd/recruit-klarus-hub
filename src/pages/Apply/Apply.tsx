@@ -19,8 +19,6 @@ const Apply: React.FC = () => {
   const { jobId } = useParams<{ jobId: string }>();
   const [job, setJob] = useState<{ title: string; description: string; user_id: string } | null>(null);
   const [file, setFile] = useState<File | null>(null);
-  const [applicantName, setApplicantName] = useState<string>('');
-  const [applicantEmail, setApplicantEmail] = useState<string>('');
   const [isDragging, setIsDragging] = useState<boolean>(false);
   const [isUploading, setIsUploading] = useState<boolean>(false);
   const [success, setSuccess] = useState<boolean>(false);
@@ -88,8 +86,8 @@ const Apply: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!jobId || !file || !job || !applicantName.trim() || !applicantEmail.trim()) {
-      setError('Please fill in all required fields');
+    if (!jobId || !file || !job) {
+      setError('Please upload your CV');
       return;
     }
 
@@ -101,7 +99,7 @@ const Apply: React.FC = () => {
       const fileName = `${Date.now()}_${Math.random().toString(36).substring(2)}.${fileExt}`;
       const filePath = `applications/${jobId}/${fileName}`;
 
-      // Upload file to new cv-bucket
+      // Upload file to cv-bucket
       const { error: uploadError } = await supabase.storage
         .from('cv-bucket')
         .upload(filePath, file, {
@@ -128,9 +126,9 @@ const Apply: React.FC = () => {
 
       if (insertError) throw new Error(insertError.message);
 
-      // Call Make webhook
+      // Call Make webhook to parse CV and create candidate
       try {
-        await fetch(MAKE_WEBHOOK_URL, {
+        const response = await fetch(MAKE_WEBHOOK_URL, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           mode: "no-cors",
@@ -139,16 +137,17 @@ const Apply: React.FC = () => {
             job_id: jobId,
             job_name: job.title,
             hr_user_id: job.user_id,
-            applicant_name: applicantName.trim(),
-            applicant_email: applicantEmail.trim()
+            file_name: file.name
           })
         });
+
+        console.log('Webhook called successfully');
       } catch (webhookError) {
         console.error('Webhook error (non-critical):', webhookError);
       }
 
       setSuccess(true);
-      toast.success('Application submitted successfully!');
+      toast.success('Application submitted successfully! Your CV is being processed.');
     } catch (err: any) {
       console.error('Error submitting application:', err);
       setError(err.message || 'Failed to submit application');
@@ -201,7 +200,7 @@ const Apply: React.FC = () => {
               <h2 className="text-xl font-semibold mb-2">Application Submitted!</h2>
               <p className="text-gray-600 mb-4">
                 Thank you for applying to <strong>{job?.title}</strong>. 
-                We'll review your application and get back to you soon.
+                Your CV is being processed and analyzed. We'll review your application and get back to you soon.
               </p>
               <Link to="/">
                 <Button>
@@ -229,7 +228,7 @@ const Apply: React.FC = () => {
             <CardHeader>
               <CardTitle className="text-2xl">{job?.title}</CardTitle>
               <CardDescription>
-                Submit your application for this position
+                Upload your CV/Resume to apply for this position
               </CardDescription>
             </CardHeader>
           </Card>
@@ -237,9 +236,9 @@ const Apply: React.FC = () => {
 
         <Card>
           <CardHeader>
-            <CardTitle>Application Form</CardTitle>
+            <CardTitle>Upload Your CV/Resume</CardTitle>
             <CardDescription>
-              Please fill in your details and upload your resume
+              Simply upload your CV and we'll automatically process your application
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -250,36 +249,10 @@ const Apply: React.FC = () => {
                 </Alert>
               )}
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="name">Full Name *</Label>
-                  <Input
-                    id="name"
-                    type="text"
-                    value={applicantName}
-                    onChange={(e) => setApplicantName(e.target.value)}
-                    placeholder="Enter your full name"
-                    required
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="email">Email Address *</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    value={applicantEmail}
-                    onChange={(e) => setApplicantEmail(e.target.value)}
-                    placeholder="Enter your email"
-                    required
-                  />
-                </div>
-              </div>
-
               <div>
-                <Label>Resume/CV *</Label>
                 <div
                   className={cn(
-                    "mt-2 border-2 border-dashed rounded-lg p-6 text-center transition-colors",
+                    "border-2 border-dashed rounded-lg p-8 text-center transition-colors cursor-pointer",
                     isDragging ? "border-blue-500 bg-blue-50" : "border-gray-300",
                     file ? "border-green-500 bg-green-50" : ""
                   )}
@@ -287,6 +260,7 @@ const Apply: React.FC = () => {
                   onDragLeave={handleDrag}
                   onDragOver={handleDrag}
                   onDrop={handleDrop}
+                  onClick={() => document.getElementById('file-upload')?.click()}
                 >
                   {file ? (
                     <div className="flex items-center justify-center space-x-2">
@@ -296,13 +270,14 @@ const Apply: React.FC = () => {
                         <p className="text-sm text-green-600">
                           {(file.size / 1024 / 1024).toFixed(2)} MB
                         </p>
+                        <p className="text-xs text-gray-500 mt-1">Click to change file</p>
                       </div>
                     </div>
                   ) : (
                     <div>
-                      <Upload className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                      <p className="text-gray-600 mb-2">
-                        Drag and drop your resume here, or click to browse
+                      <Upload className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                      <p className="text-lg font-medium text-gray-600 mb-2">
+                        Drop your CV here or click to browse
                       </p>
                       <p className="text-sm text-gray-500">
                         PDF, DOC, or DOCX files only (max 5MB)
@@ -316,22 +291,18 @@ const Apply: React.FC = () => {
                     onChange={handleFileChange}
                     id="file-upload"
                   />
-                  <label
-                    htmlFor="file-upload"
-                    className="block w-full h-full cursor-pointer"
-                  />
                 </div>
               </div>
 
               <Button
                 type="submit"
-                className="w-full"
-                disabled={isUploading || !file || !applicantName.trim() || !applicantEmail.trim()}
+                className="w-full h-12 text-lg"
+                disabled={isUploading || !file}
               >
                 {isUploading ? (
                   <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
-                    Submitting Application...
+                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2" />
+                    Processing Application...
                   </>
                 ) : (
                   'Submit Application'
