@@ -21,6 +21,8 @@ import MainLayout from "./components/Layout/MainLayout";
 // Auth Pages
 import Login from "./pages/Auth/Login";
 import Signup from "./pages/Auth/Signup";
+import LinkedInLogin from "./pages/Auth/LinkedInLogin";
+import LinkedInSignup from "./pages/Auth/LinkedInSignup";
 
 // Public Pages
 import Home from "./pages/Home/Home";
@@ -35,6 +37,7 @@ import CandidateCV from "./pages/CandidateCV/CandidateCV";
 import Calendar from "./pages/Calendar/Calendar";
 import BuildProfile from "./pages/BuildProfile/BuildProfile";
 import Settings from "./pages/Settings/Settings";
+import LinkedInDashboard from "./pages/LinkedIn/LinkedInDashboard";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -49,21 +52,31 @@ const HashRedirectHandler = () => {
     const hash = window.location.hash;
     
     if (hash && hash.includes("access_token")) {
-      console.log("🔐 OAuth access_token detected in hash, redirecting to dashboard...");
+      console.log("🔐 OAuth access_token detected in hash, redirecting...");
       // Store a flag that we're handling an OAuth redirect
       sessionStorage.setItem("oauth_redirect_processed", "true");
       
+      // Check if this is a LinkedIn Zero mode login
+      const isLinkedInMode = sessionStorage.getItem("linkedin_mode") === "true";
+      
       // Short delay to ensure Supabase has time to process the token
       setTimeout(() => {
-        window.location.replace("/dashboard");
+        if (isLinkedInMode) {
+          sessionStorage.removeItem("linkedin_mode");
+          window.location.replace("/linkedin-dashboard");
+        } else {
+          window.location.replace("/dashboard");
+        }
       }, 100);
       return;
     }
 
     // Check if we're coming from a successful OAuth redirect
-    if (sessionStorage.getItem("oauth_redirect_processed") && location.pathname === "/dashboard") {
-      console.log("✅ OAuth redirect to dashboard successful");
-      sessionStorage.removeItem("oauth_redirect_processed");
+    if (sessionStorage.getItem("oauth_redirect_processed")) {
+      if (location.pathname === "/dashboard" || location.pathname === "/linkedin-dashboard") {
+        console.log("✅ OAuth redirect successful");
+        sessionStorage.removeItem("oauth_redirect_processed");
+      }
     }
   }, [location, navigate, isAuthenticated]);
 
@@ -80,7 +93,7 @@ const ProtectedRouteHandler = ({ children }: { children: React.ReactNode }) => {
   }
   
   // Special case: if we're handling an OAuth redirect to dashboard, allow access
-  if (sessionStorage.getItem("oauth_redirect_processed") && location.pathname === "/dashboard") {
+  if (sessionStorage.getItem("oauth_redirect_processed") && (location.pathname === "/dashboard" || location.pathname === "/linkedin-dashboard")) {
     return <>{children}</>;
   }
 
@@ -89,6 +102,33 @@ const ProtectedRouteHandler = ({ children }: { children: React.ReactNode }) => {
     return (
       <Navigate
         to={`/login?from=${encodeURIComponent(location.pathname)}`}
+        replace
+      />
+    );
+  }
+
+  return <>{children}</>;
+};
+
+const LinkedInProtectedRouteHandler = ({ children }: { children: React.ReactNode }) => {
+  const { isAuthenticated, isLoading, authReady } = useAuth();
+  const location = useLocation();
+
+  // If auth state is still initializing, show loading
+  if (!authReady) {
+    return <div className="min-h-screen flex items-center justify-center bg-black text-white">Loading LinkedIn Zero...</div>;
+  }
+  
+  // Special case: if we're handling an OAuth redirect to linkedin-dashboard, allow access
+  if (sessionStorage.getItem("oauth_redirect_processed") && location.pathname === "/linkedin-dashboard") {
+    return <>{children}</>;
+  }
+
+  // Normal authenticated route check for LinkedIn Zero
+  if (!isLoading && !isAuthenticated) {
+    return (
+      <Navigate
+        to="/linkedin-login"
         replace
       />
     );
@@ -110,8 +150,21 @@ const App = () => (
               <Route index element={<Home />} />
               <Route path="/login" element={<Login />} />
               <Route path="/signup" element={<Signup />} />
+              <Route path="/linkedin-login" element={<LinkedInLogin />} />
+              <Route path="/linkedin-signup" element={<LinkedInSignup />} />
               <Route path="/apply/:jobId" element={<Apply />} />
 
+              {/* LinkedIn Zero Dashboard - Separate protected route */}
+              <Route
+                path="/linkedin-dashboard"
+                element={
+                  <LinkedInProtectedRouteHandler>
+                    <LinkedInDashboard />
+                  </LinkedInProtectedRouteHandler>
+                }
+              />
+
+              {/* Regular Dashboard Routes */}
               <Route
                 path="/"
                 element={
