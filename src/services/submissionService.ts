@@ -73,7 +73,6 @@ export const submissionService = {
           .from('job_applications')
           .insert({
             job_id: jobId,
-            cv_link_id: cvLink.id,
             job_name: jobData?.title || 'Unknown Job',
             link_for_cv: fileUrl
           });
@@ -191,10 +190,18 @@ export const submissionService = {
         return null;
       }
       
-      // Prepare the data for insertion
-      const interviewData = {
+      // Prepare the data for insertion with explicit typing
+      const interviewData: {
+        candidate_id: string;
+        interview_date: string;
+        interview_time: string;
+        interview_notes: string;
+        candidate_name: string;
+        candidate_email: string;
+        job_name: string;
+      } = {
         candidate_id: candidateId,
-        interview_date: interviewDateString, // Use string directly, not Date object
+        interview_date: interviewDateString,
         interview_time: interviewTime,
         interview_notes: interviewNotes,
         candidate_name: candidateName,
