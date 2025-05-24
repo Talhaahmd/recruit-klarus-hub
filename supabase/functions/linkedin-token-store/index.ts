@@ -1,4 +1,5 @@
 
+
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 const corsHeaders = {
@@ -16,6 +17,7 @@ Deno.serve(async (req) => {
     console.log('LinkedIn token store function called');
     console.log('Request method:', req.method);
     console.log('Request URL:', req.url);
+    console.log('Request headers:', Object.fromEntries(req.headers.entries()));
     
     // Get the authorization header
     const authHeader = req.headers.get('Authorization');
@@ -58,36 +60,31 @@ Deno.serve(async (req) => {
 
     console.log('User verified:', user.id);
 
-    // Get the request body - handle both JSON and text
+    // Get the request body as text first, then parse
+    const bodyText = await req.text();
+    console.log('Raw request body:', bodyText);
+    console.log('Body length:', bodyText.length);
+    
+    if (!bodyText || bodyText.trim() === '') {
+      console.error('Empty request body received');
+      return new Response(
+        JSON.stringify({ error: 'Empty request body' }),
+        { 
+          status: 400, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
+    }
+
     let requestBody;
     try {
-      // First try to get as JSON (when called via Supabase client)
-      const contentType = req.headers.get('content-type') || '';
-      
-      if (contentType.includes('application/json')) {
-        requestBody = await req.json();
-        console.log('Request body received as JSON:', requestBody);
-      } else {
-        const bodyText = await req.text();
-        console.log('Request body received as text:', bodyText);
-        
-        if (!bodyText || bodyText.trim() === '') {
-          console.error('Empty request body');
-          return new Response(
-            JSON.stringify({ error: 'Empty request body' }),
-            { 
-              status: 400, 
-              headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-            }
-          );
-        }
-        
-        requestBody = JSON.parse(bodyText);
-      }
+      requestBody = JSON.parse(bodyText);
+      console.log('Parsed request body:', requestBody);
     } catch (parseError) {
-      console.error('Failed to parse request body:', parseError);
+      console.error('Failed to parse request body as JSON:', parseError);
+      console.error('Body text was:', bodyText);
       return new Response(
-        JSON.stringify({ error: 'Invalid JSON in request body' }),
+        JSON.stringify({ error: 'Invalid JSON in request body', bodyReceived: bodyText }),
         { 
           status: 400, 
           headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
@@ -98,9 +95,9 @@ Deno.serve(async (req) => {
     const { code } = requestBody;
     
     if (!code) {
-      console.error('Missing authorization code');
+      console.error('Missing authorization code in request body');
       return new Response(
-        JSON.stringify({ error: 'Missing authorization code' }),
+        JSON.stringify({ error: 'Missing authorization code', bodyReceived: requestBody }),
         { 
           status: 400, 
           headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
@@ -254,3 +251,4 @@ Deno.serve(async (req) => {
     );
   }
 });
+
