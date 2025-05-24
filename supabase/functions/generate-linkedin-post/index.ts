@@ -115,7 +115,7 @@ Deno.serve(async (req) => {
       
       // Parse RSS and extract recent articles
       const articles = parseRssContent(rssText);
-      rssContent = articles.slice(0, 3).map(article => 
+      rssContent = articles.slice(0, 2).map(article => 
         `Title: ${article.title}\nSummary: ${article.description}`
       ).join('\n\n');
       
@@ -125,7 +125,7 @@ Deno.serve(async (req) => {
       rssContent = 'No recent RSS content available';
     }
 
-    // Generate LinkedIn post content using ChatGPT
+    // Generate LinkedIn post content using ChatGPT with strict length limits
     const postPrompt = `Create a professional LinkedIn post based on the following requirements:
 
 Niche: ${niche}
@@ -135,17 +135,18 @@ User's content idea: ${contentPrompt}
 Recent industry content for reference:
 ${rssContent}
 
-Requirements:
+CRITICAL REQUIREMENTS:
+- Keep the post STRICTLY under 2800 characters (LinkedIn has a 3000 character limit)
 - Write a ${tone.toLowerCase()} LinkedIn post about ${niche}
-- Keep it between 500-700 words
-- Include relevant hashtags (3-5)
 - Make it engaging and shareable
-- Incorporate insights from the recent industry content if relevant
+- Include 3-5 relevant hashtags
+- Incorporate insights from recent industry content if relevant
 - Match the ${tone.toLowerCase()} tone throughout
 - Include a call to action
 - Structure it with line breaks for readability
+- Focus on quality over quantity - be concise but impactful
 
-The post should feel authentic and provide value to the LinkedIn audience.`;
+The post should feel authentic and provide value to the LinkedIn audience. Remember: STAY UNDER 2800 CHARACTERS.`;
 
     console.log('Generating post content with ChatGPT...');
 
@@ -160,11 +161,11 @@ The post should feel authentic and provide value to the LinkedIn audience.`;
         messages: [
           { 
             role: 'system', 
-            content: 'You are a professional LinkedIn content creator who creates engaging, valuable posts that resonate with professional audiences. Always maintain the specified tone and include relevant hashtags.' 
+            content: 'You are a professional LinkedIn content creator who creates engaging, valuable posts that resonate with professional audiences. Always maintain the specified tone, include relevant hashtags, and CRITICALLY IMPORTANT: keep posts under 2800 characters to ensure they fit within LinkedIn\'s limits.' 
           },
           { role: 'user', content: postPrompt }
         ],
-        max_tokens: 1000,
+        max_tokens: 800,
         temperature: 0.7,
       }),
     });
@@ -182,9 +183,20 @@ The post should feel authentic and provide value to the LinkedIn audience.`;
     }
 
     const openAIData = await openAIResponse.json();
-    const generatedContent = openAIData.choices[0].message.content;
+    let generatedContent = openAIData.choices[0].message.content;
     
-    console.log('Generated post content successfully');
+    // Validate and truncate content if necessary
+    if (generatedContent.length > 2800) {
+      console.warn(`Generated content too long (${generatedContent.length} chars), truncating...`);
+      generatedContent = generatedContent.substring(0, 2800);
+      // Find the last complete sentence or word to avoid cutting off mid-word
+      const lastPeriod = generatedContent.lastIndexOf('.');
+      const lastSpace = generatedContent.lastIndexOf(' ');
+      const cutPoint = lastPeriod > 2600 ? lastPeriod + 1 : lastSpace;
+      generatedContent = generatedContent.substring(0, cutPoint);
+    }
+    
+    console.log(`Generated post content successfully (${generatedContent.length} characters)`);
 
     // If it's a scheduled post, save to database and return
     if (scheduleDate) {
@@ -234,8 +246,9 @@ The post should feel authentic and provide value to the LinkedIn audience.`;
     // Post immediately to LinkedIn
     console.log('Posting to LinkedIn...');
     console.log('LinkedIn member ID:', linkedinToken.linkedin_id);
+    console.log('Content length:', generatedContent.length);
 
-    // Prepare LinkedIn post data - simplified version focusing on text content
+    // Prepare LinkedIn post data
     const linkedinPostData = {
       author: `urn:li:person:${linkedinToken.linkedin_id}`,
       lifecycleState: 'PUBLISHED',
@@ -252,7 +265,7 @@ The post should feel authentic and provide value to the LinkedIn audience.`;
       }
     };
 
-    console.log('LinkedIn post data prepared:', JSON.stringify(linkedinPostData, null, 2));
+    console.log('Posting to LinkedIn with content length:', generatedContent.length);
 
     const linkedinResponse = await fetch('https://api.linkedin.com/v2/ugcPosts', {
       method: 'POST',
