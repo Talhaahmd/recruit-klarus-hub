@@ -1,4 +1,3 @@
-
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
@@ -92,7 +91,7 @@ Deno.serve(async (req) => {
     const expiresAt = new Date(linkedinToken.expires_at);
     const now = new Date();
     if (expiresAt <= now) {
-      console.error('LinkedIn token expired');
+      console.error('LinkedIn token expired at:', expiresAt);
       return new Response(
         JSON.stringify({ error: 'LinkedIn token expired. Please reconnect your LinkedIn account.' }),
         { 
@@ -102,7 +101,47 @@ Deno.serve(async (req) => {
       );
     }
 
-    console.log('LinkedIn token valid, fetching RSS content...');
+    console.log('LinkedIn token valid, expires at:', expiresAt);
+
+    // Test LinkedIn token validity by making a simple API call
+    const testResponse = await fetch('https://api.linkedin.com/v2/me', {
+      headers: {
+        'Authorization': `Bearer ${linkedinToken.access_token}`,
+        'X-Restli-Protocol-Version': '2.0.0',
+      },
+    });
+
+    if (!testResponse.ok) {
+      console.error('LinkedIn token validation failed:', testResponse.status);
+      const errorText = await testResponse.text();
+      console.error('LinkedIn validation error:', errorText);
+      
+      // Check for specific revocation error
+      try {
+        const errorData = JSON.parse(errorText);
+        if (errorData.serviceErrorCode === 65601 || errorData.code === 'REVOKED_ACCESS_TOKEN') {
+          return new Response(
+            JSON.stringify({ error: 'LinkedIn token has been revoked. Please reconnect your LinkedIn account.' }),
+            { 
+              status: 400, 
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+            }
+          );
+        }
+      } catch (parseError) {
+        console.error('Error parsing LinkedIn validation response:', parseError);
+      }
+      
+      return new Response(
+        JSON.stringify({ error: 'LinkedIn token is invalid. Please reconnect your LinkedIn account.' }),
+        { 
+          status: 400, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
+    }
+
+    console.log('LinkedIn token validated successfully');
 
     // Fetch RSS feed content based on niche
     let rssContent = '';
@@ -464,11 +503,10 @@ The post should feel authentic and provide value to the LinkedIn audience. Remem
     return new Response(
       JSON.stringify({ 
         success: true, 
-        message: 'Post created and posted to LinkedIn successfully',
+        message: 'LinkedIn post generated successfully but could not be posted due to token issues. Please reconnect your LinkedIn account and try again.',
         content: generatedContent,
-        linkedinPostId: linkedinResult.id,
-        posted: true,
-        hasImage: !!imageAsset
+        posted: false,
+        requiresReconnection: true
       }),
       { 
         status: 200, 
