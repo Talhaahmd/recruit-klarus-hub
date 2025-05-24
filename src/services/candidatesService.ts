@@ -32,18 +32,31 @@ export type Candidate = {
   ai_summary?: string;
   ai_content?: string;
   ai_rating?: number;
+  source?: string;
+  timestamp?: string;
 };
 
 export const candidatesService = {
   getCandidates: async (): Promise<Candidate[]> => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return [];
+      if (!user) {
+        console.log('No authenticated user found');
+        return [];
+      }
 
-      // With new RLS policies, this will automatically filter to candidates for jobs owned by the user
+      console.log('Fetching candidates for user:', user.id);
+
+      // With updated RLS policies, this will automatically filter to candidates for jobs owned by the user
+      // or candidates without job_id (general applications)
       const { data, error } = await supabase.from('candidates').select('*');
-      if (error) throw error;
+      
+      if (error) {
+        console.error('Error fetching candidates:', error);
+        throw error;
+      }
 
+      console.log('Fetched candidates:', data?.length || 0);
       return (data || []).map(c => ({ ...c, rating: c.ai_rating || 0 }));
     } catch (error: any) {
       console.error('Error in getCandidates:', error.message);
@@ -57,14 +70,20 @@ export const candidatesService = {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return [];
 
-      // With new RLS policies, this will automatically filter to candidates for jobs owned by the user
+      console.log('Fetching candidates for job:', jobId);
+
+      // With updated RLS policies, this will automatically filter to candidates for jobs owned by the user
       const { data, error } = await supabase
         .from('candidates')
         .select('*')
         .eq('job_id', jobId);
       
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching candidates by job:', error);
+        throw error;
+      }
 
+      console.log('Fetched candidates for job:', data?.length || 0);
       return (data || []).map(c => ({ ...c, rating: c.ai_rating || 0 }));
     } catch (err: any) {
       console.error('Error in getCandidatesByJob:', err.message);
@@ -77,8 +96,15 @@ export const candidatesService = {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return null;
 
+      console.log('Fetching candidate by ID:', id);
+
       const { data, error } = await supabase.from('candidates').select('*').eq('id', id).single();
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching candidate by ID:', error);
+        throw error;
+      }
+      
+      console.log('Fetched candidate:', data?.full_name || data?.name);
       return { ...data, rating: data.ai_rating || 0 };
     } catch (error: any) {
       console.error('Error in getCandidateById:', error.message);
@@ -91,6 +117,8 @@ export const candidatesService = {
     try {
       const { data: { user } } = await supabase.auth.getUser();
 
+      console.log('Creating candidate:', candidate.full_name || candidate.name);
+
       const candidateData: any = {
         ...candidate,
         rating: candidate.rating || candidate.ai_rating || 0,
@@ -100,8 +128,12 @@ export const candidatesService = {
       // The RLS will handle viewing permissions based on job ownership
 
       const { data, error } = await supabase.from('candidates').insert(candidateData).select().single();
-      if (error) throw error;
+      if (error) {
+        console.error('Error creating candidate:', error);
+        throw error;
+      }
 
+      console.log('Created candidate successfully:', data.id);
       toast.success(user ? 'Candidate created successfully' : 'Candidate application received');
       return { ...data, rating: data.ai_rating || 0 };
     } catch (error: any) {
@@ -116,10 +148,16 @@ export const candidatesService = {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return null;
 
+      console.log('Updating candidate:', id);
+
       const updateData = { ...updates, rating: updates.rating || updates.ai_rating || 0 };
       const { data, error } = await supabase.from('candidates').update(updateData).eq('id', id).select().single();
-      if (error) throw error;
+      if (error) {
+        console.error('Error updating candidate:', error);
+        throw error;
+      }
 
+      console.log('Updated candidate successfully');
       toast.success('Candidate updated successfully');
       return { ...data, rating: data.ai_rating || 0 };
     } catch (error: any) {
@@ -134,14 +172,20 @@ export const candidatesService = {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return false;
 
+      console.log('Deleting candidate:', id);
+
       const { error } = await supabase.from('candidates').delete().eq('id', id);
-      if (error) throw error;
+      if (error) {
+        console.error('Error deleting candidate:', error);
+        throw error;
+      }
 
       if (jobId) {
         const { error: jobError } = await supabase.rpc('decrement_job_applicants', { job_id: jobId });
         if (jobError) console.error('Error decrementing job applicants:', jobError);
       }
 
+      console.log('Deleted candidate successfully');
       toast.success('Candidate deleted successfully');
       return true;
     } catch (error: any) {

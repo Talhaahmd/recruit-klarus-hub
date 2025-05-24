@@ -85,42 +85,55 @@ serve(async (req) => {
     }
 
     if (method === 'POST') {
-      // Create new candidate CV entry - anyone can create but we need to ensure proper job ownership
+      // Create new candidate entry directly to candidates table with service role key (bypasses RLS)
       const body = await req.json()
       
-      // Verify the job exists and get its details
-      const { data: jobData, error: jobError } = await supabaseClient
-        .from('jobs')
-        .select('id, created_by, user_id')
-        .eq('id', body.job_id)
-        .single()
+      console.log('Received candidate data from Make.com:', body)
 
-      if (jobError || !jobData) {
-        return new Response(
-          JSON.stringify({ error: 'Job not found' }),
-          { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        )
+      // Map the Make.com data to the candidates table structure
+      const candidateData = {
+        full_name: body.full_name,
+        email: body.email,
+        phone: body.phone,
+        location: body.location,
+        linkedin: body.linkedin,
+        current_job_title: body.current_job_title,
+        years_experience: body.years_experience,
+        skills: body.skills,
+        certifications: body.certifications,
+        companies: body.companies,
+        job_titles: body.job_titles,
+        degrees: body.degrees,
+        institutions: body.institutions,
+        graduation_years: body.graduation_years,
+        experience_level: body.experience_level,
+        source: body.source || 'Make.com',
+        timestamp: body.timestamp || new Date().toISOString(),
+        job_id: body.job_id || null, // Allow null job_id for general applications
+        ai_rating: body.ai_rating || 0
       }
 
-      // For CV creation, we use the job owner's user_id
+      console.log('Inserting candidate data:', candidateData)
+
+      // Use service role key to bypass RLS for insertion
       const { data, error } = await supabaseClient
-        .from('candidate_cvs')
-        .insert({
-          ...body,
-          user_id: jobData.created_by || jobData.user_id
-        })
+        .from('candidates')
+        .insert(candidateData)
         .select()
         .single()
 
       if (error) {
+        console.error('Error inserting candidate:', error)
         return new Response(
           JSON.stringify({ error: error.message }),
           { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         )
       }
 
+      console.log('Successfully created candidate:', data.id)
+
       return new Response(
-        JSON.stringify({ data }),
+        JSON.stringify({ data, message: 'Candidate created successfully' }),
         { status: 201, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
