@@ -58,13 +58,14 @@ const LinkedInConnectButton: React.FC = () => {
       const state = crypto.randomUUID();
       sessionStorage.setItem('linkedin_oauth_state', state);
 
-      // Use the exact configuration from your LinkedIn app
+      // Use the correct LinkedIn API v2 scopes that are actually supported
       const clientId = '771girpp9fv439';
       const redirectUri = encodeURIComponent('https://klarushr.com/linkedin-token-callback');
-      const scope = encodeURIComponent('r_liteprofile r_emailaddress w_member_social');
+      // Updated to use supported scopes: profile (basic profile), email, and w_member_social for posting
+      const scope = encodeURIComponent('profile email w_member_social');
       const authUrl = `https://www.linkedin.com/oauth/v2/authorization?response_type=code&client_id=${clientId}&redirect_uri=${redirectUri}&scope=${scope}&state=${state}`;
 
-      console.log('Redirecting to LinkedIn OAuth:', authUrl);
+      console.log('Redirecting to LinkedIn OAuth with updated scopes:', authUrl);
       // Redirect to LinkedIn
       window.location.href = authUrl;
     } catch (error) {

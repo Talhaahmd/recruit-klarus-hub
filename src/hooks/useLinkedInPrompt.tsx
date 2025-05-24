@@ -77,13 +77,14 @@ export const useLinkedInPrompt = () => {
       sessionStorage.setItem('linkedin_oauth_state', state);
       console.log('Generated OAuth state:', state);
 
-      // Use the exact redirect URI from your LinkedIn app configuration
+      // Use the correct LinkedIn API v2 scopes
       const clientId = '771girpp9fv439';
       const redirectUri = encodeURIComponent('https://klarushr.com/linkedin-token-callback');
-      const scope = encodeURIComponent('r_liteprofile r_emailaddress w_member_social');
+      // Updated to use supported scopes: profile, email, and w_member_social
+      const scope = encodeURIComponent('profile email w_member_social');
       const authUrl = `https://www.linkedin.com/oauth/v2/authorization?response_type=code&client_id=${clientId}&redirect_uri=${redirectUri}&scope=${scope}&state=${state}`;
 
-      console.log('Redirecting to LinkedIn OAuth:', authUrl);
+      console.log('Redirecting to LinkedIn OAuth with corrected scopes:', authUrl);
       window.location.href = authUrl;
     } catch (error) {
       console.error('Error initiating LinkedIn OAuth:', error);

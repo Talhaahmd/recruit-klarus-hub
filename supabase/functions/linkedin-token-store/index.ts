@@ -77,7 +77,7 @@ Deno.serve(async (req) => {
     console.log('Authorization code received (first 10 chars):', code.substring(0, 10) + '...');
     console.log('Exchanging code for access token');
     
-    // LinkedIn credentials - use the exact values you provided
+    // LinkedIn credentials
     const linkedinClientId = '771girpp9fv439';
     const linkedinClientSecret = 'WPL_AP1.P66OnLQbXKWBBjfM.EqymLg==';
     
@@ -126,7 +126,6 @@ Deno.serve(async (req) => {
           errorMessage = errorData.error;
         }
       } catch (e) {
-        // If we can't parse the error, use the raw response
         errorMessage = tokenResponseText;
       }
       
@@ -142,9 +141,9 @@ Deno.serve(async (req) => {
     const tokenData = JSON.parse(tokenResponseText);
     console.log('Token exchange successful, expires in:', tokenData.expires_in);
 
-    // Get LinkedIn user profile to get the LinkedIn ID
-    console.log('Fetching LinkedIn profile...');
-    const profileResponse = await fetch('https://api.linkedin.com/v2/me', {
+    // Get LinkedIn user profile using the correct API v2 endpoint
+    console.log('Fetching LinkedIn profile with corrected API endpoint...');
+    const profileResponse = await fetch('https://api.linkedin.com/v2/people/~', {
       headers: {
         'Authorization': `Bearer ${tokenData.access_token}`,
         'Accept': 'application/json',
@@ -167,7 +166,7 @@ Deno.serve(async (req) => {
 
     const profileData = await profileResponse.json();
     const linkedinId = profileData.id;
-    console.log('LinkedIn profile fetched, ID:', linkedinId);
+    console.log('LinkedIn profile fetched successfully, ID:', linkedinId);
 
     // Calculate expiration time
     const expiresAt = new Date(Date.now() + (tokenData.expires_in * 1000)).toISOString();
