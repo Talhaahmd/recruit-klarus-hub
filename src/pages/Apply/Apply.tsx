@@ -17,7 +17,7 @@ const MAKE_WEBHOOK_URL = 'https://hook.eu2.make.com/mufj147gj50vc2ip7sxae5sva9se
 
 const Apply: React.FC = () => {
   const { jobId } = useParams<{ jobId: string }>();
-  const [job, setJob] = useState<{ title: string; description: string; hr_user_id: string } | null>(null);
+  const [job, setJob] = useState<{ title: string; description: string; user_id: string } | null>(null);
   const [file, setFile] = useState<File | null>(null);
   const [applicantName, setApplicantName] = useState<string>('');
   const [applicantEmail, setApplicantEmail] = useState<string>('');
@@ -38,7 +38,7 @@ const Apply: React.FC = () => {
       try {
         const { data, error } = await supabase
           .from('jobs')
-          .select('title, description, hr_user_id')
+          .select('title, description, user_id')
           .eq('id', jobId)
           .single();
 
@@ -117,15 +117,13 @@ const Apply: React.FC = () => {
         .getPublicUrl(filePath);
       const fileUrl = urlData.publicUrl;
 
-      // Insert application into new job_applications table
+      // Insert application into job_applications table
       const { error: insertError } = await supabase
         .from('job_applications')
         .insert({
           job_id: jobId,
           job_name: job.title,
-          cv_link: fileUrl,
-          applicant_name: applicantName.trim(),
-          applicant_email: applicantEmail.trim()
+          link_for_cv: fileUrl
         });
 
       if (insertError) throw new Error(insertError.message);
@@ -140,7 +138,7 @@ const Apply: React.FC = () => {
             cv_url: fileUrl,
             job_id: jobId,
             job_name: job.title,
-            hr_user_id: job.hr_user_id,
+            hr_user_id: job.user_id,
             applicant_name: applicantName.trim(),
             applicant_email: applicantEmail.trim()
           })

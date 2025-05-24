@@ -28,9 +28,11 @@ export const newJobsService = {
         return [];
       }
 
+      // Map old schema to new schema
       const { data, error } = await supabase
         .from('jobs')
         .select('*')
+        .eq('user_id', user.id)
         .order('created_at', { ascending: false });
         
       if (error) {
@@ -38,7 +40,20 @@ export const newJobsService = {
         throw error;
       }
       
-      return data || [];
+      // Transform old schema to new schema format
+      return (data || []).map(job => ({
+        id: job.id,
+        title: job.title,
+        workplace_type: job.workplace_type,
+        location: job.location,
+        job_type: job.type,
+        description: job.description,
+        technologies: job.technologies || [],
+        minimum_rating: 0, // Default since old schema doesn't have this
+        hr_user_id: job.user_id,
+        created_at: job.created_at,
+        updated_at: job.created_at
+      }));
     } catch (err: any) {
       console.error('Error fetching jobs:', err.message);
       toast.error('Failed to load jobs: ' + err.message);
@@ -59,7 +74,20 @@ export const newJobsService = {
         throw error;
       }
       
-      return data;
+      // Transform old schema to new schema format
+      return {
+        id: data.id,
+        title: data.title,
+        workplace_type: data.workplace_type,
+        location: data.location,
+        job_type: data.type,
+        description: data.description,
+        technologies: data.technologies || [],
+        minimum_rating: 0,
+        hr_user_id: data.user_id,
+        created_at: data.created_at,
+        updated_at: data.created_at
+      };
     } catch (err: any) {
       console.error('Error fetching job:', err.message);
       toast.error('Failed to load job: ' + err.message);
@@ -75,9 +103,15 @@ export const newJobsService = {
         throw new Error('You must be logged in to create a job');
       }
       
+      // Map new schema to old schema
       const jobData = {
-        ...job,
-        hr_user_id: user.id
+        title: job.title,
+        description: job.description,
+        location: job.location,
+        type: job.job_type,
+        workplace_type: job.workplace_type,
+        technologies: job.technologies,
+        user_id: user.id
       };
       
       const { data, error } = await supabase
@@ -92,7 +126,21 @@ export const newJobsService = {
       }
       
       toast.success('Job created successfully');
-      return data;
+      
+      // Transform response back to new schema
+      return {
+        id: data.id,
+        title: data.title,
+        workplace_type: data.workplace_type,
+        location: data.location,
+        job_type: data.type,
+        description: data.description,
+        technologies: data.technologies || [],
+        minimum_rating: 0,
+        hr_user_id: data.user_id,
+        created_at: data.created_at,
+        updated_at: data.created_at
+      };
     } catch (err: any) {
       console.error('Error creating job:', err.message);
       toast.error(`Failed to create job: ${err.message || 'Unknown error'}`);
@@ -109,9 +157,18 @@ export const newJobsService = {
         return null;
       }
       
+      // Map new schema updates to old schema
+      const updateData: any = {};
+      if (updates.title) updateData.title = updates.title;
+      if (updates.description) updateData.description = updates.description;
+      if (updates.location) updateData.location = updates.location;
+      if (updates.job_type) updateData.type = updates.job_type;
+      if (updates.workplace_type) updateData.workplace_type = updates.workplace_type;
+      if (updates.technologies) updateData.technologies = updates.technologies;
+      
       const { data, error } = await supabase
         .from('jobs')
-        .update(updates)
+        .update(updateData)
         .eq('id', id)
         .select()
         .single();
@@ -122,7 +179,21 @@ export const newJobsService = {
       }
       
       toast.success('Job updated successfully');
-      return data;
+      
+      // Transform response back to new schema
+      return {
+        id: data.id,
+        title: data.title,
+        workplace_type: data.workplace_type,
+        location: data.location,
+        job_type: data.type,
+        description: data.description,
+        technologies: data.technologies || [],
+        minimum_rating: 0,
+        hr_user_id: data.user_id,
+        created_at: data.created_at,
+        updated_at: data.created_at
+      };
     } catch (err: any) {
       console.error('Error updating job:', err.message);
       toast.error('Failed to update job: ' + err.message);

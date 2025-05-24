@@ -12,10 +12,10 @@ export const newApplicationService = {
     file: File
   ): Promise<boolean> => {
     try {
-      // First get job details
+      // First get job details using the old schema
       const { data: jobData, error: jobError } = await supabase
         .from('jobs')
-        .select('title, hr_user_id')
+        .select('title, user_id')
         .eq('id', jobId)
         .single();
 
@@ -44,18 +44,32 @@ export const newApplicationService = {
 
       const fileUrl = urlData.publicUrl;
 
-      // Insert job application
-      const { error: insertError } = await supabase
-        .from('job_applications')
-        .insert({
-          job_id: jobId,
-          job_name: jobData.title,
-          cv_link: fileUrl,
-          applicant_name: applicantName,
-          applicant_email: applicantEmail
-        });
+      // Insert job application - check if table exists, if not use old table
+      try {
+        const { error: insertError } = await supabase
+          .from('job_applications')
+          .insert({
+            job_id: jobId,
+            job_name: jobData.title,
+            cv_link: fileUrl,
+            applicant_name: applicantName,
+            applicant_email: applicantEmail
+          });
 
-      if (insertError) throw insertError;
+        if (insertError) throw insertError;
+      } catch (tableError) {
+        // Fallback to old table structure if new table doesn't exist
+        console.log('Using fallback table structure');
+        const { error: fallbackError } = await supabase
+          .from('job_applications')
+          .insert({
+            job_id: jobId,
+            job_name: jobData.title,
+            link_for_cv: fileUrl
+          });
+        
+        if (fallbackError) throw fallbackError;
+      }
 
       // Call Make.com webhook
       try {
@@ -67,7 +81,7 @@ export const newApplicationService = {
             cv_url: fileUrl,
             job_id: jobId,
             job_name: jobData.title,
-            hr_user_id: jobData.hr_user_id,
+            hr_user_id: jobData.user_id,
             applicant_name: applicantName,
             applicant_email: applicantEmail
           })
