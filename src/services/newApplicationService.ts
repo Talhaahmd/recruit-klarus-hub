@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
@@ -7,8 +6,6 @@ const MAKE_WEBHOOK_URL = 'https://hook.eu2.make.com/mufj147gj50vc2ip7sxae5sva9se
 export const newApplicationService = {
   submitApplication: async (
     jobId: string,
-    applicantName: string,
-    applicantEmail: string,
     file: File
   ): Promise<boolean> => {
     try {
@@ -44,16 +41,14 @@ export const newApplicationService = {
 
       const fileUrl = urlData.publicUrl;
 
-      // Insert job application - check if table exists, if not use old table
+      // Insert job application - simplified without name/email
       try {
         const { error: insertError } = await supabase
           .from('job_applications')
           .insert({
             job_id: jobId,
             job_name: jobData.title,
-            cv_link: fileUrl,
-            applicant_name: applicantName,
-            applicant_email: applicantEmail
+            cv_link: fileUrl
           });
 
         if (insertError) throw insertError;
@@ -71,7 +66,7 @@ export const newApplicationService = {
         if (fallbackError) throw fallbackError;
       }
 
-      // Call Make.com webhook
+      // Call Make.com webhook - simplified without applicant details
       try {
         await fetch(MAKE_WEBHOOK_URL, {
           method: "POST",
@@ -81,9 +76,7 @@ export const newApplicationService = {
             cv_url: fileUrl,
             job_id: jobId,
             job_name: jobData.title,
-            hr_user_id: jobData.user_id,
-            applicant_name: applicantName,
-            applicant_email: applicantEmail
+            hr_user_id: jobData.user_id
           })
         });
       } catch (webhookError) {

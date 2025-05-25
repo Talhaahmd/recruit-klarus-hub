@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -63,9 +62,13 @@ const Login: React.FC = () => {
   }, []);
 
   useEffect(() => {
+    // Improved authentication state handling for mobile
     if (authReady && !isLoading && isAuthenticated && location.pathname === '/login' && !isHandlingOAuth) {
       console.log('✅ Already authenticated, redirecting to:', from);
-      navigate(from, { replace: true });
+      // Use a slight delay to ensure the auth state is fully stabilized
+      setTimeout(() => {
+        navigate(from, { replace: true });
+      }, 100);
     }
   }, [isLoading, isAuthenticated, navigate, from, location.pathname, authReady, isHandlingOAuth]);
 
@@ -82,7 +85,10 @@ const Login: React.FC = () => {
     try {
       await login(email, password);
       console.log('✅ Login successful, redirecting...');
-      navigate(from, { replace: true });
+      // Use a small delay to ensure auth state is updated
+      setTimeout(() => {
+        navigate(from, { replace: true });
+      }, 100);
     } catch (error) {
       console.error('❌ Login failed');
     } finally {
@@ -144,6 +150,7 @@ const Login: React.FC = () => {
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="Enter your email"
                   className="bg-gray-900 border-gray-700 text-white placeholder-gray-500 focus:border-cyan-500"
+                  autoComplete="email"
                   required
                 />
               </div>
@@ -164,6 +171,7 @@ const Login: React.FC = () => {
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Enter your password"
                   className="bg-gray-900 border-gray-700 text-white placeholder-gray-500 focus:border-cyan-500"
+                  autoComplete="current-password"
                   required
                 />
               </div>

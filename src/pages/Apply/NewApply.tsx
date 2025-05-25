@@ -5,8 +5,6 @@ import { ArrowLeft, Upload, FileType, CheckCircle2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { newJobsService, NewJob } from '@/services/newJobsService';
 import { newApplicationService } from '@/services/newApplicationService';
@@ -19,8 +17,6 @@ const NewApply: React.FC = () => {
   const { jobId } = useParams<{ jobId: string }>();
   const [job, setJob] = useState<NewJob | null>(null);
   const [file, setFile] = useState<File | null>(null);
-  const [applicantName, setApplicantName] = useState<string>('');
-  const [applicantEmail, setApplicantEmail] = useState<string>('');
   const [isDragging, setIsDragging] = useState<boolean>(false);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [success, setSuccess] = useState<boolean>(false);
@@ -83,8 +79,8 @@ const NewApply: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!jobId || !file || !job || !applicantName.trim() || !applicantEmail.trim()) {
-      setError('Please fill in all required fields');
+    if (!jobId || !file || !job) {
+      setError('Please upload your CV to apply');
       return;
     }
 
@@ -93,8 +89,6 @@ const NewApply: React.FC = () => {
 
     const success = await newApplicationService.submitApplication(
       jobId,
-      applicantName.trim(),
-      applicantEmail.trim(),
       file
     );
 
@@ -186,7 +180,7 @@ const NewApply: React.FC = () => {
           <CardHeader>
             <CardTitle>Submit Your Application</CardTitle>
             <CardDescription>
-              Please fill in your details and upload your resume
+              Please upload your resume/CV to apply for this position
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -197,36 +191,10 @@ const NewApply: React.FC = () => {
                 </Alert>
               )}
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="name">Full Name *</Label>
-                  <Input
-                    id="name"
-                    type="text"
-                    value={applicantName}
-                    onChange={(e) => setApplicantName(e.target.value)}
-                    placeholder="Enter your full name"
-                    required
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="email">Email Address *</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    value={applicantEmail}
-                    onChange={(e) => setApplicantEmail(e.target.value)}
-                    placeholder="Enter your email"
-                    required
-                  />
-                </div>
-              </div>
-
               <div>
-                <Label>Resume/CV *</Label>
                 <div
                   className={cn(
-                    "mt-2 border-2 border-dashed rounded-lg p-6 text-center transition-colors",
+                    "border-2 border-dashed rounded-lg p-8 text-center transition-colors",
                     isDragging ? "border-blue-500 bg-blue-50" : "border-gray-300",
                     file ? "border-green-500 bg-green-50" : ""
                   )}
@@ -236,10 +204,10 @@ const NewApply: React.FC = () => {
                   onDrop={handleDrop}
                 >
                   {file ? (
-                    <div className="flex items-center justify-center space-x-2">
-                      <FileType className="w-8 h-8 text-green-500" />
-                      <div>
-                        <p className="font-medium text-green-700">{file.name}</p>
+                    <div className="flex items-center justify-center space-x-3">
+                      <FileType className="w-12 h-12 text-green-500" />
+                      <div className="text-left">
+                        <p className="font-medium text-green-700 text-lg">{file.name}</p>
                         <p className="text-sm text-green-600">
                           {(file.size / 1024 / 1024).toFixed(2)} MB
                         </p>
@@ -247,7 +215,10 @@ const NewApply: React.FC = () => {
                     </div>
                   ) : (
                     <div>
-                      <Upload className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                      <Upload className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                      <h3 className="text-lg font-medium text-gray-900 mb-2">
+                        Upload Your Resume/CV
+                      </h3>
                       <p className="text-gray-600 mb-2">
                         Drag and drop your resume here, or click to browse
                       </p>
@@ -273,7 +244,7 @@ const NewApply: React.FC = () => {
               <Button
                 type="submit"
                 className="w-full"
-                disabled={isSubmitting || !file || !applicantName.trim() || !applicantEmail.trim()}
+                disabled={isSubmitting || !file}
               >
                 {isSubmitting ? (
                   <>

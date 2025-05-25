@@ -14,15 +14,22 @@ if (!supabaseUrl || !supabaseAnonKey) {
   console.warn('⚠️ Missing Supabase environment variables. Using fallback values. Set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY for proper functionality.');
 }
 
-console.log('Initializing Supabase client with explicit auth configuration');
+console.log('Initializing Supabase client with mobile-optimized auth configuration');
 
 export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
   auth: {
     storage: localStorage,
     persistSession: true,
     autoRefreshToken: true,
-    detectSessionInUrl: true, // Important for OAuth redirects
-    flowType: 'implicit' // Use implicit flow for OAuth
+    detectSessionInUrl: true,
+    flowType: 'pkce', // Use PKCE flow for better mobile security
+    storageKey: 'sb-auth-token', // Consistent storage key
+    debug: false // Disable debug in production
+  },
+  global: {
+    headers: {
+      'X-Client-Info': 'supabase-js-web'
+    }
   }
 });
 
@@ -30,10 +37,16 @@ export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
 supabase.auth.onAuthStateChange((event, session) => {
   console.log('🔐 Auth state changed:', event, 'User ID:', session?.user?.id);
   
+  // Clear any stale session data on sign out
+  if (event === 'SIGNED_OUT') {
+    localStorage.removeItem('sb-auth-token');
+    sessionStorage.clear();
+  }
+  
   // Verify session in localStorage for debugging
   if (session) {
     try {
-      const localStorageData = localStorage.getItem(`sb-${SUPABASE_URL.split('//')[1]}-auth-token`);
+      const localStorageData = localStorage.getItem('sb-auth-token');
       console.log('🔑 Local storage auth data exists:', !!localStorageData);
     } catch (e) {
       console.error('Error checking localStorage:', e);
