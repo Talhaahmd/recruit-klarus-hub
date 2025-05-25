@@ -5,6 +5,19 @@ import { twMerge } from "tailwind-merge";
 
 const Radar = ({ className }: { className?: string }) => {
   const circles = new Array(8).fill(1);
+  
+  // IT job titles with their positions on the radar
+  const jobDots = [
+    { title: "React Developer", position: "top-1/4 left-1/3", color: "bg-green-400", shadow: "shadow-green-400/50" },
+    { title: "DevOps Engineer", position: "top-1/3 right-1/4", color: "bg-blue-400", shadow: "shadow-blue-400/50" },
+    { title: "Data Scientist", position: "bottom-1/3 left-1/4", color: "bg-purple-400", shadow: "shadow-purple-400/50" },
+    { title: "Product Manager", position: "bottom-1/4 right-1/3", color: "bg-yellow-400", shadow: "shadow-yellow-400/50" },
+    { title: "UX Designer", position: "top-2/3 left-2/3", color: "bg-red-400", shadow: "shadow-red-400/50" },
+    { title: "Backend Engineer", position: "top-1/2 right-1/5", color: "bg-indigo-400", shadow: "shadow-indigo-400/50" },
+    { title: "ML Engineer", position: "bottom-2/5 left-1/2", color: "bg-pink-400", shadow: "shadow-pink-400/50" },
+    { title: "Tech Lead", position: "top-1/5 left-1/2", color: "bg-orange-400", shadow: "shadow-orange-400/50" }
+  ];
+
   return (
     <div
       className={twMerge(
@@ -34,12 +47,17 @@ const Radar = ({ className }: { className?: string }) => {
         />
       ))}
       
-      {/* Radar dots representing candidates */}
-      <div className="absolute top-1/4 left-1/3 w-3 h-3 bg-green-400 rounded-full animate-pulse shadow-lg shadow-green-400/50" />
-      <div className="absolute top-1/3 right-1/4 w-2 h-2 bg-blue-400 rounded-full animate-pulse shadow-lg shadow-blue-400/50" />
-      <div className="absolute bottom-1/3 left-1/4 w-2.5 h-2.5 bg-purple-400 rounded-full animate-pulse shadow-lg shadow-purple-400/50" />
-      <div className="absolute bottom-1/4 right-1/3 w-2 h-2 bg-yellow-400 rounded-full animate-pulse shadow-lg shadow-yellow-400/50" />
-      <div className="absolute top-2/3 left-2/3 w-3 h-3 bg-red-400 rounded-full animate-pulse shadow-lg shadow-red-400/50" />
+      {/* Job title dots */}
+      {jobDots.map((job, idx) => (
+        <div key={job.title} className={`absolute ${job.position} group cursor-pointer`}>
+          <div className={`w-3 h-3 ${job.color} rounded-full animate-pulse shadow-lg ${job.shadow}`} />
+          <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-50">
+            <div className="bg-black/80 text-white text-xs px-2 py-1 rounded whitespace-nowrap">
+              {job.title}
+            </div>
+          </div>
+        </div>
+      ))}
     </div>
   );
 };
@@ -85,20 +103,11 @@ const RadarSection: React.FC = () => {
             className="space-y-8"
           >
             <div>
-              <motion.span 
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6 }}
-                className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-400 text-sm font-medium tracking-widest uppercase"
-              >
-                Radar Preview
-              </motion.span>
-              
               <motion.h2 
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 0.1 }}
-                className="mt-4 text-4xl md:text-5xl lg:text-6xl font-bold text-white leading-tight"
+                className="text-4xl md:text-5xl lg:text-6xl font-bold text-white leading-tight"
               >
                 Your Next Big Hire Is Already{" "}
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-400">
@@ -123,27 +132,13 @@ const RadarSection: React.FC = () => {
               className="grid grid-cols-2 gap-6"
             >
               <div className="bg-gradient-to-br from-gray-800/50 to-gray-900/50 p-6 rounded-lg border border-gray-700/50 backdrop-blur-sm">
-                <div className="text-3xl font-bold text-cyan-400 mb-2">10K+</div>
-                <div className="text-gray-400">Profiles Scanned Daily</div>
+                <div className="text-3xl font-bold text-cyan-400 mb-2">6000+</div>
+                <div className="text-gray-400">Jobs Supported</div>
               </div>
               <div className="bg-gradient-to-br from-gray-800/50 to-gray-900/50 p-6 rounded-lg border border-gray-700/50 backdrop-blur-sm">
                 <div className="text-3xl font-bold text-blue-400 mb-2">95%</div>
                 <div className="text-gray-400">Match Accuracy</div>
               </div>
-            </motion.div>
-
-            <motion.div 
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.4 }}
-              className="flex flex-col sm:flex-row gap-4"
-            >
-              <button className="relative inline-flex items-center justify-center px-8 py-3 text-base font-medium text-white bg-gradient-to-r from-cyan-500 to-blue-500 rounded-lg hover:from-cyan-600 hover:to-blue-600 transition-all duration-200 shadow-lg shadow-cyan-500/25">
-                Start Scanning
-              </button>
-              <button className="inline-flex items-center justify-center px-8 py-3 text-base font-medium text-white border border-gray-600 rounded-lg hover:border-gray-400 transition-all duration-200">
-                Learn More
-              </button>
             </motion.div>
           </motion.div>
 
