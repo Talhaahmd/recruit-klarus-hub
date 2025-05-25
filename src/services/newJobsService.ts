@@ -80,6 +80,12 @@ export const newJobsService = {
     try {
       console.log('Fetching job with ID:', id);
       
+      // Validate the job ID format
+      if (!id || id.trim() === '') {
+        console.error('Invalid job ID: empty or null');
+        return null;
+      }
+      
       const { data, error } = await supabase
         .from('jobs')
         .select('*')
@@ -87,8 +93,9 @@ export const newJobsService = {
         .maybeSingle();
         
       if (error) {
-        console.error('Error fetching job:', error);
-        throw error;
+        console.error('Database error fetching job:', error);
+        // Don't throw here, just return null to handle gracefully
+        return null;
       }
       
       if (!data) {
@@ -114,7 +121,7 @@ export const newJobsService = {
       };
     } catch (err: any) {
       console.error('Error fetching job:', err.message);
-      toast.error('Failed to load job: ' + err.message);
+      // Return null instead of throwing to allow graceful error handling
       return null;
     }
   },

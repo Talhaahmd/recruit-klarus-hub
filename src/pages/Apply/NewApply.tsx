@@ -1,7 +1,6 @@
-
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { ArrowLeft, Upload, FileType, CheckCircle2 } from 'lucide-react';
+import { ArrowLeft, Upload, FileType, CheckCircle2, RefreshCw } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
@@ -22,32 +21,45 @@ const NewApply: React.FC = () => {
   const [success, setSuccess] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [retryCount, setRetryCount] = useState<number>(0);
+
+  const fetchJob = useCallback(async () => {
+    if (!jobId) {
+      setError('Invalid job ID provided');
+      setIsLoading(false);
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+      setError(null);
+      console.log('Attempting to fetch job with ID:', jobId);
+      
+      const jobData = await newJobsService.getJobById(jobId);
+      console.log('Job fetch result:', jobData);
+      
+      if (!jobData) {
+        setError('This job posting is no longer available or the link is invalid');
+      } else {
+        setJob(jobData);
+        console.log('Job loaded successfully:', jobData.title);
+      }
+    } catch (err: any) {
+      console.error('Error fetching job:', err);
+      setError('Unable to load job details. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  }, [jobId]);
 
   useEffect(() => {
-    const fetchJob = async () => {
-      if (!jobId) {
-        setError('Invalid job ID');
-        setIsLoading(false);
-        return;
-      }
-
-      try {
-        const jobData = await newJobsService.getJobById(jobId);
-        if (!jobData) {
-          setError('Job not found or has been removed');
-        } else {
-          setJob(jobData);
-        }
-      } catch (err) {
-        console.error('Error fetching job:', err);
-        setError('Failed to load job details');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
     fetchJob();
-  }, [jobId]);
+  }, [fetchJob]);
+
+  const handleRetry = () => {
+    setRetryCount(prev => prev + 1);
+    fetchJob();
+  };
 
   const handleDrag = useCallback((e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
@@ -117,14 +129,20 @@ const NewApply: React.FC = () => {
           <CardContent className="pt-6">
             <div className="text-center">
               <div className="text-red-500 text-5xl mb-4">⚠️</div>
-              <h2 className="text-xl font-semibold mb-2">Error</h2>
+              <h2 className="text-xl font-semibold mb-2">Unable to Load Job</h2>
               <p className="text-gray-600 mb-4">{error}</p>
-              <Link to="/">
-                <Button>
-                  <ArrowLeft className="w-4 h-4 mr-2" />
-                  Back to Home
+              <div className="space-y-3">
+                <Button onClick={handleRetry} className="w-full" variant="outline">
+                  <RefreshCw className="w-4 h-4 mr-2" />
+                  Try Again
                 </Button>
-              </Link>
+                <Link to="/">
+                  <Button className="w-full">
+                    <ArrowLeft className="w-4 h-4 mr-2" />
+                    Back to Home
+                  </Button>
+                </Link>
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -173,6 +191,28 @@ const NewApply: React.FC = () => {
                 {job?.workplace_type} • {job?.location} • {job?.job_type}
               </CardDescription>
             </CardHeader>
+            {job?.description && (
+              <CardContent>
+                <div className="prose max-w-none">
+                  <p className="text-gray-700 whitespace-pre-line">{job.description}</p>
+                </div>
+                {job.technologies && job.technologies.length > 0 && (
+                  <div className="mt-4">
+                    <h4 className="text-sm font-medium text-gray-900 mb-2">Required Technologies:</h4>
+                    <div className="flex flex-wrap gap-2">
+                      {job.technologies.map((tech, index) => (
+                        <span 
+                          key={index} 
+                          className="px-2.5 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium"
+                        >
+                          {tech}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            )}
           </Card>
         </div>
 
