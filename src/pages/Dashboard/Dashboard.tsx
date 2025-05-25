@@ -25,7 +25,6 @@ const Dashboard: React.FC = () => {
   const [candidates, setCandidates] = useState<Candidate[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   
-  // Fetch data when component mounts
   useEffect(() => {
     const fetchData = async () => {
       setIsLoading(true);
@@ -93,162 +92,120 @@ const Dashboard: React.FC = () => {
     }
   ];
   
-  // Get recent jobs
   const recentJobs = [...jobs]
     .sort((a, b) => new Date(b.posted_date).getTime() - new Date(a.posted_date).getTime())
     .slice(0, 3);
   
   if (isLoading) {
     return (
-      <div>
-        <Header 
-          title="Dashboard" 
-          subtitle="Loading dashboard data..."
-        />
-        <div className="flex justify-center items-center h-64">
-          <Loader2 className="h-8 w-8 animate-spin text-primary-100" />
+      <div className="min-h-screen flex items-center justify-center px-4">
+        <div className="flex flex-col items-center">
+          <Loader2 className="h-8 w-8 animate-spin text-primary-100 mb-4" />
+          <p className="text-gray-600 dark:text-gray-400">Loading dashboard data...</p>
         </div>
       </div>
     );
   }
   
   return (
-    <div>
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-white dark:from-gray-900 dark:to-black">
       <Header 
         title="Dashboard" 
         subtitle="Welcome back! Here's an overview of your hiring activities."
       />
       
-      <div className="flex justify-end mb-6">
+      <div className="flex justify-end mb-6 px-4 lg:px-0">
         <Button 
-          onClick={() => navigate('/submission')}
-          className="flex items-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-white"
+          onClick={() => navigate('/cv-upload')}
+          className="flex items-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-white text-sm lg:text-base"
         >
           <Upload size={16} />
-          View Submissions
+          Upload CV
         </Button>
       </div>
       
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6 mb-6 lg:mb-8 px-4 lg:px-0">
         {statCards.map((card, index) => (
           <div 
             key={index}
             onClick={() => navigate(card.link)}
-            className="glass-card p-6 cursor-pointer hover:translate-y-[-2px]"
+            className="glass-card p-4 lg:p-6 cursor-pointer hover:translate-y-[-2px] transition-all duration-300 shadow-lg hover:shadow-xl"
           >
             <div className="flex justify-between items-center mb-4">
-              <div className={`p-3 rounded-lg ${card.color}`}>
-                <card.icon className="text-white" size={20} />
+              <div className={`p-2 lg:p-3 rounded-lg ${card.color}`}>
+                <card.icon className="text-white" size={18} />
               </div>
-              <ArrowUpRight size={18} className="text-gray-400" />
+              <ArrowUpRight size={16} className="text-gray-400" />
             </div>
-            <div className="text-2xl font-bold text-text-100">{card.value}</div>
-            <div className="text-sm text-text-200">{card.title}</div>
+            <div className="text-xl lg:text-2xl font-bold text-text-100 dark:text-white">{card.value}</div>
+            <div className="text-xs lg:text-sm text-text-200 dark:text-gray-400">{card.title}</div>
           </div>
         ))}
       </div>
       
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <div className="glass-card p-6">
-          <h2 className="text-lg font-semibold text-text-100 mb-4">Hiring Funnel</h2>
-          <div className="space-y-5">
-            <div>
-              <div className="flex justify-between text-sm mb-1">
-                <span>New Applications</span>
-                <span className="font-medium">{newCandidates}</span>
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 lg:gap-8 px-4 lg:px-0">
+        <div className="glass-card p-4 lg:p-6 shadow-lg">
+          <h2 className="text-lg font-semibold text-text-100 dark:text-white mb-4">Hiring Funnel</h2>
+          <div className="space-y-4 lg:space-y-5">
+            {[
+              { label: 'New Applications', count: newCandidates, color: 'bg-primary-100' },
+              { label: 'Screening', count: screeningCandidates, color: 'bg-blue-500' },
+              { label: 'Interview', count: interviewCandidates, color: 'bg-amber-500' },
+              { label: 'Assessment', count: assessmentCandidates, color: 'bg-purple-500' },
+              { label: 'Offer', count: offerCandidates, color: 'bg-orange-500' },
+              { label: 'Hired', count: hiredCandidates, color: 'bg-green-500' }
+            ].map((item, index) => (
+              <div key={index}>
+                <div className="flex justify-between text-sm mb-1">
+                  <span className="dark:text-gray-300">{item.label}</span>
+                  <span className="font-medium dark:text-white">{item.count}</span>
+                </div>
+                <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                  <div 
+                    className={`${item.color} h-2 rounded-full transition-all duration-500`}
+                    style={{ width: totalCandidates ? `${(item.count / totalCandidates) * 100}%` : '0%' }}
+                  ></div>
+                </div>
               </div>
-              <div className="w-full bg-gray-200 rounded-full h-2">
-                <div className="bg-primary-100 h-2 rounded-full" style={{ width: totalCandidates ? `${(newCandidates / totalCandidates) * 100}%` : '0%' }}></div>
-              </div>
-            </div>
-            
-            <div>
-              <div className="flex justify-between text-sm mb-1">
-                <span>Screening</span>
-                <span className="font-medium">{screeningCandidates}</span>
-              </div>
-              <div className="w-full bg-gray-200 rounded-full h-2">
-                <div className="bg-blue-500 h-2 rounded-full" style={{ width: totalCandidates ? `${(screeningCandidates / totalCandidates) * 100}%` : '0%' }}></div>
-              </div>
-            </div>
-            
-            <div>
-              <div className="flex justify-between text-sm mb-1">
-                <span>Interview</span>
-                <span className="font-medium">{interviewCandidates}</span>
-              </div>
-              <div className="w-full bg-gray-200 rounded-full h-2">
-                <div className="bg-amber-500 h-2 rounded-full" style={{ width: totalCandidates ? `${(interviewCandidates / totalCandidates) * 100}%` : '0%' }}></div>
-              </div>
-            </div>
-            
-            <div>
-              <div className="flex justify-between text-sm mb-1">
-                <span>Assessment</span>
-                <span className="font-medium">{assessmentCandidates}</span>
-              </div>
-              <div className="w-full bg-gray-200 rounded-full h-2">
-                <div className="bg-purple-500 h-2 rounded-full" style={{ width: totalCandidates ? `${(assessmentCandidates / totalCandidates) * 100}%` : '0%' }}></div>
-              </div>
-            </div>
-            
-            <div>
-              <div className="flex justify-between text-sm mb-1">
-                <span>Offer</span>
-                <span className="font-medium">{offerCandidates}</span>
-              </div>
-              <div className="w-full bg-gray-200 rounded-full h-2">
-                <div className="bg-orange-500 h-2 rounded-full" style={{ width: totalCandidates ? `${(offerCandidates / totalCandidates) * 100}%` : '0%' }}></div>
-              </div>
-            </div>
-            
-            <div>
-              <div className="flex justify-between text-sm mb-1">
-                <span>Hired</span>
-                <span className="font-medium">{hiredCandidates}</span>
-              </div>
-              <div className="w-full bg-gray-200 rounded-full h-2">
-                <div className="bg-green-500 h-2 rounded-full" style={{ width: totalCandidates ? `${(hiredCandidates / totalCandidates) * 100}%` : '0%' }}></div>
-              </div>
-            </div>
+            ))}
           </div>
         </div>
         
-        <div className="glass-card p-6">
-          <h2 className="text-lg font-semibold text-text-100 mb-4">Recent Job Postings</h2>
+        <div className="glass-card p-4 lg:p-6 shadow-lg">
+          <h2 className="text-lg font-semibold text-text-100 dark:text-white mb-4">Recent Job Postings</h2>
           {recentJobs.length > 0 ? (
-            <div className="space-y-5">
+            <div className="space-y-4 lg:space-y-5">
               {recentJobs.map(job => (
                 <div 
                   key={job.id}
                   onClick={() => navigate(`/jobs/${job.id}`)}
-                  className="p-4 border border-gray-100 rounded-lg hover:bg-gray-50 cursor-pointer"
+                  className="p-3 lg:p-4 border border-gray-100 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer transition-all duration-200"
                 >
-                  <div className="flex justify-between">
-                    <h3 className="font-medium text-primary-100">{job.title}</h3>
-                    <span className="text-xs px-2 py-1 rounded-full bg-green-100 text-green-800 flex items-center gap-1">
-                      <CheckCircle size={12} />
+                  <div className="flex justify-between items-start mb-2">
+                    <h3 className="font-medium text-primary-100 dark:text-blue-400 text-sm lg:text-base">{job.title}</h3>
+                    <span className="text-xs px-2 py-1 rounded-full bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-300 flex items-center gap-1">
+                      <CheckCircle size={10} />
                       {job.status}
                     </span>
                   </div>
                   
-                  <div className="mt-2 flex items-center text-sm text-text-200">
-                    <Clock size={14} className="mr-1" />
+                  <div className="flex items-center text-xs lg:text-sm text-text-200 dark:text-gray-400 mb-2">
+                    <Clock size={12} className="mr-1" />
                     <span>Posted {job.posted_date}</span>
                     <span className="mx-2">•</span>
                     <span>{job.applicants} applicants</span>
                   </div>
                   
-                  <div className="mt-2 text-sm text-text-200">{job.location} • {job.type}</div>
+                  <div className="text-xs lg:text-sm text-text-200 dark:text-gray-400">{job.location} • {job.type}</div>
                 </div>
               ))}
             </div>
           ) : (
-            <div className="text-center py-8 text-text-200">
-              <p>No jobs posted yet</p>
+            <div className="text-center py-6 lg:py-8 text-text-200 dark:text-gray-400">
+              <p className="text-sm lg:text-base">No jobs posted yet</p>
               <button 
                 onClick={() => navigate('/jobs')}
-                className="mt-2 text-primary-100 hover:underline"
+                className="mt-2 text-primary-100 dark:text-blue-400 hover:underline text-sm lg:text-base"
               >
                 Create your first job posting
               </button>
@@ -257,7 +214,7 @@ const Dashboard: React.FC = () => {
           
           <button 
             onClick={() => navigate('/jobs')}
-            className="w-full mt-4 text-center py-2 border border-primary-100 rounded-md text-primary-100 hover:bg-primary-100/5"
+            className="w-full mt-4 text-center py-2 border border-primary-100 dark:border-blue-400 rounded-md text-primary-100 dark:text-blue-400 hover:bg-primary-100/5 dark:hover:bg-blue-400/5 transition-colors text-sm lg:text-base"
           >
             View All Jobs
           </button>

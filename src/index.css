@@ -95,7 +95,7 @@
   }
   
   .glass-card {
-    @apply glass rounded-lg transition-all duration-300 hover:shadow-xl;
+    @apply glass rounded-lg transition-all duration-300 hover:shadow-xl backdrop-blur-sm bg-white/80 dark:bg-gray-900/80 border border-gray-200/50 dark:border-gray-700/50;
   }
   
   .glass-button {
@@ -115,11 +115,32 @@
   }
 
   .sidebar-item {
-    @apply flex items-center gap-3 px-3 py-2 rounded-md transition-all duration-200 hover:bg-primary-100/10 text-text-100 dark:hover:bg-dark-primary-100/10 dark:text-dark-text-100;
+    @apply flex items-center gap-3 px-3 py-3 lg:py-2 rounded-md transition-all duration-200 hover:bg-primary-100/10 text-text-100 dark:hover:bg-dark-primary-100/10 dark:text-dark-text-100 text-sm lg:text-base;
   }
   
   .sidebar-item.active {
     @apply bg-primary-100 text-white hover:bg-primary-100/90 dark:bg-dark-primary-100 dark:hover:bg-dark-primary-100/90;
+  }
+
+  /* Mobile-first responsive utilities */
+  .container-responsive {
+    @apply px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto;
+  }
+
+  .text-responsive {
+    @apply text-sm sm:text-base lg:text-lg;
+  }
+
+  .heading-responsive {
+    @apply text-lg sm:text-xl lg:text-2xl xl:text-3xl;
+  }
+
+  .card-responsive {
+    @apply p-4 sm:p-6 lg:p-8;
+  }
+
+  .grid-responsive {
+    @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 lg:gap-6;
   }
 }
 
@@ -130,6 +151,16 @@
 
   body {
     @apply bg-bg-200 text-foreground dark:bg-black dark:text-dark-text-100;
+  }
+
+  /* Improve mobile touch targets */
+  button, a {
+    @apply min-h-[44px] sm:min-h-[40px];
+  }
+
+  /* Better mobile form inputs */
+  input, textarea, select {
+    @apply text-base; /* Prevents zoom on iOS */
   }
 }
 
@@ -189,3 +220,24 @@
   animation: gradient 5s ease infinite;
 }
 
+/* Mobile-specific improvements */
+@media (max-width: 768px) {
+  .sidebar-item {
+    @apply py-4 text-base;
+  }
+  
+  .glass-card {
+    @apply p-4;
+  }
+  
+  .container-responsive {
+    @apply px-3;
+  }
+}
+
+/* Ensure proper scrolling on mobile */
+@media (max-width: 1024px) {
+  .overflow-y-auto {
+    -webkit-overflow-scrolling: touch;
+  }
+}
