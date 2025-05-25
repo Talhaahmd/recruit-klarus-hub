@@ -52,7 +52,7 @@ const BuildProfile: React.FC = () => {
   const [successMessage, setSuccessMessage] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   
-  const { showModal, initiateLinkedInConnect, dismissModal } = useLinkedInPrompt();
+  const { showModal, initiateLinkedInConnect, dismissModal, hasLinkedInToken } = useLinkedInPrompt();
 
   useEffect(() => {
     const fetchPosts = async () => {
@@ -87,11 +87,13 @@ const BuildProfile: React.FC = () => {
           
           // Check if this is BuildProfile data
           if (postData.source === 'BuildProfile') {
-            console.log('Processing LinkedIn post generation for BuildProfile...');
+            console.log('Processing LinkedIn post generation for BuildProfile...', postData);
             sessionStorage.removeItem('pending_post_data');
             
-            // Process the LinkedIn post immediately
-            processLinkedInPost(postData);
+            // Process the LinkedIn post with delay to ensure token is ready
+            setTimeout(() => {
+              processLinkedInPost(postData);
+            }, 2000);
           } else {
             console.log('Post data is not for BuildProfile - ignoring');
             toast.success('LinkedIn connected successfully!');
@@ -111,6 +113,13 @@ const BuildProfile: React.FC = () => {
     try {
       console.log('Processing LinkedIn post generation with data:', postData);
       setIsGenerating(true);
+      
+      // Set the appropriate loading state based on whether it's scheduled
+      if (postData.isScheduled) {
+        setIsScheduleSubmitting(true);
+      } else {
+        setIsSubmitting(true);
+      }
       
       const { data, error } = await supabase.functions.invoke('generate-linkedin-post', {
         body: {
@@ -148,12 +157,10 @@ const BuildProfile: React.FC = () => {
         setScheduledCustomNiche('');
         setScheduledNiche('');
         setOpenScheduleDialog(false);
-        setIsScheduleSubmitting(false);
       } else {
         setPostContent('');
         setCustomNiche('');
         setSelectedNiche('');
-        setIsSubmitting(false);
       }
       
       // Show success modal
@@ -165,6 +172,8 @@ const BuildProfile: React.FC = () => {
       toast.error('Failed to process LinkedIn post');
     } finally {
       setIsGenerating(false);
+      setIsSubmitting(false);
+      setIsScheduleSubmitting(false);
     }
   };
 
@@ -187,11 +196,19 @@ const BuildProfile: React.FC = () => {
   ];
   
   const generateLinkedInPost = async (postData: any, isScheduled: boolean = false) => {
+    console.log('Starting LinkedIn post generation process...', postData);
+    
+    // Check if we already have a valid LinkedIn token
+    if (hasLinkedInToken === true) {
+      console.log('LinkedIn token available, generating post directly...');
+      await processLinkedInPost({ ...postData, isScheduled, source: 'BuildProfile' });
+      return;
+    }
+    
+    console.log('No LinkedIn token, initiating authentication...');
     setIsGenerating(true);
     
     try {
-      console.log('Generating LinkedIn post with BuildProfile data:', postData);
-      
       // Store the data with source metadata for BuildProfile
       const dataWithMetadata = {
         ...postData,
@@ -210,6 +227,8 @@ const BuildProfile: React.FC = () => {
       console.error('Unexpected error generating LinkedIn post:', error);
       toast.error('Failed to generate LinkedIn post. Please try again.');
       setIsGenerating(false);
+      setIsSubmitting(false);
+      setIsScheduleSubmitting(false);
     }
   };
   
