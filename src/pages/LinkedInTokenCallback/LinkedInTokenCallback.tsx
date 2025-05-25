@@ -73,8 +73,19 @@ const LinkedInTokenCallback: React.FC = () => {
         sessionStorage.removeItem('linkedin_oauth_state');
         localStorage.removeItem('linkedin_oauth_state');
         
-        // Check for pending job data
+        // Check for pending data and determine the source
         const pendingJobData = sessionStorage.getItem('pending_job_data');
+        const pendingPostData = sessionStorage.getItem('pending_post_data');
+        
+        if (pendingPostData) {
+          console.log('Found pending post data for BuildProfile, redirecting...');
+          sessionStorage.removeItem('pending_post_data');
+          
+          // Redirect to BuildProfile with success parameter
+          navigate('/build-profile?linkedin_connected=true');
+          return;
+        }
+        
         if (pendingJobData) {
           console.log('Found pending job data, creating job...');
           
@@ -124,9 +135,13 @@ const LinkedInTokenCallback: React.FC = () => {
             console.error('Error parsing pending job data:', parseError);
             toast.error('Failed to create job after LinkedIn connection');
           }
+          
+          // Redirect to jobs page with success parameter
+          navigate('/jobs?linkedin_connected=true');
+          return;
         }
         
-        // Redirect to jobs page with success parameter
+        // No pending data, default to jobs page
         navigate('/jobs?linkedin_connected=true');
         
       } catch (error) {
@@ -150,7 +165,7 @@ const LinkedInTokenCallback: React.FC = () => {
             Connecting LinkedIn...
           </h2>
           <p className="text-gray-600">
-            Please wait while we securely connect your LinkedIn account and create your job posting.
+            Please wait while we securely connect your LinkedIn account and process your request.
           </p>
         </div>
       </div>

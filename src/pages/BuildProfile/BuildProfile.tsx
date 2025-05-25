@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Header } from '@/components/Layout/MainLayout';
 import { Calendar, Clock, Send, Plus, Trash2, Check, ThumbsUp, Loader2 } from 'lucide-react';
@@ -87,9 +86,9 @@ const BuildProfile: React.FC = () => {
         try {
           const postData = JSON.parse(pendingPostData);
           
-          // Check if this is BuildProfile data (not Jobs data)
-          if (postData.content && postData.niche && postData.tone) {
-            console.log('Processing LinkedIn post generation...');
+          // Check if this is BuildProfile data (has content, niche, tone)
+          if (postData.content && postData.niche && postData.tone && postData.source === 'BuildProfile') {
+            console.log('Processing LinkedIn post generation for BuildProfile...');
             sessionStorage.removeItem('pending_post_data');
             
             // Add delay to ensure token is processed
@@ -97,7 +96,8 @@ const BuildProfile: React.FC = () => {
               processLinkedInPost(postData);
             }, 3000);
           } else {
-            console.log('Post data is for Jobs, not BuildProfile - ignoring');
+            console.log('Post data is not for BuildProfile - ignoring');
+            toast.success('LinkedIn connected successfully!');
           }
         } catch (error) {
           console.error('Error parsing pending post data:', error);
@@ -193,13 +193,9 @@ const BuildProfile: React.FC = () => {
     setIsGenerating(true);
     
     try {
-      console.log('Generating LinkedIn post with data:', postData);
+      console.log('Generating LinkedIn post with BuildProfile data:', postData);
       
-      // Always request fresh LinkedIn authentication for every post
-      console.log('Always requesting fresh LinkedIn authentication for post generation...');
-      setPendingPostData({ ...postData, isScheduled });
-      
-      // Store the data with a flag to identify it's from BuildProfile
+      // Store the data with source metadata for BuildProfile
       const dataWithMetadata = {
         ...postData,
         isScheduled,
@@ -207,7 +203,10 @@ const BuildProfile: React.FC = () => {
         timestamp: Date.now()
       };
       
+      console.log('Storing pending post data for BuildProfile:', dataWithMetadata);
       sessionStorage.setItem('pending_post_data', JSON.stringify(dataWithMetadata));
+      
+      // Initiate LinkedIn connect which will redirect and come back
       await initiateLinkedInConnect();
       
     } catch (error) {
