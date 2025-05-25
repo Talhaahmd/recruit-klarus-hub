@@ -6,12 +6,14 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { CheckCircle2, Upload } from 'lucide-react';
 import { toast } from 'sonner';
+import { useNavigate } from 'react-router-dom';
 
 const CVUpload: React.FC = () => {
   const [files, setFiles] = useState<File[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const navigate = useNavigate();
 
   const handleFileUpload = (uploadedFiles: File[]) => {
     setFiles(uploadedFiles);
@@ -59,23 +61,29 @@ const CVUpload: React.FC = () => {
 
   if (success) {
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center p-4">
-        <Card className="w-full max-w-md bg-neutral-900 border-neutral-800">
+      <div className="min-h-screen bg-black flex items-center justify-center p-4 relative overflow-hidden">
+        {/* Animated background gradient */}
+        <div className="absolute inset-0 bg-gradient-to-br from-purple-900/20 via-blue-900/20 to-cyan-900/20 animate-gradient" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(120,119,198,0.1),transparent_50%)]" />
+        
+        <Card className="w-full max-w-md bg-black/60 backdrop-blur-xl border border-cyan-500/20 shadow-2xl relative z-10">
           <CardContent className="pt-6">
             <div className="text-center">
-              <CheckCircle2 className="w-16 h-16 text-green-500 mx-auto mb-4" />
-              <h2 className="text-xl font-semibold mb-2 text-white">CV Uploaded Successfully!</h2>
-              <p className="text-neutral-400 mb-4">
+              <div className="relative">
+                <CheckCircle2 className="w-16 h-16 text-cyan-400 mx-auto mb-4 animate-pulse" />
+                <div className="absolute inset-0 w-16 h-16 mx-auto bg-cyan-400/20 rounded-full animate-ping" />
+              </div>
+              <h2 className="text-2xl font-bold mb-2 bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent">
+                CV Uploaded Successfully!
+              </h2>
+              <p className="text-gray-300 mb-6 leading-relaxed">
                 Thank you for submitting your CV to Klarus HR. We'll review it and get back to you soon.
               </p>
               <Button 
-                onClick={() => {
-                  setSuccess(false);
-                  setFiles([]);
-                }}
-                className="w-full"
+                onClick={() => navigate('/')}
+                className="w-full bg-gradient-to-r from-cyan-500 to-purple-600 hover:from-cyan-600 hover:to-purple-700 text-white font-semibold py-3 rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-cyan-500/25"
               >
-                Upload Another CV
+                Visit Klarus HR
               </Button>
             </div>
           </CardContent>
@@ -85,28 +93,35 @@ const CVUpload: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-black text-white p-4">
-      <div className="max-w-4xl mx-auto py-12">
+    <div className="min-h-screen bg-black text-white relative overflow-hidden">
+      {/* Animated background */}
+      <div className="absolute inset-0 bg-gradient-to-br from-purple-900/20 via-blue-900/20 to-cyan-900/20 animate-gradient" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(120,119,198,0.1),transparent_50%)]" />
+      
+      <div className="relative z-10 max-w-4xl mx-auto py-12 px-4">
         <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold mb-4 text-white">
-            Please Upload your CV for Klarus HR
+          <h1 className="text-5xl font-bold mb-6 bg-gradient-to-r from-cyan-400 via-purple-500 to-pink-500 bg-clip-text text-transparent animate-gradient">
+            Upload Your CV
           </h1>
-          <p className="text-xl text-neutral-400">
-            Share your professional experience with our recruitment team
+          <p className="text-xl text-gray-300 max-w-2xl mx-auto leading-relaxed">
+            Share your professional experience with our recruitment team at{' '}
+            <span className="text-cyan-400 font-semibold">Klarus HR</span>
           </p>
         </div>
 
-        <Card className="bg-neutral-900 border-neutral-800">
-          <CardHeader>
-            <CardTitle className="text-2xl text-center text-white flex items-center justify-center gap-2">
-              <Upload className="w-6 h-6" />
-              Upload Your CV
+        <Card className="bg-black/40 backdrop-blur-xl border border-cyan-500/20 shadow-2xl">
+          <CardHeader className="text-center">
+            <CardTitle className="text-3xl text-white flex items-center justify-center gap-3">
+              <div className="p-2 bg-gradient-to-r from-cyan-500 to-purple-600 rounded-lg">
+                <Upload className="w-6 h-6 text-white" />
+              </div>
+              Submit Your CV
             </CardTitle>
           </CardHeader>
           <CardContent className="p-8">
             {error && (
-              <Alert variant="destructive" className="mb-6 bg-red-900/20 border-red-600">
-                <AlertDescription className="text-red-400">{error}</AlertDescription>
+              <Alert variant="destructive" className="mb-6 bg-red-900/30 border-red-500/50 backdrop-blur-sm">
+                <AlertDescription className="text-red-300">{error}</AlertDescription>
               </Alert>
             )}
 
@@ -116,10 +131,10 @@ const CVUpload: React.FC = () => {
 
             {files.length > 0 && (
               <div className="mb-6">
-                <p className="text-sm text-neutral-400 mb-2">Selected file:</p>
-                <div className="bg-neutral-800 rounded-lg p-3">
+                <p className="text-sm text-gray-400 mb-3">Selected file:</p>
+                <div className="bg-gray-800/50 backdrop-blur-sm rounded-lg p-4 border border-cyan-500/20">
                   <p className="text-white font-medium">{files[0].name}</p>
-                  <p className="text-neutral-400 text-sm">
+                  <p className="text-gray-400 text-sm mt-1">
                     {(files[0].size / 1024 / 1024).toFixed(2)} MB • {files[0].type}
                   </p>
                 </div>
@@ -129,11 +144,11 @@ const CVUpload: React.FC = () => {
             <Button
               onClick={handleSubmit}
               disabled={isSubmitting || files.length === 0}
-              className="w-full h-12 text-lg"
+              className="w-full h-14 text-lg bg-gradient-to-r from-cyan-500 to-purple-600 hover:from-cyan-600 hover:to-purple-700 disabled:from-gray-600 disabled:to-gray-700 text-white font-semibold rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-cyan-500/25 disabled:hover:scale-100 disabled:shadow-none"
             >
               {isSubmitting ? (
                 <>
-                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2" />
+                  <div className="animate-spin rounded-full h-6 w-6 border-2 border-white border-t-transparent mr-3" />
                   Uploading CV...
                 </>
               ) : (
@@ -142,7 +157,7 @@ const CVUpload: React.FC = () => {
             </Button>
 
             <div className="mt-6 text-center">
-              <p className="text-sm text-neutral-500">
+              <p className="text-sm text-gray-500">
                 Supported formats: PDF, DOC, DOCX (Max 5MB)
               </p>
             </div>
