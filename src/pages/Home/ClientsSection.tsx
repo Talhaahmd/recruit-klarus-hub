@@ -1,4 +1,3 @@
-
 import React from 'react';
 
 const ClientsSection: React.FC = () => {
@@ -10,10 +9,6 @@ const ClientsSection: React.FC = () => {
     {
       name: "Sigma",
       logo: "https://res.cloudinary.com/dt3ufcdjs/image/upload/v1748192783/sigmalogo-removebg-preview_mbt651.png"
-    },
-    {
-      name: "IOS",
-      logo: "https://res.cloudinary.com/dt3ufcdjs/image/upload/v1748192781/IOS_xmnnfn.svg"
     },
     {
       name: "OneScreen",
@@ -34,6 +29,14 @@ const ClientsSection: React.FC = () => {
     {
       name: "Drilldown",
       logo: "https://res.cloudinary.com/dt3ufcdjs/image/upload/v1748192780/drilldown_ewf032.png"
+    },
+    {
+      name: "New Company 1",
+      logo: "https://res.cloudinary.com/dt3ufcdjs/image/upload/v1748192778/download_ogsq3o.png"
+    },
+    {
+      name: "DACI Utilities",
+      logo: "https://res.cloudinary.com/dt3ufcdjs/image/upload/v1748192777/daci_utilities_engineering_consultancy_logo-removebg-preview_cfhekk.png"
     }
   ];
 
@@ -83,20 +86,20 @@ const ClientsSection: React.FC = () => {
           </div>
         </div>
 
-        {/* Stats section */}
+        {/* Updated Stats section */}
         <div className="mt-16 lg:mt-20">
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 text-center">
             <div className="group">
-              <div className="text-3xl lg:text-4xl font-bold text-blue-600 mb-2 group-hover:scale-110 transition-transform duration-300">50+</div>
+              <div className="text-3xl lg:text-4xl font-bold text-blue-600 mb-2 group-hover:scale-110 transition-transform duration-300">12</div>
               <div className="text-gray-600 font-medium">Partner Companies</div>
             </div>
             <div className="group">
-              <div className="text-3xl lg:text-4xl font-bold text-indigo-600 mb-2 group-hover:scale-110 transition-transform duration-300">10k+</div>
+              <div className="text-3xl lg:text-4xl font-bold text-indigo-600 mb-2 group-hover:scale-110 transition-transform duration-300">88+</div>
               <div className="text-gray-600 font-medium">Successful Placements</div>
             </div>
             <div className="group">
-              <div className="text-3xl lg:text-4xl font-bold text-purple-600 mb-2 group-hover:scale-110 transition-transform duration-300">98%</div>
-              <div className="text-gray-600 font-medium">Client Satisfaction</div>
+              <div className="text-3xl lg:text-4xl font-bold text-purple-600 mb-2 group-hover:scale-110 transition-transform duration-300">6000+</div>
+              <div className="text-gray-600 font-medium">Jobs Supported</div>
             </div>
           </div>
         </div>
