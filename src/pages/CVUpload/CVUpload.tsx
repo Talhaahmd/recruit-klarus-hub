@@ -7,6 +7,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { CheckCircle2, Upload } from 'lucide-react';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
 
 const CVUpload: React.FC = () => {
   const [files, setFiles] = useState<File[]>([]);
@@ -45,14 +46,52 @@ const CVUpload: React.FC = () => {
     setError(null);
 
     try {
-      // Here you would typically upload the file to your backend
-      // For now, we'll just simulate a successful upload
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
+      // Upload file to Supabase storage
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Date.now()}_${Math.random().toString(36).substring(2)}.${fileExt}`;
+      const filePath = `cvs/${fileName}`;
+
+      console.log('Uploading file to storage:', filePath);
+
+      const { error: uploadError } = await supabase.storage
+        .from('cv-bucket')
+        .upload(filePath, file, {
+          cacheControl: '3600',
+          upsert: false
+        });
+
+      if (uploadError) {
+        console.error('File upload error:', uploadError);
+        throw new Error('Failed to upload your CV. Please try again.');
+      }
+
+      // Get public URL for the uploaded file
+      const { data: urlData } = supabase.storage
+        .from('cv-bucket')
+        .getPublicUrl(filePath);
+
+      const fileUrl = urlData.publicUrl;
+      console.log('File uploaded successfully:', fileUrl);
+
+      // Save job application record
+      const { error: insertError } = await supabase
+        .from('job_applications')
+        .insert({
+          job_name: 'General Application',
+          cv_link: fileUrl
+        });
+
+      if (insertError) {
+        console.error('Database insert error:', insertError);
+        throw new Error('Failed to submit your application. Please try again.');
+      }
+
+      console.log('Application submitted successfully');
       setSuccess(true);
       toast.success('CV uploaded successfully!');
-    } catch (err) {
-      setError('Failed to upload CV. Please try again.');
+    } catch (err: any) {
+      console.error('Error submitting application:', err);
+      setError(err.message || 'Failed to upload CV. Please try again.');
       toast.error('Upload failed');
     } finally {
       setIsSubmitting(false);

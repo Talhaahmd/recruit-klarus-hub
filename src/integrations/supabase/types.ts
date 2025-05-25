@@ -306,6 +306,7 @@ export type Database = {
         Row: {
           created_at: string | null
           created_by: string | null
+          cv_link: string | null
           id: string
           job_id: string
           job_name: string | null
@@ -314,6 +315,7 @@ export type Database = {
         Insert: {
           created_at?: string | null
           created_by?: string | null
+          cv_link?: string | null
           id?: string
           job_id: string
           job_name?: string | null
@@ -322,6 +324,7 @@ export type Database = {
         Update: {
           created_at?: string | null
           created_by?: string | null
+          cv_link?: string | null
           id?: string
           job_id?: string
           job_name?: string | null
