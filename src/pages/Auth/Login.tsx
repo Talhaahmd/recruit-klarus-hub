@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -13,31 +14,31 @@ const testimonials = [
     content: "The AI-driven interviews have revolutionized our hiring process. We're finding better candidates in half the time it used to take us.",
     author: "Sarah Johnson",
     role: "HR Director, TechFront Inc.",
-    image: "https://images.pexels.com/photos/1181686/pexels-photo-1181686.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2"
+    image: "https://res.cloudinary.com/dt3ufcdjs/image/upload/v1748192779/2-removebg-preview__2__anicgx.png"
   },
   {
     content: "We've reduced our time-to-hire by 40% and our retention rates have improved significantly. The AI interview platform has become an essential part of our recruiting toolkit.",
     author: "Michael Chen",
     role: "Talent Acquisition Lead, GlobalTech",
-    image: "https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2"
+    image: "https://res.cloudinary.com/dt3ufcdjs/image/upload/v1748192779/5-removebg-preview_hgvnmc.png"
   },
   {
     content: "The analytics and insights we get from each interview have been invaluable. It's like having an expert interviewer on our team 24/7.",
     author: "Emily Rodriguez",
     role: "CEO, StartupVision",
-    image: "https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2"
+    image: "https://res.cloudinary.com/dt3ufcdjs/image/upload/v1748192779/4-removebg-preview_480_ad0ibc.png"
   },
   {
     content: "Our hiring managers are now able to focus on the highest-potential candidates, rather than spending hours screening. The ROI has been excellent.",
     author: "David Washington",
     role: "COO, Enterprise Solutions",
-    image: "https://images.pexels.com/photos/1681010/pexels-photo-1681010.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2"
+    image: "https://res.cloudinary.com/dt3ufcdjs/image/upload/v1748192778/3-removebg-preview__1__480_ro4g9u.png"
   },
   {
     content: "As a fast-growing startup, we needed a solution that could scale with us. This platform has allowed us to maintain high hiring standards while doubling our team size in six months.",
     author: "Priya Patel",
     role: "Recruiting Manager, NextGen Software",
-    image: "https://images.pexels.com/photos/1587009/pexels-photo-1587009.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2"
+    image: "https://res.cloudinary.com/dt3ufcdjs/image/upload/v1748192778/2-removebg-preview__1__xm8pnt.png"
   }
 ];
 
