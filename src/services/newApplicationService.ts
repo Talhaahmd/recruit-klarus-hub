@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
@@ -9,21 +10,33 @@ export const newApplicationService = {
     file: File
   ): Promise<boolean> => {
     try {
-      // First get job details using the old schema
+      console.log('Submitting application for job:', jobId);
+      
+      // First get job details using public access (no auth required)
       const { data: jobData, error: jobError } = await supabase
         .from('jobs')
-        .select('title, user_id')
+        .select('title, user_id, status')
         .eq('id', jobId)
-        .single();
+        .eq('status', 'Active')
+        .maybeSingle();
 
-      if (jobError || !jobData) {
-        throw new Error('Job not found');
+      if (jobError) {
+        console.error('Error fetching job:', jobError);
+        throw new Error('Unable to find this job posting');
       }
+
+      if (!jobData) {
+        throw new Error('This job posting is no longer available or has been deactivated');
+      }
+
+      console.log('Job found for application:', jobData.title);
 
       // Upload file to storage
       const fileExt = file.name.split('.').pop();
       const fileName = `${Date.now()}_${Math.random().toString(36).substring(2)}.${fileExt}`;
       const filePath = `applications/${jobId}/${fileName}`;
+
+      console.log('Uploading file to storage:', filePath);
 
       const { error: uploadError } = await supabase.storage
         .from('cv-bucket')
@@ -32,7 +45,10 @@ export const newApplicationService = {
           upsert: false
         });
 
-      if (uploadError) throw uploadError;
+      if (uploadError) {
+        console.error('File upload error:', uploadError);
+        throw new Error('Failed to upload your CV. Please try again.');
+      }
 
       // Get public URL
       const { data: urlData } = supabase.storage
@@ -40,33 +56,25 @@ export const newApplicationService = {
         .getPublicUrl(filePath);
 
       const fileUrl = urlData.publicUrl;
+      console.log('File uploaded successfully:', fileUrl);
 
-      // Insert job application - simplified without name/email
-      try {
-        const { error: insertError } = await supabase
-          .from('job_applications')
-          .insert({
-            job_id: jobId,
-            job_name: jobData.title,
-            cv_link: fileUrl
-          });
+      // Insert job application
+      const { error: insertError } = await supabase
+        .from('job_applications')
+        .insert({
+          job_id: jobId,
+          job_name: jobData.title,
+          cv_link: fileUrl
+        });
 
-        if (insertError) throw insertError;
-      } catch (tableError) {
-        // Fallback to old table structure if new table doesn't exist
-        console.log('Using fallback table structure');
-        const { error: fallbackError } = await supabase
-          .from('job_applications')
-          .insert({
-            job_id: jobId,
-            job_name: jobData.title,
-            link_for_cv: fileUrl
-          });
-        
-        if (fallbackError) throw fallbackError;
+      if (insertError) {
+        console.error('Database insert error:', insertError);
+        throw new Error('Failed to submit your application. Please try again.');
       }
 
-      // Call Make.com webhook - simplified without applicant details
+      console.log('Application submitted successfully');
+
+      // Call Make.com webhook
       try {
         await fetch(MAKE_WEBHOOK_URL, {
           method: "POST",
@@ -79,6 +87,7 @@ export const newApplicationService = {
             hr_user_id: jobData.user_id
           })
         });
+        console.log('Webhook notification sent');
       } catch (webhookError) {
         console.error('Webhook error (non-critical):', webhookError);
       }

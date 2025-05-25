@@ -26,7 +26,8 @@ const NewApply: React.FC = () => {
 
   const fetchJob = useCallback(async () => {
     if (!jobId) {
-      setError('Invalid job ID provided');
+      console.error('No job ID provided in URL');
+      setError('Invalid job link. Please check the URL and try again.');
       setIsLoading(false);
       return;
     }
@@ -40,6 +41,7 @@ const NewApply: React.FC = () => {
       console.log('Job fetch result:', jobData);
       
       if (!jobData) {
+        console.log('No job data returned for ID:', jobId);
         setError('This job posting is no longer available, has expired, or the link is invalid. Please check with the employer for the latest job postings.');
       } else {
         setJob(jobData);
@@ -54,6 +56,7 @@ const NewApply: React.FC = () => {
   }, [jobId]);
 
   useEffect(() => {
+    console.log('NewApply component mounted with jobId:', jobId);
     fetchJob();
   }, [fetchJob]);
 
@@ -118,6 +121,7 @@ const NewApply: React.FC = () => {
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
           <p className="mt-4 text-gray-600">Loading job details...</p>
+          <p className="mt-2 text-sm text-gray-500">Job ID: {jobId}</p>
         </div>
       </div>
     );
@@ -132,10 +136,14 @@ const NewApply: React.FC = () => {
               <div className="text-red-500 text-5xl mb-4">⚠️</div>
               <h2 className="text-xl font-semibold mb-2">Unable to Load Job</h2>
               <p className="text-gray-600 mb-4 text-sm leading-relaxed">{error}</p>
+              <div className="text-xs text-gray-400 mb-4">
+                Job ID: {jobId}
+                {retryCount > 0 && ` (Attempt ${retryCount + 1})`}
+              </div>
               <div className="space-y-3">
                 <Button onClick={handleRetry} className="w-full" variant="outline">
                   <RefreshCw className="w-4 h-4 mr-2" />
-                  Try Again {retryCount > 0 && `(${retryCount})`}
+                  Try Again
                 </Button>
                 <Link to="/">
                   <Button className="w-full">

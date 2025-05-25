@@ -1,15 +1,5 @@
 
-import { createClient } from '@supabase/supabase-js';
-
-// Create a separate client for public access
-const SUPABASE_URL = "https://bzddkmmjqwgylckimwiq.supabase.co";
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ6ZGRrbW1qcXdneWxja2ltd2lxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc3MDUyNTIsImV4cCI6MjA2MzI4MTI1Mn0.TJ-WarxEHdsEbsychuwRHaKDtWQcWK3Yl5-zqAO4Ow0";
-
-const publicSupabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-  auth: {
-    persistSession: false // Don't persist sessions for public access
-  }
-});
+import { supabase } from '@/integrations/supabase/client';
 
 export type PublicJob = {
   id: string;
@@ -48,11 +38,12 @@ export const publicJobsService = {
         return null;
       }
       
-      const { data, error } = await publicSupabase
+      // Use the existing supabase client for public access
+      const { data, error } = await supabase
         .from('jobs')
-        .select('id, title, workplace_type, location, type, description, technologies, created_at')
+        .select('id, title, workplace_type, location, type, description, technologies, created_at, status')
         .eq('id', id)
-        .eq('status', 'Active') // Only fetch active jobs
+        .eq('status', 'Active') // Only fetch active jobs for public access
         .maybeSingle();
         
       if (error) {
