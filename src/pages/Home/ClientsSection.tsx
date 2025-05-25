@@ -1,59 +1,72 @@
 
-import React, { useRef } from 'react';
-import { LinkPreview } from '@/components/ui/link-preview';
-
-// Our new client companies
-const clients = [
-  {
-    name: 'Five Pack Creative',
-    url: 'https://fivepackcreative.com/',
-  },
-  {
-    name: 'The Keenfolks',
-    url: 'https://www.thekeenfolks.com/',
-  },
-  {
-    name: 'Klarus.io',
-    url: 'https://www.klarus.io/',
-  },
-  {
-    name: 'Kualitatem',
-    url: 'https://www.kualitatem.com/',
-  },
-  {
-    name: 'Neptune Software',
-    url: 'https://www.neptune-software.com/',
-  },
-  {
-    name: 'Chrono Innovation',
-    url: 'https://www.chronoinnovation.com/',
-  }
-];
+import React from 'react';
 
 const ClientsSection: React.FC = () => {
-  const sectionRef = useRef<HTMLDivElement>(null);
+  const companies = [
+    {
+      name: "SPS Commerce",
+      logo: "https://res.cloudinary.com/dt3ufcdjs/image/upload/v1748192783/sps_commerce_corp_2015_logo-removebg-preview_bz5mrn.png"
+    },
+    {
+      name: "Sigma",
+      logo: "https://res.cloudinary.com/dt3ufcdjs/image/upload/v1748192783/sigmalogo-removebg-preview_mbt651.png"
+    },
+    {
+      name: "IOS",
+      logo: "https://res.cloudinary.com/dt3ufcdjs/image/upload/v1748192781/IOS_xmnnfn.svg"
+    },
+    {
+      name: "OneScreen",
+      logo: "https://res.cloudinary.com/dt3ufcdjs/image/upload/v1748192782/onescreen-logo__1_-removebg-preview_boih9e.png"
+    },
+    {
+      name: "Company 1",
+      logo: "https://res.cloudinary.com/dt3ufcdjs/image/upload/v1748192781/images-removebg-preview__2__kfratu.png"
+    },
+    {
+      name: "Company 2",
+      logo: "https://res.cloudinary.com/dt3ufcdjs/image/upload/v1748192781/images-removebg-preview__1__zijyzh.png"
+    },
+    {
+      name: "Company 3",
+      logo: "https://res.cloudinary.com/dt3ufcdjs/image/upload/v1748192780/images__1_-removebg-preview_360_jttkma.png"
+    },
+    {
+      name: "Drilldown",
+      logo: "https://res.cloudinary.com/dt3ufcdjs/image/upload/v1748192780/drilldown_ewf032.png"
+    }
+  ];
 
   return (
-    <section ref={sectionRef} className="py-24 bg-gradient-to-b from-black via-gray-900 to-black text-white transition-all duration-1000">
-      <div className="container mx-auto px-4">
-        <div className="text-center mb-16">
-          <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-500 to-purple-500 text-sm font-medium tracking-widest uppercase">
-            Success Stories
-          </span>
-          <h2 className="mt-4 text-4xl font-bold text-white md:text-5xl">Our Valued Clients</h2>
+    <section className="py-16 lg:py-24 bg-white">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="text-center mb-12 lg:mb-16">
+          <h2 className="text-3xl lg:text-4xl xl:text-5xl font-bold text-gray-900 mb-4">
+            Companies we are working with
+          </h2>
+          <p className="text-lg lg:text-xl text-gray-600 max-w-3xl mx-auto">
+            Trusted by industry leaders worldwide to transform their recruitment processes
+          </p>
         </div>
-
-        {/* Client paragraph with link previews */}
-        <div className="max-w-5xl mx-auto mb-16 text-lg text-gray-200 leading-relaxed">
-          <p className="mb-6">
-            We've proudly supported companies like <LinkPreview url="https://fivepackcreative.com/" className="font-semibold text-cyan-400" width={320} height={200}>Five Pack Creative</LinkPreview> in scaling their teams by using Klarus HR to streamline technical hiring—while also enhancing their careers and hiring pages with the Acetrinity Link Reveal effect for a modern, interactive feel. With <LinkPreview url="https://www.thekeenfolks.com/" className="font-semibold text-purple-400" width={320} height={200}>The Keenfolks</LinkPreview>, we accelerated candidate screening for key digital roles, while ensuring their site interactions reflected their innovative spirit.
-          </p>
-          <p className="mb-6">
-            For <LinkPreview url="https://www.klarus.io/" className="font-semibold text-cyan-400" width={320} height={200}>Klarus.io</LinkPreview>, our own product, we applied our hiring engine internally—refining how candidates experience the brand through subtle yet impactful link previews. At <LinkPreview url="https://www.kualitatem.com/" className="font-semibold text-purple-400" width={320} height={200}>Kualitatem</LinkPreview>, we helped recruit skilled cybersecurity professionals and used link animations to signal trust and attention to detail.
-          </p>
-          <p className="mb-6">
-            We partnered with <LinkPreview url="https://www.neptune-software.com/" className="font-semibold text-cyan-400" width={320} height={200}>Neptune Software</LinkPreview> to fulfill enterprise software hiring needs, using Klarus HR's AI interviews to streamline evaluations. For <LinkPreview url="https://www.chronoinnovation.com/" className="font-semibold text-purple-400" width={320} height={200}>Chrono Innovation</LinkPreview>, we sourced top tech talent while elevating their user journey through link effects that reflect their forward-thinking identity. Each project blended hiring excellence with interactive design to deliver results that resonate.
-          </p>
+        
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-8 lg:gap-12 items-center justify-items-center">
+          {companies.map((company, index) => (
+            <div
+              key={index}
+              className="flex items-center justify-center p-4 lg:p-6 bg-white rounded-lg shadow-sm border border-gray-100 hover:shadow-md transition-all duration-300 group"
+            >
+              <img
+                src={company.logo}
+                alt={`${company.name} logo`}
+                className="h-12 lg:h-16 xl:h-20 w-auto object-contain animate-spin group-hover:animate-none transition-all duration-300 filter grayscale hover:grayscale-0"
+                style={{
+                  animationDuration: '8s',
+                  animationTimingFunction: 'linear',
+                  animationIterationCount: 'infinite'
+                }}
+              />
+            </div>
+          ))}
         </div>
       </div>
     </section>
