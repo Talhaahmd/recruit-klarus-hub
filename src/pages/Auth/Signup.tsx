@@ -11,36 +11,67 @@ import { Input } from '@/components/ui/input';
 
 const testimonials = [
   {
-    content: "The AI-driven interviews have revolutionized our hiring process. We're finding better candidates in half the time it used to take us.",
-    author: "Sarah Johnson",
-    role: "HR Director, TechFront Inc.",
-    image: "https://res.cloudinary.com/dt3ufcdjs/image/upload/v1748192779/3-removebg-preview__2__qvuove.png"
+    content: "Honestly thought @KlarusHR would be gimmicky AI hype, but it's kind of a game changer for our small HR team. Still figuring out all the features, but initial results are strong.",
+    author: "Mahad Wasique",
+    role: "IAM Developer",
+    image: "https://res.cloudinary.com/dt3ufcdjs/image/upload/v1748195844/1699147626498_g6jp1l.jpg"
   },
   {
-    content: "We've reduced our time-to-hire by 40% and our retention rates have improved significantly. The AI interview platform has become an essential part of our recruiting toolkit.",
-    author: "Michael Chen",
-    role: "Talent Acquisition Lead, GlobalTech",
-    image: "https://res.cloudinary.com/dt3ufcdjs/image/upload/v1748192777/1-removebg-preview_fnis2r.png"
+    content: "Klarus HR has been quietly transforming how we hire. We don’t have a large HR team, but this tool gives us structure and scale we didn’t think was possible. The onboarding templates alone saved our team hours. It’s intuitive, insightful, and genuinely supports better decision-making — not just automation for the sake of it.",
+    author: "David Sanders",
+    role: "Senior Recruiter",
+    image: "https://res.cloudinary.com/dt3ufcdjs/image/upload/v1748196046/1730632264830_ltrbgc.jpg"
   },
   {
-    content: "The analytics and insights we get from each interview have been invaluable. It's like having an expert interviewer on our team 24/7.",
-    author: "Emily Rodriguez",
-    role: "CEO, StartupVision",
-    image: "https://res.cloudinary.com/dt3ufcdjs/image/upload/v1748192777/1-removebg-preview__2__480_xvp6zy.png"
+    content: "Not gonna lie Klarus HR kind of blew me away. I fed it a job description and it generated a ranked shortlist with notes in like 5 minutes. Wild.",
+    author: "Emma Sommer",
+    role: "Talent Acquisition, Keenfolks",
+    image: "https://res.cloudinary.com/dt3ufcdjs/image/upload/v1748195840/1692641403808_wiwqyr.jpg"
   },
   {
-    content: "Our hiring managers are now able to focus on the highest-potential candidates, rather than spending hours screening. The ROI has been excellent.",
-    author: "David Washington",
-    role: "COO, Enterprise Solutions",
-    image: "https://res.cloudinary.com/dt3ufcdjs/image/upload/v1748192777/1-removebg-preview__1__480_prcjrj.png"
+    content: "✨ Game changer for our hiring process. We started using Klarus HR about 2 months ago, and the difference is night and day.\n✅ AI-powered candidate shortlisting\n✅ Automated interview scheduling\n✅ Structured feedback tools\nNot only did we cut time-to-hire by almost 50%, we also increased candidate satisfaction. Klarus HR brings strategy and speed into one platform — highly recommend for scaling teams.",
+    author: "Robert Wilson",
+    role: "COO",
+    image: "https://res.cloudinary.com/dt3ufcdjs/image/upload/v1748195840/1682575161874_atyame.jpg"
   },
   {
-    content: "As a fast-growing startup, we needed a solution that could scale with us. This platform has allowed us to maintain high hiring standards while doubling our team size in six months.",
-    author: "Priya Patel",
-    role: "Recruiting Manager, NextGen Software",
-    image: "https://res.cloudinary.com/dt3ufcdjs/image/upload/v1748192779/2-removebg-preview__2__anicgx.png"
+    content: "Small team, zero HR background Klarus HR makes us look like pros. The AI basically acts like a strategist, guiding each step with actual logic.",
+    author: "Connor Kane",
+    role: "Team Leader",
+    image: "https://res.cloudinary.com/dt3ufcdjs/image/upload/v1748195840/1664309591862_hace6l.jpg"
+  },
+  {
+    content: "Klarus HR’s automated candidate ranking is a game changer. No more guessing who to prioritize. Smart, scalable, and surprisingly human in its suggestions. #HRtech",
+    author: "Mahnoor",
+    role: "Team Lead, Nestle",
+    image: "https://res.cloudinary.com/dt3ufcdjs/image/upload/v1748195841/1694155351553_d1swmo.jpg"
+  },
+  {
+    content: "@KlarusHR just flagged a perfect candidate I totally missed. It literally understands what we’re looking for better than some recruiters I’ve worked with 👀",
+    author: "Shees",
+    role: "HR, National University of Science & Technology",
+    image: "https://res.cloudinary.com/dt3ufcdjs/image/upload/v1748195846/1741182386412_bwnjyv.jpg"
+  },
+  {
+    content: "Klarus HR doesn’t just schedule interviews—it curates them. For our backend role, the system generated scenario-based questions + live coding prompts, complete with a rubric my team could tweak on the fly. We walked out of debriefs with aligned scores and crystal-clear reasoning.",
+    author: "Li Zheu",
+    role: "Talent Acquisition Specialist",
+    image: "https://res.cloudinary.com/dt3ufcdjs/image/upload/v1748195847/1744922976075_n1uu1j.jpg"
+  },
+  {
+    content: "Honestly @KlarusHR just helped us make one of our best hires ever. Faster process, better interviews, clearer feedback and we didn’t have to chase anyone down.",
+    author: "Chen Hao",
+    role: "HR & Talent Acquisition",
+    image: "https://res.cloudinary.com/dt3ufcdjs/image/upload/v1748195840/1662464702255_vytnra.jpg"
+  },
+  {
+    content: "A candidate told me our process “felt more human than most.” Funny how AI helped us deliver that. Klarus HR handles the details so we can focus on connection.",
+    author: "Ibrahim Zardan",
+    role: "CEO of @MarketingIT",
+    image: "https://res.cloudinary.com/dt3ufcdjs/image/upload/v1748195845/1727505616238_ixlebb.jpg"
   }
 ];
+
 
 const Signup: React.FC = () => {
   const [name, setName] = useState('');
