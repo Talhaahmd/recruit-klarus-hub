@@ -73,10 +73,52 @@ const CVUpload: React.FC = () => {
       const fileUrl = urlData.publicUrl;
       console.log('File uploaded successfully:', fileUrl);
 
-      // Save job application record
+      // First, check if we have a general application job or create one
+      let generalJobId = null;
+      
+      // Try to find an existing "General Application" job
+      const { data: existingJob, error: jobFetchError } = await supabase
+        .from('jobs')
+        .select('id')
+        .eq('title', 'General Application')
+        .eq('status', 'Active')
+        .maybeSingle();
+
+      if (jobFetchError) {
+        console.error('Error fetching general job:', jobFetchError);
+      }
+
+      if (existingJob) {
+        generalJobId = existingJob.id;
+      } else {
+        // Create a general application job if it doesn't exist
+        const { data: newJob, error: jobCreateError } = await supabase
+          .from('jobs')
+          .insert({
+            title: 'General Application',
+            description: 'General job posting for CV submissions',
+            location: 'Remote',
+            type: 'General',
+            workplace_type: 'Remote',
+            technologies: ['General'],
+            status: 'Active'
+          })
+          .select('id')
+          .single();
+
+        if (jobCreateError) {
+          console.error('Error creating general job:', jobCreateError);
+          throw new Error('Failed to process your application. Please try again.');
+        }
+
+        generalJobId = newJob.id;
+      }
+
+      // Save job application record with the general job ID
       const { error: insertError } = await supabase
         .from('job_applications')
         .insert({
+          job_id: generalJobId,
           job_name: 'General Application',
           cv_link: fileUrl
         });
