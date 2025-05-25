@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
@@ -79,18 +78,25 @@ export const newJobsService = {
   
   getJobById: async (id: string): Promise<NewJob | null> => {
     try {
+      console.log('Fetching job with ID:', id);
+      
       const { data, error } = await supabase
         .from('jobs')
         .select('*')
         .eq('id', id)
-        .single();
+        .maybeSingle();
         
       if (error) {
         console.error('Error fetching job:', error);
         throw error;
       }
       
-      const { data: { user } } = await supabase.auth.getUser();
+      if (!data) {
+        console.log('No job found with ID:', id);
+        return null;
+      }
+      
+      console.log('Job data found:', data);
       
       // Transform old schema to new schema format
       return {
@@ -102,7 +108,7 @@ export const newJobsService = {
         description: data.description,
         technologies: data.technologies || [],
         minimum_rating: 0,
-        hr_user_id: data.user_id || user?.id || '',
+        hr_user_id: data.user_id || '',
         created_at: data.created_at,
         updated_at: data.created_at
       };
