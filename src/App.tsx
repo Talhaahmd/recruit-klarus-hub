@@ -109,13 +109,14 @@ const App = () => (
           <BrowserRouter>
             <HashRedirectHandler />
             <Routes>
+              {/* Public routes - accessible without authentication */}
               <Route index element={<Home />} />
               <Route path="/login" element={<Login />} />
               <Route path="/signup" element={<Signup />} />
-              {/* Make job applications publicly accessible */}
               <Route path="/apply/:jobId" element={<NewApply />} />
               <Route path="/linkedin-token-callback" element={<LinkedInTokenCallback />} />
 
+              {/* Protected routes - require authentication */}
               <Route
                 path="/"
                 element={

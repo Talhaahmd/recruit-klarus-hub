@@ -86,6 +86,7 @@ export const newJobsService = {
         return null;
       }
       
+      // Use a direct query without authentication check for public access
       const { data, error } = await supabase
         .from('jobs')
         .select('*')
@@ -94,7 +95,6 @@ export const newJobsService = {
         
       if (error) {
         console.error('Database error fetching job:', error);
-        // Don't throw here, just return null to handle gracefully
         return null;
       }
       
@@ -121,7 +121,6 @@ export const newJobsService = {
       };
     } catch (err: any) {
       console.error('Error fetching job:', err.message);
-      // Return null instead of throwing to allow graceful error handling
       return null;
     }
   },

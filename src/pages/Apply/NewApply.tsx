@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { ArrowLeft, Upload, FileType, CheckCircle2, RefreshCw } from 'lucide-react';
@@ -5,7 +6,7 @@ import { cn } from '@/lib/utils';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { newJobsService, NewJob } from '@/services/newJobsService';
+import { publicJobsService, PublicJob } from '@/services/publicJobsService';
 import { newApplicationService } from '@/services/newApplicationService';
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
@@ -14,7 +15,7 @@ const ALLOWED_FILE_EXTENSIONS = ['.pdf', '.doc', '.docx'];
 
 const NewApply: React.FC = () => {
   const { jobId } = useParams<{ jobId: string }>();
-  const [job, setJob] = useState<NewJob | null>(null);
+  const [job, setJob] = useState<PublicJob | null>(null);
   const [file, setFile] = useState<File | null>(null);
   const [isDragging, setIsDragging] = useState<boolean>(false);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
@@ -33,20 +34,20 @@ const NewApply: React.FC = () => {
     try {
       setIsLoading(true);
       setError(null);
-      console.log('Attempting to fetch job with ID:', jobId);
+      console.log('Attempting to fetch public job with ID:', jobId);
       
-      const jobData = await newJobsService.getJobById(jobId);
+      const jobData = await publicJobsService.getJobById(jobId);
       console.log('Job fetch result:', jobData);
       
       if (!jobData) {
-        setError('This job posting is no longer available or the link is invalid');
+        setError('This job posting is no longer available, has expired, or the link is invalid. Please check with the employer for the latest job postings.');
       } else {
         setJob(jobData);
         console.log('Job loaded successfully:', jobData.title);
       }
     } catch (err: any) {
       console.error('Error fetching job:', err);
-      setError('Unable to load job details. Please try again.');
+      setError('Unable to load job details. This might be a temporary issue. Please try again in a moment.');
     } finally {
       setIsLoading(false);
     }
@@ -130,11 +131,11 @@ const NewApply: React.FC = () => {
             <div className="text-center">
               <div className="text-red-500 text-5xl mb-4">⚠️</div>
               <h2 className="text-xl font-semibold mb-2">Unable to Load Job</h2>
-              <p className="text-gray-600 mb-4">{error}</p>
+              <p className="text-gray-600 mb-4 text-sm leading-relaxed">{error}</p>
               <div className="space-y-3">
                 <Button onClick={handleRetry} className="w-full" variant="outline">
                   <RefreshCw className="w-4 h-4 mr-2" />
-                  Try Again
+                  Try Again {retryCount > 0 && `(${retryCount})`}
                 </Button>
                 <Link to="/">
                   <Button className="w-full">
