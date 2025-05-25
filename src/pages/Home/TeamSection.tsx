@@ -153,53 +153,53 @@ const GradientColors = () => {
 const SVGs = () => {
   return (
     <svg
-      width="858"
-      height="434"
-      viewBox="0 0 858 434"
+      width="1200"
+      height="600"
+      viewBox="0 0 1200 600"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
-      className="flex flex-shrink-0"
+      className="flex flex-shrink-0 w-full h-full"
     >
       <path
-        d="M269 220.5H16.5C10.9772 220.5 6.5 224.977 6.5 230.5V398.5"
+        d="M369 320.5H116.5C110.977 320.5 106.5 324.977 106.5 330.5V498.5"
         stroke="rgb(30 41 59)"
       />
       <path
-        d="M568 200H841C846.523 200 851 195.523 851 190V40"
+        d="M668 300H941C946.523 300 951 295.523 951 290V140"
         stroke="rgb(30 41 59)"
       />
       <path
-        d="M425.5 274V333C425.5 338.523 421.023 343 415.5 343H152C146.477 343 142 347.477 142 353V426.5"
+        d="M525.5 374V433C525.5 438.523 521.023 443 515.5 443H252C246.477 443 242 447.477 242 453V526.5"
         stroke="rgb(30 41 59)"
       />
       <path
-        d="M493 274V333.226C493 338.749 497.477 343.226 503 343.226H760C765.523 343.226 770 347.703 770 353.226V427"
+        d="M593 374V433.226C593 438.749 597.477 443.226 603 443.226H860C865.523 443.226 870 447.703 870 453.226V527"
         stroke="rgb(30 41 59)"
       />
       <path
-        d="M380 168V17C380 11.4772 384.477 7 390 7H414"
+        d="M480 268V117C480 111.477 484.477 107 490 107H514"
         stroke="rgb(30 41 59)"
       />
 
       {/* Gradient Beams */}
       <path
-        d="M269 220.5H16.5C10.9772 220.5 6.5 224.977 6.5 230.5V398.5"
+        d="M369 320.5H116.5C110.977 320.5 106.5 324.977 106.5 330.5V498.5"
         stroke="url(#grad1)"
       />
       <path
-        d="M568 200H841C846.523 200 851 195.523 851 190V40"
+        d="M668 300H941C946.523 300 951 295.523 951 290V140"
         stroke="url(#grad2)"
       />
       <path
-        d="M425.5 274V333C425.5 338.523 421.023 343 415.5 343H152C146.477 343 142 347.477 142 353V426.5"
+        d="M525.5 374V433C525.5 438.523 521.023 443 515.5 443H252C246.477 443 242 447.477 242 453V526.5"
         stroke="url(#grad3)"
       />
       <path
-        d="M493 274V333.226C493 338.749 497.477 343.226 503 343.226H760C765.523 343.226 770 347.703 770 353.226V427"
+        d="M593 374V433.226C593 438.749 597.477 443.226 603 443.226H860C865.523 443.226 870 447.703 870 453.226V527"
         stroke="url(#grad4)"
       />
       <path
-        d="M380 168V17C380 11.4772 384.477 7 390 7H414"
+        d="M480 268V117C480 111.477 484.477 107 490 107H514"
         stroke="url(#grad5)"
       />
 
@@ -287,8 +287,8 @@ const SVGs = () => {
       </defs>
 
       {/* Team member images at connection points - much larger and properly positioned */}
-      <foreignObject x="820" y="10" width="60" height="60">
-        <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-cyan-400 shadow-lg shadow-cyan-400/50 hover:scale-110 transition-transform duration-300 cursor-pointer">
+      <foreignObject x="920" y="110" width="80" height="80">
+        <div className="w-20 h-20 rounded-full overflow-hidden border-4 border-cyan-400 shadow-xl shadow-cyan-400/50 hover:scale-110 transition-transform duration-300 cursor-pointer">
           <img 
             src={teamMembers[0].image} 
             alt={teamMembers[0].name}
@@ -297,8 +297,8 @@ const SVGs = () => {
         </div>
       </foreignObject>
 
-      <foreignObject x="740" y="397" width="60" height="60">
-        <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-purple-400 shadow-lg shadow-purple-400/50 hover:scale-110 transition-transform duration-300 cursor-pointer">
+      <foreignObject x="840" y="497" width="80" height="80">
+        <div className="w-20 h-20 rounded-full overflow-hidden border-4 border-purple-400 shadow-xl shadow-purple-400/50 hover:scale-110 transition-transform duration-300 cursor-pointer">
           <img 
             src={teamMembers[1].image} 
             alt={teamMembers[1].name}
@@ -307,8 +307,8 @@ const SVGs = () => {
         </div>
       </foreignObject>
 
-      <foreignObject x="112" y="397" width="60" height="60">
-        <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-green-400 shadow-lg shadow-green-400/50 hover:scale-110 transition-transform duration-300 cursor-pointer">
+      <foreignObject x="212" y="497" width="80" height="80">
+        <div className="w-20 h-20 rounded-full overflow-hidden border-4 border-green-400 shadow-xl shadow-green-400/50 hover:scale-110 transition-transform duration-300 cursor-pointer">
           <img 
             src={teamMembers[2].image} 
             alt={teamMembers[2].name}
@@ -317,8 +317,8 @@ const SVGs = () => {
         </div>
       </foreignObject>
 
-      <foreignObject x="-23" y="368" width="60" height="60">
-        <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-blue-400 shadow-lg shadow-blue-400/50 hover:scale-110 transition-transform duration-300 cursor-pointer">
+      <foreignObject x="67" y="468" width="80" height="80">
+        <div className="w-20 h-20 rounded-full overflow-hidden border-4 border-blue-400 shadow-xl shadow-blue-400/50 hover:scale-110 transition-transform duration-300 cursor-pointer">
           <img 
             src={teamMembers[3].image} 
             alt={teamMembers[3].name}
@@ -327,8 +327,8 @@ const SVGs = () => {
         </div>
       </foreignObject>
 
-      <foreignObject x="390" y="-23" width="60" height="60">
-        <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-pink-400 shadow-lg shadow-pink-400/50 hover:scale-110 transition-transform duration-300 cursor-pointer">
+      <foreignObject x="490" y="77" width="80" height="80">
+        <div className="w-20 h-20 rounded-full overflow-hidden border-4 border-pink-400 shadow-xl shadow-pink-400/50 hover:scale-110 transition-transform duration-300 cursor-pointer">
           <img 
             src={teamMembers[4].image} 
             alt={teamMembers[4].name}
@@ -338,8 +338,8 @@ const SVGs = () => {
       </foreignObject>
 
       {/* Additional team members positioned around the network */}
-      <foreignObject x="390" y="180" width="60" height="60">
-        <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-orange-400 shadow-lg shadow-orange-400/50 hover:scale-110 transition-transform duration-300 cursor-pointer">
+      <foreignObject x="490" y="280" width="80" height="80">
+        <div className="w-20 h-20 rounded-full overflow-hidden border-4 border-orange-400 shadow-xl shadow-orange-400/50 hover:scale-110 transition-transform duration-300 cursor-pointer">
           <img 
             src={teamMembers[5].image} 
             alt={teamMembers[5].name}
@@ -348,8 +348,8 @@ const SVGs = () => {
         </div>
       </foreignObject>
 
-      <foreignObject x="220" y="150" width="60" height="60">
-        <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-red-400 shadow-lg shadow-red-400/50 hover:scale-110 transition-transform duration-300 cursor-pointer">
+      <foreignObject x="320" y="250" width="80" height="80">
+        <div className="w-20 h-20 rounded-full overflow-hidden border-4 border-red-400 shadow-xl shadow-red-400/50 hover:scale-110 transition-transform duration-300 cursor-pointer">
           <img 
             src={teamMembers[6].image} 
             alt={teamMembers[6].name}
@@ -358,8 +358,8 @@ const SVGs = () => {
         </div>
       </foreignObject>
 
-      <foreignObject x="550" y="130" width="60" height="60">
-        <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-teal-400 shadow-lg shadow-teal-400/50 hover:scale-110 transition-transform duration-300 cursor-pointer">
+      <foreignObject x="650" y="230" width="80" height="80">
+        <div className="w-20 h-20 rounded-full overflow-hidden border-4 border-teal-400 shadow-xl shadow-teal-400/50 hover:scale-110 transition-transform duration-300 cursor-pointer">
           <img 
             src={teamMembers[7].image} 
             alt={teamMembers[7].name}
@@ -380,7 +380,7 @@ const TeamSection: React.FC = () => {
         <div className="absolute bottom-20 right-1/4 w-96 h-96 bg-cyan-500/10 rounded-full filter blur-[120px]" />
       </div>
 
-      <div className="container mx-auto px-4 relative z-10">
+      <div className="w-full px-4 relative z-10">
         <div className="text-center mb-20">
           <motion.span 
             initial={{ opacity: 0, y: 20 }}
@@ -409,7 +409,7 @@ const TeamSection: React.FC = () => {
         </div>
 
         {/* Animated Network with Team Members */}
-        <div className="flex h-[40rem] relative items-center justify-center antialiased overflow-hidden">
+        <div className="flex h-[50rem] relative items-center justify-center antialiased overflow-hidden w-full">
           <div className="bg-slate-800 w-[320px] z-40 h-[120px] group cursor-pointer relative shadow-2xl shadow-zinc-900 rounded-full p-px">
             <span className="absolute inset-0 overflow-hidden rounded-full">
               <span className="absolute inset-0 rounded-full bg-[image:radial-gradient(75%_100%_at_50%_0%,rgba(56,189,248,0.6)_0%,rgba(56,189,248,0)_75%)] opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
@@ -422,13 +422,13 @@ const TeamSection: React.FC = () => {
           </div>
           
           {/* Core SVGs component with team members */}
-          <div className="absolute inset-0 flex items-center justify-center">
+          <div className="absolute inset-0 flex items-center justify-center w-full">
             <SVGs />
           </div>
         </div>
 
         {/* Team Member Names Grid */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mt-16">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mt-16 max-w-6xl mx-auto">
           {teamMembers.map((member, index) => (
             <motion.div
               key={member.id}
