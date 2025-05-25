@@ -90,10 +90,8 @@ const BuildProfile: React.FC = () => {
             console.log('Processing LinkedIn post generation for BuildProfile...');
             sessionStorage.removeItem('pending_post_data');
             
-            // Add delay to ensure token is processed
-            setTimeout(() => {
-              processLinkedInPost(postData);
-            }, 3000);
+            // Process the LinkedIn post immediately
+            processLinkedInPost(postData);
           } else {
             console.log('Post data is not for BuildProfile - ignoring');
             toast.success('LinkedIn connected successfully!');
@@ -142,7 +140,7 @@ const BuildProfile: React.FC = () => {
       const updatedPosts = await linkedinService.getPosts();
       setPosts(updatedPosts);
       
-      // Reset form
+      // Reset form based on whether it was scheduled or immediate
       if (postData.isScheduled) {
         setScheduledContent('');
         setScheduledDate(null);
