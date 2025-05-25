@@ -103,10 +103,10 @@ const teamMembers: TeamMember[] = [
 ];
 
 const positions = [
-  { id: "founders", name: "Founders & CEO", count: 2, color: "from-purple-500 to-pink-500" },
-  { id: "product", name: "Product Managers", count: 1, color: "from-blue-500 to-cyan-500" },
-  { id: "technical", name: "Technical Leads", count: 3, color: "from-green-500 to-emerald-500" },
-  { id: "design", name: "Instructional Designers", count: 3, color: "from-orange-500 to-red-500" }
+  { id: "founders", name: "Founders & CEO", color: "from-purple-500 to-pink-500" },
+  { id: "product", name: "Product Managers", color: "from-blue-500 to-cyan-500" },
+  { id: "technical", name: "Technical Leads", color: "from-green-500 to-emerald-500" },
+  { id: "design", name: "Instructional Designers", color: "from-orange-500 to-red-500" }
 ];
 
 const TeamSection: React.FC = () => {
@@ -116,20 +116,21 @@ const TeamSection: React.FC = () => {
   const filteredMembers = teamMembers.filter(member => member.position === selectedPosition);
 
   return (
-    <section className="py-24 bg-gradient-to-br from-gray-900 via-black to-gray-900 relative overflow-hidden">
+    <section className="py-32 bg-gradient-to-br from-gray-900 via-black to-gray-900 relative overflow-hidden">
       {/* Background Effects */}
       <div className="absolute inset-0">
         <div className="absolute top-20 left-1/4 w-96 h-96 bg-purple-500/10 rounded-full filter blur-[120px]" />
         <div className="absolute bottom-20 right-1/4 w-96 h-96 bg-cyan-500/10 rounded-full filter blur-[120px]" />
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-gradient-to-r from-blue-500/5 to-purple-500/5 rounded-full filter blur-[150px]" />
       </div>
 
       <div className="container mx-auto px-4 relative z-10">
-        <div className="text-center mb-16">
+        <div className="text-center mb-20">
           <motion.span 
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
-            className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-500 to-purple-500 text-sm font-medium tracking-widest uppercase"
+            className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-purple-400 text-sm font-medium tracking-widest uppercase"
           >
             Our Team
           </motion.span>
@@ -137,7 +138,7 @@ const TeamSection: React.FC = () => {
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.1 }}
-            className="mt-4 text-4xl font-bold text-white md:text-5xl"
+            className="mt-4 text-5xl font-bold text-white md:text-6xl bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent"
           >
             Meet the Experts
           </motion.h2>
@@ -145,16 +146,15 @@ const TeamSection: React.FC = () => {
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.2 }}
-            className="mt-4 text-lg text-gray-400 max-w-2xl mx-auto"
+            className="mt-6 text-xl text-gray-400 max-w-3xl mx-auto leading-relaxed"
           >
             The passionate individuals behind our mission to transform recruitment
           </motion.p>
         </div>
 
-        <div className="grid lg:grid-cols-12 gap-8">
+        <div className="grid lg:grid-cols-12 gap-12">
           {/* Left Side - Positions */}
-          <div className="lg:col-span-4 space-y-4">
-            <h3 className="text-2xl font-bold text-white mb-6">Departments</h3>
+          <div className="lg:col-span-4 space-y-6">
             {positions.map((position, index) => (
               <motion.button
                 key={position.id}
@@ -162,32 +162,28 @@ const TeamSection: React.FC = () => {
                 whileInView={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.5, delay: index * 0.1 }}
                 onClick={() => setSelectedPosition(position.id)}
-                className={`w-full text-left p-6 rounded-xl transition-all duration-300 group ${
+                className={`w-full text-left p-8 rounded-2xl transition-all duration-500 group relative overflow-hidden ${
                   selectedPosition === position.id
-                    ? 'bg-gradient-to-r ' + position.color + ' shadow-lg shadow-purple-500/20'
-                    : 'bg-gray-800/50 hover:bg-gray-700/50 border border-gray-700'
+                    ? 'bg-gradient-to-r ' + position.color + ' shadow-2xl shadow-purple-500/30 scale-105'
+                    : 'bg-gray-800/40 hover:bg-gray-700/60 border border-gray-600 hover:border-gray-500'
                 }`}
-                whileHover={{ scale: 1.02 }}
+                whileHover={{ scale: selectedPosition === position.id ? 1.05 : 1.02 }}
                 whileTap={{ scale: 0.98 }}
               >
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h4 className={`text-lg font-semibold ${
-                      selectedPosition === position.id ? 'text-white' : 'text-gray-300'
-                    }`}>
-                      {position.name}
-                    </h4>
-                    <p className={`text-sm ${
-                      selectedPosition === position.id ? 'text-white/80' : 'text-gray-500'
-                    }`}>
-                      {position.count} {position.count === 1 ? 'member' : 'members'}
-                    </p>
-                  </div>
-                  <div className={`w-3 h-3 rounded-full ${
+                {/* Background glow effect */}
+                <div className={`absolute inset-0 bg-gradient-to-r ${position.color} opacity-0 group-hover:opacity-10 transition-opacity duration-500`} />
+                
+                <div className="relative z-10">
+                  <h4 className={`text-xl font-bold mb-2 ${
+                    selectedPosition === position.id ? 'text-white' : 'text-gray-200 group-hover:text-white'
+                  } transition-colors duration-300`}>
+                    {position.name}
+                  </h4>
+                  <div className={`w-16 h-1 rounded-full ${
                     selectedPosition === position.id 
                       ? 'bg-white' 
-                      : 'bg-gradient-to-r ' + position.color
-                  }`} />
+                      : `bg-gradient-to-r ${position.color} opacity-60 group-hover:opacity-100`
+                  } transition-all duration-300`} />
                 </div>
               </motion.button>
             ))}
@@ -198,38 +194,43 @@ const TeamSection: React.FC = () => {
             <AnimatePresence mode="wait">
               <motion.div
                 key={selectedPosition}
-                initial={{ opacity: 0, y: 20 }}
+                initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                transition={{ duration: 0.4 }}
-                className="grid md:grid-cols-2 xl:grid-cols-3 gap-6"
+                exit={{ opacity: 0, y: -30 }}
+                transition={{ duration: 0.5 }}
+                className="grid md:grid-cols-2 gap-8"
               >
                 {filteredMembers.map((member, index) => (
                   <motion.div
                     key={member.id}
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ duration: 0.4, delay: index * 0.1 }}
+                    initial={{ opacity: 0, scale: 0.9, y: 30 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    transition={{ duration: 0.5, delay: index * 0.15 }}
                     className="group cursor-pointer"
                     onHoverStart={() => setHoveredMember(member.id)}
                     onHoverEnd={() => setHoveredMember(null)}
                   >
-                    <div className="relative h-80 rounded-xl overflow-hidden bg-gradient-to-br from-gray-800 to-gray-900 border border-gray-700 group-hover:border-cyan-500/50 transition-all duration-500">
+                    <div className="relative h-[500px] rounded-3xl overflow-hidden bg-gradient-to-br from-gray-800/80 to-gray-900/80 border border-gray-600 group-hover:border-cyan-400/60 transition-all duration-700 backdrop-blur-sm">
                       {/* Image */}
-                      <div className="h-48 overflow-hidden">
+                      <div className="h-[320px] overflow-hidden relative">
                         <motion.img
                           src={member.image}
                           alt={member.name}
                           className="w-full h-full object-cover"
                           whileHover={{ scale: 1.1 }}
-                          transition={{ duration: 0.6 }}
+                          transition={{ duration: 0.7 }}
                         />
+                        <div className="absolute inset-0 bg-gradient-to-t from-gray-900 via-transparent to-transparent opacity-60" />
                       </div>
 
                       {/* Content */}
-                      <div className="p-4">
-                        <h4 className="text-lg font-bold text-white mb-1">{member.name}</h4>
-                        <p className="text-cyan-400 text-sm mb-2">{member.title}</p>
+                      <div className="p-6 relative z-10">
+                        <h4 className="text-2xl font-bold text-white mb-2 group-hover:text-cyan-400 transition-colors duration-300">
+                          {member.name}
+                        </h4>
+                        <p className="text-cyan-400 text-lg font-medium mb-4">
+                          {member.title}
+                        </p>
                         
                         <AnimatePresence>
                           {hoveredMember === member.id && (
@@ -237,21 +238,22 @@ const TeamSection: React.FC = () => {
                               initial={{ opacity: 0, height: 0 }}
                               animate={{ opacity: 1, height: 'auto' }}
                               exit={{ opacity: 0, height: 0 }}
-                              transition={{ duration: 0.3 }}
+                              transition={{ duration: 0.4 }}
+                              className="overflow-hidden"
                             >
-                              <p className="text-gray-300 text-xs mb-3 leading-relaxed">
-                                {member.description.substring(0, 100)}...
+                              <p className="text-gray-300 text-sm mb-4 leading-relaxed">
+                                {member.description.substring(0, 120)}...
                               </p>
                               <motion.a
                                 href={member.linkedinUrl}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="inline-flex items-center gap-2 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-full text-xs transition-all duration-300"
-                                whileHover={{ scale: 1.05 }}
+                                className="inline-flex items-center gap-3 px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-full text-sm font-medium transition-all duration-300 shadow-lg hover:shadow-blue-500/25"
+                                whileHover={{ scale: 1.05, y: -2 }}
                                 whileTap={{ scale: 0.95 }}
                               >
-                                <Linkedin size={14} />
-                                Connect
+                                <Linkedin size={16} />
+                                Connect on LinkedIn
                               </motion.a>
                             </motion.div>
                           )}
@@ -259,7 +261,10 @@ const TeamSection: React.FC = () => {
                       </div>
 
                       {/* Gradient Overlay */}
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                      
+                      {/* Glow effect */}
+                      <div className="absolute inset-0 rounded-3xl bg-gradient-to-r from-cyan-500/20 to-purple-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-xl" />
                     </div>
                   </motion.div>
                 ))}
