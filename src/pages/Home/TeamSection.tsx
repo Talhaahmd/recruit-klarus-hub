@@ -286,9 +286,9 @@ const SVGs = () => {
         </motion.linearGradient>
       </defs>
 
-      {/* Team member circles at connection points */}
-      <foreignObject x="845" y="28" width="12" height="12">
-        <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-cyan-400 -translate-x-6 -translate-y-6">
+      {/* Team member circles at connection points with larger size */}
+      <foreignObject x="845" y="28" width="24" height="24">
+        <div className="w-20 h-20 rounded-full overflow-hidden border-3 border-cyan-400 shadow-lg shadow-cyan-400/50 -translate-x-10 -translate-y-10 hover:scale-110 transition-transform duration-300">
           <img 
             src={teamMembers[0].image} 
             alt={teamMembers[0].name}
@@ -297,8 +297,8 @@ const SVGs = () => {
         </div>
       </foreignObject>
 
-      <foreignObject x="764" y="421" width="12" height="12">
-        <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-purple-400 -translate-x-6 -translate-y-6">
+      <foreignObject x="764" y="421" width="24" height="24">
+        <div className="w-20 h-20 rounded-full overflow-hidden border-3 border-purple-400 shadow-lg shadow-purple-400/50 -translate-x-10 -translate-y-10 hover:scale-110 transition-transform duration-300">
           <img 
             src={teamMembers[1].image} 
             alt={teamMembers[1].name}
@@ -307,8 +307,8 @@ const SVGs = () => {
         </div>
       </foreignObject>
 
-      <foreignObject x="136" y="421" width="12" height="12">
-        <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-green-400 -translate-x-6 -translate-y-6">
+      <foreignObject x="136" y="421" width="24" height="24">
+        <div className="w-20 h-20 rounded-full overflow-hidden border-3 border-green-400 shadow-lg shadow-green-400/50 -translate-x-10 -translate-y-10 hover:scale-110 transition-transform duration-300">
           <img 
             src={teamMembers[2].image} 
             alt={teamMembers[2].name}
@@ -317,8 +317,8 @@ const SVGs = () => {
         </div>
       </foreignObject>
 
-      <foreignObject x="0.5" y="392.5" width="12" height="12">
-        <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-blue-400 -translate-x-6 -translate-y-6">
+      <foreignObject x="0.5" y="392.5" width="24" height="24">
+        <div className="w-20 h-20 rounded-full overflow-hidden border-3 border-blue-400 shadow-lg shadow-blue-400/50 -translate-x-10 -translate-y-10 hover:scale-110 transition-transform duration-300">
           <img 
             src={teamMembers[3].image} 
             alt={teamMembers[3].name}
@@ -327,8 +327,8 @@ const SVGs = () => {
         </div>
       </foreignObject>
 
-      <foreignObject x="414.5" y="0.5" width="12" height="12">
-        <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-pink-400 -translate-x-6 -translate-y-6">
+      <foreignObject x="414.5" y="0.5" width="24" height="24">
+        <div className="w-20 h-20 rounded-full overflow-hidden border-3 border-pink-400 shadow-lg shadow-pink-400/50 -translate-x-10 -translate-y-10 hover:scale-110 transition-transform duration-300">
           <img 
             src={teamMembers[4].image} 
             alt={teamMembers[4].name}
@@ -337,9 +337,9 @@ const SVGs = () => {
         </div>
       </foreignObject>
 
-      {/* Additional team members positioned around */}
-      <foreignObject x="420" y="210" width="12" height="12">
-        <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-orange-400 -translate-x-6 -translate-y-6">
+      {/* Additional team members positioned around with larger size */}
+      <foreignObject x="420" y="210" width="24" height="24">
+        <div className="w-20 h-20 rounded-full overflow-hidden border-3 border-orange-400 shadow-lg shadow-orange-400/50 -translate-x-10 -translate-y-10 hover:scale-110 transition-transform duration-300">
           <img 
             src={teamMembers[5].image} 
             alt={teamMembers[5].name}
@@ -348,8 +348,8 @@ const SVGs = () => {
         </div>
       </foreignObject>
 
-      <foreignObject x="250" y="180" width="12" height="12">
-        <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-red-400 -translate-x-6 -translate-y-6">
+      <foreignObject x="250" y="180" width="24" height="24">
+        <div className="w-20 h-20 rounded-full overflow-hidden border-3 border-red-400 shadow-lg shadow-red-400/50 -translate-x-10 -translate-y-10 hover:scale-110 transition-transform duration-300">
           <img 
             src={teamMembers[6].image} 
             alt={teamMembers[6].name}
@@ -358,8 +358,8 @@ const SVGs = () => {
         </div>
       </foreignObject>
 
-      <foreignObject x="580" y="160" width="12" height="12">
-        <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-teal-400 -translate-x-6 -translate-y-6">
+      <foreignObject x="580" y="160" width="24" height="24">
+        <div className="w-20 h-20 rounded-full overflow-hidden border-3 border-teal-400 shadow-lg shadow-teal-400/50 -translate-x-10 -translate-y-10 hover:scale-110 transition-transform duration-300">
           <img 
             src={teamMembers[7].image} 
             alt={teamMembers[7].name}
