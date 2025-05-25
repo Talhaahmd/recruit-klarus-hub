@@ -110,7 +110,7 @@ const App = () => (
             <HashRedirectHandler />
             <Routes>
               {/* Public routes - accessible without authentication */}
-              <Route index element={<Home />} />
+              <Route path="/" element={<Home />} />
               <Route path="/login" element={<Login />} />
               <Route path="/signup" element={<Signup />} />
               <Route path="/apply/:jobId" element={<NewApply />} />
@@ -119,6 +119,17 @@ const App = () => (
 
               {/* Protected routes - require authentication */}
               <Route
+                path="/dashboard"
+                element={
+                  <ProtectedRouteHandler>
+                    <MainLayout />
+                  </ProtectedRouteHandler>
+                }
+              >
+                <Route index element={<Dashboard />} />
+              </Route>
+              
+              <Route
                 path="/"
                 element={
                   <ProtectedRouteHandler>
@@ -126,7 +137,6 @@ const App = () => (
                   </ProtectedRouteHandler>
                 }
               >
-                <Route path="dashboard" element={<Dashboard />} />
                 <Route path="jobs" element={<Jobs />} />
                 <Route path="candidates" element={<Candidates />} />
                 <Route path="candidates/:id" element={<CandidateProfile />} />
