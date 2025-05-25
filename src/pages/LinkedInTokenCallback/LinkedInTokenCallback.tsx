@@ -77,15 +77,27 @@ const LinkedInTokenCallback: React.FC = () => {
         const pendingJobData = sessionStorage.getItem('pending_job_data');
         const pendingPostData = sessionStorage.getItem('pending_post_data');
         
+        // Handle BuildProfile post data first
         if (pendingPostData) {
-          console.log('Found pending post data for BuildProfile, redirecting...');
-          sessionStorage.removeItem('pending_post_data');
-          
-          // Redirect to BuildProfile with success parameter
-          navigate('/build-profile?linkedin_connected=true');
-          return;
+          console.log('Found pending post data, checking source...');
+          try {
+            const postData = JSON.parse(pendingPostData);
+            
+            // Check if this is BuildProfile data
+            if (postData.source === 'BuildProfile') {
+              console.log('Processing BuildProfile post generation...');
+              sessionStorage.removeItem('pending_post_data');
+              
+              // Redirect to BuildProfile with success parameter
+              navigate('/build-profile?linkedin_connected=true');
+              return;
+            }
+          } catch (error) {
+            console.error('Error parsing pending post data:', error);
+          }
         }
         
+        // Handle job posting data
         if (pendingJobData) {
           console.log('Found pending job data, creating job...');
           

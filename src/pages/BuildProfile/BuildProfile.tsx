@@ -50,7 +50,6 @@ const BuildProfile: React.FC = () => {
   const [isScheduleSubmitting, setIsScheduleSubmitting] = useState(false);
   const [successModal, setSuccessModal] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
-  const [pendingPostData, setPendingPostData] = useState<any>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   
   const { showModal, initiateLinkedInConnect, dismissModal } = useLinkedInPrompt();
@@ -86,8 +85,8 @@ const BuildProfile: React.FC = () => {
         try {
           const postData = JSON.parse(pendingPostData);
           
-          // Check if this is BuildProfile data (has content, niche, tone)
-          if (postData.content && postData.niche && postData.tone && postData.source === 'BuildProfile') {
+          // Check if this is BuildProfile data
+          if (postData.source === 'BuildProfile') {
             console.log('Processing LinkedIn post generation for BuildProfile...');
             sessionStorage.removeItem('pending_post_data');
             
@@ -113,6 +112,7 @@ const BuildProfile: React.FC = () => {
   const processLinkedInPost = async (postData: any) => {
     try {
       console.log('Processing LinkedIn post generation with data:', postData);
+      setIsGenerating(true);
       
       const { data, error } = await supabase.functions.invoke('generate-linkedin-post', {
         body: {
@@ -150,10 +150,12 @@ const BuildProfile: React.FC = () => {
         setScheduledCustomNiche('');
         setScheduledNiche('');
         setOpenScheduleDialog(false);
+        setIsScheduleSubmitting(false);
       } else {
         setPostContent('');
         setCustomNiche('');
         setSelectedNiche('');
+        setIsSubmitting(false);
       }
       
       // Show success modal
@@ -164,10 +166,7 @@ const BuildProfile: React.FC = () => {
       console.error('Error processing LinkedIn post:', error);
       toast.error('Failed to process LinkedIn post');
     } finally {
-      setIsSubmitting(false);
-      setIsScheduleSubmitting(false);
       setIsGenerating(false);
-      setPendingPostData(null);
     }
   };
 
@@ -282,7 +281,6 @@ const BuildProfile: React.FC = () => {
   const handleLinkedInDismiss = () => {
     console.log('User dismissed LinkedIn connection from BuildProfile');
     dismissModal();
-    setPendingPostData(null);
     setIsSubmitting(false);
     setIsScheduleSubmitting(false);
     setIsGenerating(false);
@@ -762,7 +760,7 @@ const BuildProfile: React.FC = () => {
 
       {/* LinkedIn Prompt Modal */}
       <LinkedInPromptModal
-        isOpen={showModal && pendingPostData !== null}
+        isOpen={showModal}
         onConnect={handleLinkedInConnect}
         onDismiss={handleLinkedInDismiss}
       />
