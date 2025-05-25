@@ -1,6 +1,7 @@
 
 import React from 'react';
 import HeroSection from './HeroSection';
+import RadarSection from './RadarSection';
 import VideoFeaturesSection from './VideoFeaturesSection';
 import ClientsSection from './ClientsSection';
 import TeamSection from './TeamSection';
@@ -15,6 +16,7 @@ const Home: React.FC = () => {
     <div className="bg-black text-white min-h-screen">
       <Navbar />
       <HeroSection />
+      <RadarSection />
       <VideoFeaturesSection />
       <ClientsSection />
       <TeamSection />
