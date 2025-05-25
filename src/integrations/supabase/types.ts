@@ -308,7 +308,7 @@ export type Database = {
           created_by: string | null
           cv_link: string | null
           id: string
-          job_id: string
+          job_id: string | null
           job_name: string | null
           link_for_cv: string | null
         }
@@ -317,7 +317,7 @@ export type Database = {
           created_by?: string | null
           cv_link?: string | null
           id?: string
-          job_id: string
+          job_id?: string | null
           job_name?: string | null
           link_for_cv?: string | null
         }
@@ -326,7 +326,7 @@ export type Database = {
           created_by?: string | null
           cv_link?: string | null
           id?: string
-          job_id?: string
+          job_id?: string | null
           job_name?: string | null
           link_for_cv?: string | null
         }
