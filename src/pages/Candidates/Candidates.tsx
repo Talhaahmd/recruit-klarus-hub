@@ -362,10 +362,12 @@ const Candidates: React.FC = () => {
             <CandidateCard
               key={candidate.id}
               candidate={{
-                ...candidate,
+                id: candidate.id,
+                name: candidate.full_name || 'Unknown',
+                email: candidate.email || '',
+                phone: candidate.phone || '',
                 rating: candidate.ai_rating || 0,
-                current_job_title: candidate.current_job_title || candidate.current_job,
-                // Convert skills array to string for CandidateCard component
+                current_job_title: candidate.current_job_title || candidate.current_job || '',
                 skills: Array.isArray(candidate.skills) 
                   ? candidate.skills.join(', ') 
                   : candidate.skills || '',

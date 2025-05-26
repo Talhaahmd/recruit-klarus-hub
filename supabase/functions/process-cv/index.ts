@@ -45,7 +45,8 @@ serve(async (req) => {
     const pdfCoData = await pdfCoResponse.json()
     
     if (!pdfCoData.body) {
-      throw new Error('Failed to extract text from PDF')
+      console.error('PDF.co error:', pdfCoData)
+      throw new Error('Failed to extract text from PDF: ' + (pdfCoData.error || 'Unknown error'))
     }
 
     console.log('Extracted text from PDF:', pdfCoData.body.substring(0, 200) + '...')
@@ -118,7 +119,8 @@ Return only the following valid JSON structure (no extra text):
     const chatGPTData = await chatGPTResponse.json()
     
     if (!chatGPTData.choices || !chatGPTData.choices[0]) {
-      throw new Error('Failed to process CV with ChatGPT')
+      console.error('ChatGPT error:', chatGPTData)
+      throw new Error('Failed to process CV with ChatGPT: ' + (chatGPTData.error?.message || 'Unknown error'))
     }
 
     console.log('ChatGPT response:', chatGPTData.choices[0].message.content)
@@ -131,8 +133,10 @@ Return only the following valid JSON structure (no extra text):
       const jsonMatch = responseText.match(/```json\s*([\s\S]*?)\s*```/) || responseText.match(/```\s*([\s\S]*?)\s*```/)
       const jsonText = jsonMatch ? jsonMatch[1] : responseText
       candidateData = JSON.parse(jsonText)
+      console.log('Parsed candidate data:', candidateData)
     } catch (parseError) {
       console.error('Failed to parse ChatGPT response:', parseError)
+      console.error('Raw ChatGPT response:', chatGPTData.choices[0].message.content)
       throw new Error('Failed to parse candidate data from AI response')
     }
 
@@ -140,33 +144,33 @@ Return only the following valid JSON structure (no extra text):
     const { data: insertedCandidate, error: insertError } = await supabaseClient
       .from('candidates')
       .insert({
-        full_name: candidateData.full_name,
-        email: candidateData.email,
-        phone: candidateData.phone,
-        location: candidateData.location,
-        linkedin: candidateData.linkedin,
-        current_job_title: candidateData.current_job_title,
-        years_experience: candidateData.years_experience,
-        skills: candidateData.skills,
-        certifications: candidateData.certifications,
-        companies: candidateData.companies,
-        job_titles: candidateData.job_titles,
-        degrees: candidateData.degrees,
-        institutions: candidateData.institutions,
-        graduation_years: candidateData.graduation_years,
-        experience_level: candidateData.experience_level,
-        ai_rating: candidateData.ai_rating,
-        ai_summary: candidateData.ai_summary,
-        ai_content: candidateData.ai_content,
-        source: candidateData.source,
-        timestamp: candidateData.timestamp
+        full_name: candidateData.full_name || '',
+        email: candidateData.email || '',
+        phone: candidateData.phone || '',
+        location: candidateData.location || '',
+        linkedin: candidateData.linkedin || '',
+        current_job_title: candidateData.current_job_title || '',
+        years_experience: candidateData.years_experience || '',
+        skills: candidateData.skills || '',
+        certifications: candidateData.certifications || '',
+        companies: candidateData.companies || '',
+        job_titles: candidateData.job_titles || '',
+        degrees: candidateData.degrees || '',
+        institutions: candidateData.institutions || '',
+        graduation_years: candidateData.graduation_years || '',
+        experience_level: candidateData.experience_level || '',
+        ai_rating: candidateData.ai_rating || 0,
+        ai_summary: candidateData.ai_summary || '',
+        ai_content: candidateData.ai_content || '',
+        source: candidateData.source || 'PDF Upload',
+        timestamp: new Date().toISOString()
       })
       .select()
       .single()
 
     if (insertError) {
       console.error('Error inserting candidate:', insertError)
-      throw insertError
+      throw new Error('Failed to save candidate data: ' + insertError.message)
     }
 
     console.log('Successfully created candidate:', insertedCandidate.id)
@@ -186,7 +190,10 @@ Return only the following valid JSON structure (no extra text):
   } catch (error) {
     console.error('Error processing CV:', error)
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ 
+        error: error.message,
+        details: 'Check the edge function logs for more details'
+      }),
       { 
         status: 500, 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
