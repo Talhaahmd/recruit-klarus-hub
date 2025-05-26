@@ -121,16 +121,17 @@ const Candidates: React.FC = () => {
       console.log('Fetched candidates:', data);
       setCandidates(data);
       
-      // Extract unique values for filter dropdowns
-      setJobsList(getUniqueValues(data, 'current_job_title'));
+      // Extract unique values for filter dropdowns - safely handle the data
+      const validCandidates = data.filter(c => c && typeof c === 'object');
+      setJobsList(getUniqueValues(validCandidates, 'current_job_title'));
       
       // Safely handle skills which might be arrays or strings
-      const skillsArray = data.flatMap(c => extractSkillsArray(c));
+      const skillsArray = validCandidates.flatMap(c => extractSkillsArray(c));
       setSkillsList([...new Set(skillsArray)]);
       
     } catch (error) {
       console.error("Error fetching candidates:", error);
-      toast.error("Failed to fetch candidates");
+      toast.error("Failed to fetch candidates. Please check your connection and try again.");
     } finally {
       setIsLoading(false);
     }
@@ -170,6 +171,8 @@ const Candidates: React.FC = () => {
   };
 
   const filteredCandidates = candidates.filter(candidate => {
+    if (!candidate) return false;
+    
     // Search filter - add null checks before calling toLowerCase()
     const nameMatch = candidate.full_name?.toLowerCase()?.includes(searchTerm.toLowerCase()) || false;
     const emailMatch = candidate.email?.toLowerCase()?.includes(searchTerm.toLowerCase()) || false;
@@ -382,6 +385,24 @@ const Candidates: React.FC = () => {
         </Button>
       </div>
 
+      {/* Debug information */}
+      {candidates.length === 0 && !isLoading && (
+        <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+          <h3 className="font-medium text-blue-800">Debug Information:</h3>
+          <p className="text-sm text-blue-600">
+            No candidates found. This could be due to:
+          </p>
+          <ul className="text-sm text-blue-600 list-disc list-inside mt-2">
+            <li>Row Level Security (RLS) policies preventing data access</li>
+            <li>No candidates uploaded yet</li>
+            <li>Authentication issues</li>
+          </ul>
+          <p className="text-sm text-blue-600 mt-2">
+            Authentication status: {isAuthenticated ? 'Authenticated' : 'Not authenticated'}
+          </p>
+        </div>
+      )}
+
       {viewMode === 'grid' ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredCandidates.map(candidate => (
@@ -404,7 +425,7 @@ const Candidates: React.FC = () => {
               jobTitle={candidate.current_job_title || candidate.current_job || "Candidate"}
             />
           ))}
-          {filteredCandidates.length === 0 && (
+          {filteredCandidates.length === 0 && !isLoading && (
             <div className="col-span-full text-center py-10">
               <div className="text-4xl mb-4 opacity-30">🔍</div>
               <h3 className="text-lg font-medium mb-2">No candidates found</h3>
