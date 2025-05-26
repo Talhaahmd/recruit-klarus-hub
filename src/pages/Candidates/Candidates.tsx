@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Header } from '@/components/Layout/MainLayout';
@@ -13,7 +14,10 @@ import {
   MapPin,
   Briefcase,
   X,
-  Loader2
+  Loader2,
+  GraduationCap,
+  Building,
+  Code
 } from 'lucide-react';
 import { toast } from 'sonner';
 import CandidateCard from '@/components/UI/CandidateCard';
@@ -51,6 +55,10 @@ type Candidate = {
   location?: string;
   timestamp?: string;
   source?: string;
+  skills?: string;
+  companies?: string;
+  degrees?: string;
+  institutions?: string;
 };
 
 const Candidates: React.FC = () => {
@@ -61,9 +69,14 @@ const Candidates: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid');
   
-  // Filter states
+  // Enhanced filter states
   const [ratingFilter, setRatingFilter] = useState<number | null>(null);
   const [jobFilter, setJobFilter] = useState<string | null>(null);
+  const [skillsFilter, setSkillsFilter] = useState<string>('');
+  const [positionsFilter, setPositionsFilter] = useState<string>('');
+  const [companiesFilter, setCompaniesFilter] = useState<string>('');
+  const [locationsFilter, setLocationsFilter] = useState<string>('');
+  const [educationFilter, setEducationFilter] = useState<string>('');
   
   // Lists for filter dropdowns
   const [jobsList, setJobsList] = useState<string[]>([]);
@@ -133,7 +146,11 @@ const Candidates: React.FC = () => {
         ai_rating: candidate.ai_rating || 0,
         location: candidate.location,
         timestamp: candidate.timestamp,
-        source: candidate.source
+        source: candidate.source,
+        skills: candidate.skills,
+        companies: candidate.companies,
+        degrees: candidate.degrees,
+        institutions: candidate.institutions
       }));
 
       setCandidates(transformedCandidates);
@@ -179,7 +196,11 @@ const Candidates: React.FC = () => {
           ai_rating: candidate.ai_rating || 0,
           location: candidate.location,
           timestamp: candidate.timestamp,
-          source: candidate.source
+          source: candidate.source,
+          skills: candidate.skills,
+          companies: candidate.companies,
+          degrees: candidate.degrees,
+          institutions: candidate.institutions
         }));
 
         setCandidates(transformedCandidates);
@@ -233,6 +254,11 @@ const Candidates: React.FC = () => {
   const resetFilters = () => {
     setRatingFilter(null);
     setJobFilter(null);
+    setSkillsFilter('');
+    setPositionsFilter('');
+    setCompaniesFilter('');
+    setLocationsFilter('');
+    setEducationFilter('');
   };
 
   const filteredCandidates = candidates.filter(candidate => {
@@ -247,7 +273,29 @@ const Candidates: React.FC = () => {
     // Job filter
     const matchesJob = !jobFilter || candidate.current_job_title === jobFilter;
     
-    return matchesSearch && matchesRating && matchesJob;
+    // Skills filter
+    const matchesSkills = !skillsFilter || 
+      candidate.skills?.toLowerCase()?.includes(skillsFilter.toLowerCase()) || false;
+    
+    // Positions filter  
+    const matchesPositions = !positionsFilter || 
+      candidate.current_job_title?.toLowerCase()?.includes(positionsFilter.toLowerCase()) || false;
+    
+    // Companies filter
+    const matchesCompanies = !companiesFilter || 
+      candidate.companies?.toLowerCase()?.includes(companiesFilter.toLowerCase()) || false;
+    
+    // Locations filter
+    const matchesLocations = !locationsFilter || 
+      candidate.location?.toLowerCase()?.includes(locationsFilter.toLowerCase()) || false;
+    
+    // Education filter
+    const matchesEducation = !educationFilter || 
+      candidate.degrees?.toLowerCase()?.includes(educationFilter.toLowerCase()) ||
+      candidate.institutions?.toLowerCase()?.includes(educationFilter.toLowerCase()) || false;
+    
+    return matchesSearch && matchesRating && matchesJob && matchesSkills && 
+           matchesPositions && matchesCompanies && matchesLocations && matchesEducation;
   });
 
   const getAnalysisColor = (score: number) => {
@@ -259,6 +307,11 @@ const Candidates: React.FC = () => {
   const activeFiltersCount = [
     ratingFilter !== null,
     jobFilter !== null,
+    skillsFilter !== '',
+    positionsFilter !== '',
+    companiesFilter !== '',
+    locationsFilter !== '',
+    educationFilter !== ''
   ].filter(Boolean).length;
 
   // Show loading while auth is being checked or candidates are being fetched
@@ -302,7 +355,7 @@ const Candidates: React.FC = () => {
                   )}
                 </Button>
               </PopoverTrigger>
-              <PopoverContent className="w-80">
+              <PopoverContent className="w-96 max-h-96 overflow-y-auto">
                 <div className="space-y-4 p-2">
                   <div className="flex items-center justify-between">
                     <h3 className="font-medium">Filters</h3>
@@ -314,7 +367,10 @@ const Candidates: React.FC = () => {
                   {/* Rating filter */}
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
-                      <label className="text-sm font-medium">Minimum Rating</label>
+                      <label className="text-sm font-medium flex items-center gap-1">
+                        <Star size={14} />
+                        Minimum AI Rating
+                      </label>
                       <span className="text-sm text-gray-500">{ratingFilter !== null ? ratingFilter : 'Any'}</span>
                     </div>
                     <Slider 
@@ -329,7 +385,10 @@ const Candidates: React.FC = () => {
                   
                   {/* Job title filter */}
                   <div className="space-y-2">
-                    <label className="text-sm font-medium">Job Title</label>
+                    <label className="text-sm font-medium flex items-center gap-1">
+                      <Briefcase size={14} />
+                      Job Title
+                    </label>
                     <select 
                       className="w-full px-3 py-2 border rounded-md"
                       value={jobFilter || ''}
@@ -340,6 +399,76 @@ const Candidates: React.FC = () => {
                         <option key={job} value={job}>{job}</option>
                       ))}
                     </select>
+                  </div>
+
+                  {/* Skills filter */}
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium flex items-center gap-1">
+                      <Code size={14} />
+                      Skills
+                    </label>
+                    <Input
+                      placeholder="Enter skills (e.g., React, Python)"
+                      value={skillsFilter}
+                      onChange={(e) => setSkillsFilter(e.target.value)}
+                      className="w-full"
+                    />
+                  </div>
+
+                  {/* Positions filter */}
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium flex items-center gap-1">
+                      <Briefcase size={14} />
+                      Positions
+                    </label>
+                    <Input
+                      placeholder="Enter position names"
+                      value={positionsFilter}
+                      onChange={(e) => setPositionsFilter(e.target.value)}
+                      className="w-full"
+                    />
+                  </div>
+
+                  {/* Companies filter */}
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium flex items-center gap-1">
+                      <Building size={14} />
+                      Companies
+                    </label>
+                    <Input
+                      placeholder="Enter company names"
+                      value={companiesFilter}
+                      onChange={(e) => setCompaniesFilter(e.target.value)}
+                      className="w-full"
+                    />
+                  </div>
+
+                  {/* Locations filter */}
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium flex items-center gap-1">
+                      <MapPin size={14} />
+                      Locations
+                    </label>
+                    <Input
+                      placeholder="Enter locations"
+                      value={locationsFilter}
+                      onChange={(e) => setLocationsFilter(e.target.value)}
+                      className="w-full"
+                    />
+                  </div>
+
+                  {/* Education filter */}
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium flex items-center gap-1">
+                      <GraduationCap size={14} />
+                      Education
+                    </label>
+                    <Input
+                      placeholder="Enter degree or institution"
+                      value={educationFilter}
+                      onChange={(e) => setEducationFilter(e.target.value)}
+                      className="w-full"
+                    />
                   </div>
                 </div>
               </PopoverContent>
@@ -388,6 +517,46 @@ const Candidates: React.FC = () => {
                 </button>
               </Badge>
             )}
+            {skillsFilter && (
+              <Badge variant="outline" className="flex items-center gap-1">
+                <Code size={12} /> Skills: {skillsFilter}
+                <button className="ml-1" onClick={() => setSkillsFilter('')}>
+                  <X size={12} />
+                </button>
+              </Badge>
+            )}
+            {positionsFilter && (
+              <Badge variant="outline" className="flex items-center gap-1">
+                <Briefcase size={12} /> Position: {positionsFilter}
+                <button className="ml-1" onClick={() => setPositionsFilter('')}>
+                  <X size={12} />
+                </button>
+              </Badge>
+            )}
+            {companiesFilter && (
+              <Badge variant="outline" className="flex items-center gap-1">
+                <Building size={12} /> Company: {companiesFilter}
+                <button className="ml-1" onClick={() => setCompaniesFilter('')}>
+                  <X size={12} />
+                </button>
+              </Badge>
+            )}
+            {locationsFilter && (
+              <Badge variant="outline" className="flex items-center gap-1">
+                <MapPin size={12} /> Location: {locationsFilter}
+                <button className="ml-1" onClick={() => setLocationsFilter('')}>
+                  <X size={12} />
+                </button>
+              </Badge>
+            )}
+            {educationFilter && (
+              <Badge variant="outline" className="flex items-center gap-1">
+                <GraduationCap size={12} /> Education: {educationFilter}
+                <button className="ml-1" onClick={() => setEducationFilter('')}>
+                  <X size={12} />
+                </button>
+              </Badge>
+            )}
             <Button variant="ghost" size="sm" onClick={resetFilters} className="h-7 px-2">
               Clear all
             </Button>
@@ -412,8 +581,6 @@ const Candidates: React.FC = () => {
           Refresh
         </Button>
       </div>
-
-      
 
       {viewMode === 'grid' ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
