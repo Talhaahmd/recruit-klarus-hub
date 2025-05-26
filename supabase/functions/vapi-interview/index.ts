@@ -73,6 +73,7 @@ serve(async (req) => {
         console.log('Created interview record:', interview.id)
 
         // Make call to Vapi with properly formatted phone number
+        // Based on Vapi API docs, the customer object should have the phone number directly
         const vapiResponse = await fetch('https://api.vapi.ai/call', {
           method: 'POST',
           headers: {
@@ -82,7 +83,7 @@ serve(async (req) => {
           body: JSON.stringify({
             assistantId: '1637d56c-c8f0-4397-8836-77ca4a8664be',
             customer: {
-              phoneNumber: cleanPhone,
+              number: cleanPhone,
             },
             assistantOverrides: {
               variableValues: {
