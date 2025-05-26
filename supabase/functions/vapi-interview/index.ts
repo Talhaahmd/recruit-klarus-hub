@@ -72,34 +72,55 @@ serve(async (req) => {
 
         console.log('Created interview record:', interview.id)
 
-        // Make call to Vapi with properly formatted phone number
-        // Based on Vapi API docs, the customer object should have the phone number directly
+        // Prepare Vapi call payload
+        const vapiPayload = {
+          assistantId: '1637d56c-c8f0-4397-8836-77ca4a8664be',
+          customer: {
+            number: cleanPhone,
+          },
+          assistantOverrides: {
+            variableValues: {
+              full_name: candidateName,
+              role: role
+            }
+          }
+        }
+
+        console.log('Vapi payload being sent:', JSON.stringify(vapiPayload, null, 2))
+
+        // Make call to Vapi
         const vapiResponse = await fetch('https://api.vapi.ai/call', {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${Deno.env.get('VAPI_PRIVATE_KEY')}`,
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({
-            assistantId: '1637d56c-c8f0-4397-8836-77ca4a8664be',
-            customer: {
-              number: cleanPhone,
-            },
-            assistantOverrides: {
-              variableValues: {
-                full_name: candidateName,
-                role: role
-              }
-            }
-          }),
+          body: JSON.stringify(vapiPayload),
         })
 
+        console.log('Vapi response status:', vapiResponse.status)
+        console.log('Vapi response headers:', Object.fromEntries(vapiResponse.headers.entries()))
+
         const vapiData = await vapiResponse.json()
-        console.log('Vapi response:', vapiData)
+        console.log('Vapi response body:', JSON.stringify(vapiData, null, 2))
 
         if (!vapiResponse.ok) {
-          console.error('Vapi API error:', vapiData)
-          throw new Error(`Vapi API error: ${vapiData.message || 'Unknown error'}`)
+          console.error('Vapi API error details:', {
+            status: vapiResponse.status,
+            statusText: vapiResponse.statusText,
+            data: vapiData
+          })
+          
+          // Update interview record with error status
+          await supabaseClient
+            .from('ai_interviews')
+            .update({
+              call_status: 'failed',
+              interview_summary: `Vapi API error: ${JSON.stringify(vapiData)}`
+            })
+            .eq('id', interview.id)
+
+          throw new Error(`Vapi API error (${vapiResponse.status}): ${JSON.stringify(vapiData)}`)
         }
 
         // Update interview record with Vapi call ID
@@ -168,7 +189,7 @@ Focus on technical competency, communication clarity, and cultural fit based on 
               'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-              model: 'gpt-4',
+              model: 'gpt-4o-mini',
               messages: [
                 {
                   role: 'system',
