@@ -9,7 +9,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { format } from "date-fns";
 import { Calendar as CalendarIcon, Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { submissionService } from '@/services/submissionService';
+import { interviewService } from '@/services/interviewService';
 import { toast } from 'sonner';
 
 type EmailActionsModalProps = {
@@ -89,8 +89,7 @@ export const InterviewScheduleModal = ({
       // Format date as ISO string for database
       const dateString = date.toISOString();
       
-      // Call the scheduleInterview function with the correct parameters
-      const success = await submissionService.scheduleInterview(
+      console.log('📧 Scheduling interview with:', {
         candidateId,
         dateString,
         time,
@@ -98,11 +97,24 @@ export const InterviewScheduleModal = ({
         candidateName,
         candidateEmail,
         jobTitle
+      });
+      
+      // Call the scheduleInterview function with the correct parameters
+      const result = await interviewService.scheduleInterview(
+        candidateId,
+        dateString,
+        time,
+        notes,
+        candidateName,
+        candidateEmail,
+        jobTitle || ''
       );
       
-      if (success) {
-        toast.success("Interview scheduled successfully");
+      if (result) {
+        toast.success("Interview scheduled and email sent successfully");
         onClose();
+      } else {
+        toast.error("Failed to schedule interview");
       }
     } catch (error) {
       console.error("Error scheduling interview:", error);

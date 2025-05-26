@@ -13,12 +13,15 @@ export const interviewService = {
     jobName: string = ''
   ) => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      if (!user) {
-        toast.error('You must be logged in to schedule an interview');
-        return null;
-      }
+      console.log('📧 Inserting interview record:', {
+        candidate_id: candidateId,
+        interview_date: interviewDateString,
+        interview_time: interviewTime,
+        interview_notes: interviewNotes,
+        candidate_name: candidateName,
+        candidate_email: candidateEmail,
+        job_name: jobName
+      });
       
       const { data, error } = await supabase
         .from('candidate_interviews')
@@ -34,8 +37,12 @@ export const interviewService = {
         .select()
         .single();
         
-      if (error) throw error;
+      if (error) {
+        console.error('❌ Database error:', error);
+        throw error;
+      }
       
+      console.log('✅ Interview scheduled successfully:', data);
       toast.success('Interview scheduled successfully');
       return data;
     } catch (error: any) {
