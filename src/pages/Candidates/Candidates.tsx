@@ -52,12 +52,12 @@ const getUniqueValues = (data: NewCandidate[], property: keyof NewCandidate): st
 const extractSkillsArray = (candidate: NewCandidate): string[] => {
   if (!candidate.skills) return [];
   
-  // If skills is already an array, return it (filtering out any non-string values)
+  // Handle array case
   if (Array.isArray(candidate.skills)) {
     return candidate.skills.filter((skill): skill is string => typeof skill === 'string');
   }
   
-  // If skills is a string, split it by commas
+  // Handle string case
   if (typeof candidate.skills === 'string') {
     return candidate.skills.split(',').map(s => s.trim()).filter(Boolean);
   }
