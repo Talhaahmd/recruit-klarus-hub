@@ -48,6 +48,21 @@ const getUniqueValues = (data: NewCandidate[], property: keyof NewCandidate): st
   return [...new Set(values)];
 };
 
+// Helper to safely extract skills from candidate data
+const extractSkillsArray = (candidate: NewCandidate): string[] => {
+  if (!candidate.skills) return [];
+  
+  if (Array.isArray(candidate.skills)) {
+    return candidate.skills.filter((skill): skill is string => typeof skill === 'string');
+  }
+  
+  if (typeof candidate.skills === 'string') {
+    return candidate.skills.split(',').map((s: string) => s.trim()).filter(Boolean);
+  }
+  
+  return [];
+};
+
 const Candidates: React.FC = () => {
   const navigate = useNavigate();
   const { isAuthenticated, isLoading: authLoading } = useAuth();
@@ -96,16 +111,7 @@ const Candidates: React.FC = () => {
       setJobsList(getUniqueValues(data, 'current_job_title'));
       
       // Safely handle skills which might be arrays or strings
-      const skillsArray = data.flatMap(c => {
-        if (!c.skills) return [];
-        if (Array.isArray(c.skills)) {
-          return c.skills;
-        }
-        if (typeof c.skills === 'string') {
-          return c.skills.split(',').map((s: string) => s.trim());
-        }
-        return [];
-      });
+      const skillsArray = data.flatMap(c => extractSkillsArray(c));
       setSkillsList([...new Set(skillsArray)]);
       
     } catch (error) {
@@ -154,17 +160,11 @@ const Candidates: React.FC = () => {
     const nameMatch = candidate.full_name?.toLowerCase()?.includes(searchTerm.toLowerCase()) || false;
     const emailMatch = candidate.email?.toLowerCase()?.includes(searchTerm.toLowerCase()) || false;
     
-    // Handle skills search for both array and string formats
-    let skillsMatch = false;
-    if (candidate.skills && searchTerm) {
-      if (Array.isArray(candidate.skills)) {
-        skillsMatch = candidate.skills.some(skill => 
-          skill && typeof skill === 'string' && skill.toLowerCase().includes(searchTerm.toLowerCase())
-        );
-      } else if (typeof candidate.skills === 'string') {
-        skillsMatch = candidate.skills.toLowerCase().includes(searchTerm.toLowerCase());
-      }
-    }
+    // Handle skills search using the helper function
+    const candidateSkills = extractSkillsArray(candidate);
+    const skillsMatch = searchTerm === '' || candidateSkills.some(skill => 
+      skill.toLowerCase().includes(searchTerm.toLowerCase())
+    );
     
     const matchesSearch = searchTerm === '' || nameMatch || emailMatch || skillsMatch;
     
@@ -174,12 +174,10 @@ const Candidates: React.FC = () => {
     // Job filter
     const matchesJob = !jobFilter || (candidate.current_job_title && candidate.current_job_title === jobFilter);
     
-    // Skills filter
-    const matchesSkills = !skillsFilter || (candidate.skills && (
-      Array.isArray(candidate.skills) 
-        ? candidate.skills.some(skill => skill && typeof skill === 'string' && skill.toLowerCase().includes(skillsFilter.toLowerCase()))
-        : typeof candidate.skills === 'string' && candidate.skills.toLowerCase().includes(skillsFilter.toLowerCase())
-    ));
+    // Skills filter using the helper function
+    const matchesSkills = !skillsFilter || candidateSkills.some(skill => 
+      skill.toLowerCase().includes(skillsFilter.toLowerCase())
+    );
     
     return matchesSearch && matchesRating && matchesJob && matchesSkills;
   });
@@ -371,9 +369,7 @@ const Candidates: React.FC = () => {
                 phone: candidate.phone || '',
                 rating: candidate.ai_rating || 0,
                 current_job_title: candidate.current_job_title || candidate.current_job || '',
-                skills: Array.isArray(candidate.skills) 
-                  ? candidate.skills.join(', ') 
-                  : candidate.skills || '',
+                skills: extractSkillsArray(candidate).join(', '),
                 years_experience: candidate.years_experience?.toString() || ''
               }}
               onEdit={handleEdit}
