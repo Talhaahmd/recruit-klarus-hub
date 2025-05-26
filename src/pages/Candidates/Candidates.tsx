@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Header } from '@/components/Layout/MainLayout';
@@ -47,25 +48,6 @@ const getUniqueValues = (data: NewCandidate[], property: keyof NewCandidate): st
   return [...new Set(values)];
 };
 
-// Helper to safely extract skills from candidate data
-const extractSkillsArray = (candidate: NewCandidate): string[] => {
-  const skills = candidate.skills;
-  
-  if (!skills) return [];
-  
-  // Handle array case (which is the expected type according to NewCandidate)
-  if (Array.isArray(skills)) {
-    return skills.filter((skill): skill is string => typeof skill === 'string');
-  }
-  
-  // Fallback: if somehow skills is a string (from database transformation), handle it
-  if (typeof skills === 'string') {
-    return skills.length > 0 ? skills.split(',').map(s => s.trim()).filter(Boolean) : [];
-  }
-  
-  return [];
-};
-
 const Candidates: React.FC = () => {
   const navigate = useNavigate();
   const { isAuthenticated, isLoading: authLoading } = useAuth();
@@ -77,11 +59,9 @@ const Candidates: React.FC = () => {
   // Filter states
   const [ratingFilter, setRatingFilter] = useState<number | null>(null);
   const [jobFilter, setJobFilter] = useState<string | null>(null);
-  const [skillsFilter, setSkillsFilter] = useState<string | null>(null);
   
   // Lists for filter dropdowns
   const [jobsList, setJobsList] = useState<string[]>([]);
-  const [skillsList, setSkillsList] = useState<string[]>([]);
   
   // Email modal state
   const [emailModalOpen, setEmailModalOpen] = useState(false);
@@ -126,10 +106,6 @@ const Candidates: React.FC = () => {
       const validCandidates = data.filter(c => c && typeof c === 'object');
       setJobsList(getUniqueValues(validCandidates, 'current_job_title'));
       
-      // Safely handle skills which might be arrays or strings
-      const skillsArray = validCandidates.flatMap(c => extractSkillsArray(c));
-      setSkillsList([...new Set(skillsArray)]);
-      
     } catch (error) {
       console.error("Error fetching candidates:", error);
       toast.error("Failed to fetch candidates. Please check your connection and try again.");
@@ -168,7 +144,6 @@ const Candidates: React.FC = () => {
   const resetFilters = () => {
     setRatingFilter(null);
     setJobFilter(null);
-    setSkillsFilter(null);
   };
 
   const filteredCandidates = candidates.filter(candidate => {
@@ -178,13 +153,7 @@ const Candidates: React.FC = () => {
     const nameMatch = candidate.full_name?.toLowerCase()?.includes(searchTerm.toLowerCase()) || false;
     const emailMatch = candidate.email?.toLowerCase()?.includes(searchTerm.toLowerCase()) || false;
     
-    // Handle skills search using the helper function
-    const candidateSkills = extractSkillsArray(candidate);
-    const skillsMatch = searchTerm === '' || candidateSkills.some(skill => 
-      skill.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-    
-    const matchesSearch = searchTerm === '' || nameMatch || emailMatch || skillsMatch;
+    const matchesSearch = searchTerm === '' || nameMatch || emailMatch;
     
     // Rating filter
     const matchesRating = ratingFilter === null || (candidate.ai_rating && candidate.ai_rating >= ratingFilter);
@@ -192,12 +161,7 @@ const Candidates: React.FC = () => {
     // Job filter
     const matchesJob = !jobFilter || (candidate.current_job_title && candidate.current_job_title === jobFilter);
     
-    // Skills filter using the helper function
-    const matchesSkills = !skillsFilter || candidateSkills.some(skill => 
-      skill.toLowerCase().includes(skillsFilter.toLowerCase())
-    );
-    
-    return matchesSearch && matchesRating && matchesJob && matchesSkills;
+    return matchesSearch && matchesRating && matchesJob;
   });
 
   const getAnalysisColor = (score: number) => {
@@ -209,7 +173,6 @@ const Candidates: React.FC = () => {
   const activeFiltersCount = [
     ratingFilter !== null,
     jobFilter !== null,
-    skillsFilter !== null,
   ].filter(Boolean).length;
 
   // Show loading while auth is being checked or candidates are being fetched
@@ -292,21 +255,6 @@ const Candidates: React.FC = () => {
                       ))}
                     </select>
                   </div>
-                  
-                  {/* Skills filter */}
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">Skills</label>
-                    <select 
-                      className="w-full px-3 py-2 border rounded-md"
-                      value={skillsFilter || ''}
-                      onChange={(e) => setSkillsFilter(e.target.value || null)}
-                    >
-                      <option value="">Any</option>
-                      {skillsList.map(skill => (
-                        <option key={skill} value={skill}>{skill}</option>
-                      ))}
-                    </select>
-                  </div>
                 </div>
               </PopoverContent>
             </Popover>
@@ -350,14 +298,6 @@ const Candidates: React.FC = () => {
               <Badge variant="outline" className="flex items-center gap-1">
                 <Briefcase size={12} /> Job: {jobFilter}
                 <button className="ml-1" onClick={() => setJobFilter(null)}>
-                  <X size={12} />
-                </button>
-              </Badge>
-            )}
-            {skillsFilter && (
-              <Badge variant="outline" className="flex items-center gap-1">
-                Skills: {skillsFilter}
-                <button className="ml-1" onClick={() => setSkillsFilter(null)}>
                   <X size={12} />
                 </button>
               </Badge>
@@ -416,7 +356,7 @@ const Candidates: React.FC = () => {
                 phone: candidate.phone || '',
                 rating: candidate.ai_rating || 0,
                 current_job_title: candidate.current_job_title || candidate.current_job || '',
-                skills: extractSkillsArray(candidate).join(', '),
+                skills: '', // Removed skills display to avoid TypeScript issues
                 years_experience: candidate.years_experience?.toString() || ''
               }}
               onEdit={handleEdit}
