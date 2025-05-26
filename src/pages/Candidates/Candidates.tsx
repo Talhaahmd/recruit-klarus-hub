@@ -99,7 +99,7 @@ const Candidates: React.FC = () => {
           return c.skills;
         }
         if (typeof c.skills === 'string') {
-          return c.skills.split(',').map(s => s.trim());
+          return c.skills.split(',').map((s: string) => s.trim());
         }
         return [];
       });
@@ -148,15 +148,15 @@ const Candidates: React.FC = () => {
 
   const filteredCandidates = candidates.filter(candidate => {
     // Search filter - add null checks before calling toLowerCase()
-    const nameMatch = candidate.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) || false;
-    const emailMatch = candidate.email?.toLowerCase().includes(searchTerm.toLowerCase()) || false;
+    const nameMatch = candidate.full_name?.toLowerCase?.()?.includes(searchTerm.toLowerCase()) || false;
+    const emailMatch = candidate.email?.toLowerCase?.()?.includes(searchTerm.toLowerCase()) || false;
     
     // Handle skills search for both array and string formats
     let skillsMatch = false;
     if (candidate.skills && searchTerm) {
       if (Array.isArray(candidate.skills)) {
         skillsMatch = candidate.skills.some(skill => 
-          skill?.toLowerCase().includes(searchTerm.toLowerCase())
+          skill?.toLowerCase?.()?.includes(searchTerm.toLowerCase())
         );
       } else if (typeof candidate.skills === 'string') {
         skillsMatch = candidate.skills.toLowerCase().includes(searchTerm.toLowerCase());
@@ -174,7 +174,7 @@ const Candidates: React.FC = () => {
     // Skills filter
     const matchesSkills = !skillsFilter || (candidate.skills && (
       Array.isArray(candidate.skills) 
-        ? candidate.skills.some(skill => skill?.toLowerCase().includes(skillsFilter.toLowerCase()))
+        ? candidate.skills.some(skill => skill?.toLowerCase?.()?.includes(skillsFilter.toLowerCase()))
         : typeof candidate.skills === 'string' && candidate.skills.toLowerCase().includes(skillsFilter.toLowerCase())
     ));
     
