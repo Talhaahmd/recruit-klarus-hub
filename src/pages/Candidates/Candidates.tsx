@@ -40,8 +40,11 @@ import { EmailActionsModal } from '@/components/UI/EmailActionsModals';
 import { useAuth } from '@/contexts/AuthContext';
 
 // Helper to get unique values from an array of objects for a specific property
-const getUniqueValues = (data: any[], property: string): string[] => {
-  const values = data.map(item => item[property]).filter(Boolean);
+const getUniqueValues = (data: NewCandidate[], property: keyof NewCandidate): string[] => {
+  const values = data.map(item => {
+    const value = item[property];
+    return typeof value === 'string' ? value : '';
+  }).filter(Boolean);
   return [...new Set(values)];
 };
 
@@ -148,15 +151,15 @@ const Candidates: React.FC = () => {
 
   const filteredCandidates = candidates.filter(candidate => {
     // Search filter - add null checks before calling toLowerCase()
-    const nameMatch = candidate.full_name?.toLowerCase?.()?.includes(searchTerm.toLowerCase()) || false;
-    const emailMatch = candidate.email?.toLowerCase?.()?.includes(searchTerm.toLowerCase()) || false;
+    const nameMatch = candidate.full_name?.toLowerCase()?.includes(searchTerm.toLowerCase()) || false;
+    const emailMatch = candidate.email?.toLowerCase()?.includes(searchTerm.toLowerCase()) || false;
     
     // Handle skills search for both array and string formats
     let skillsMatch = false;
     if (candidate.skills && searchTerm) {
       if (Array.isArray(candidate.skills)) {
         skillsMatch = candidate.skills.some(skill => 
-          skill?.toLowerCase?.()?.includes(searchTerm.toLowerCase())
+          skill && typeof skill === 'string' && skill.toLowerCase().includes(searchTerm.toLowerCase())
         );
       } else if (typeof candidate.skills === 'string') {
         skillsMatch = candidate.skills.toLowerCase().includes(searchTerm.toLowerCase());
@@ -174,7 +177,7 @@ const Candidates: React.FC = () => {
     // Skills filter
     const matchesSkills = !skillsFilter || (candidate.skills && (
       Array.isArray(candidate.skills) 
-        ? candidate.skills.some(skill => skill?.toLowerCase?.()?.includes(skillsFilter.toLowerCase()))
+        ? candidate.skills.some(skill => skill && typeof skill === 'string' && skill.toLowerCase().includes(skillsFilter.toLowerCase()))
         : typeof candidate.skills === 'string' && candidate.skills.toLowerCase().includes(skillsFilter.toLowerCase())
     ));
     
@@ -363,7 +366,7 @@ const Candidates: React.FC = () => {
               key={candidate.id}
               candidate={{
                 id: candidate.id,
-                name: candidate.full_name || 'Unknown',
+                full_name: candidate.full_name || 'Unknown',
                 email: candidate.email || '',
                 phone: candidate.phone || '',
                 rating: candidate.ai_rating || 0,
