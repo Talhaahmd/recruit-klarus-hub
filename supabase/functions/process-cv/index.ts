@@ -13,6 +13,8 @@ serve(async (req) => {
   }
 
   try {
+    console.log('=== CV Processing Started ===')
+    
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
@@ -21,6 +23,7 @@ serve(async (req) => {
     const { fileUrl } = await req.json()
     
     if (!fileUrl) {
+      console.error('No file URL provided')
       return new Response(
         JSON.stringify({ error: 'File URL is required' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -30,6 +33,7 @@ serve(async (req) => {
     console.log('Processing CV from URL:', fileUrl)
 
     // Step 1: Extract text from PDF using PDF.co
+    console.log('Step 1: Extracting text from PDF using PDF.co...')
     const pdfCoResponse = await fetch('https://api.pdf.co/v1/pdf/convert/to/text', {
       method: 'POST',
       headers: {
@@ -43,17 +47,21 @@ serve(async (req) => {
     })
 
     const pdfCoData = await pdfCoResponse.json()
+    console.log('PDF.co response status:', pdfCoResponse.status)
+    console.log('PDF.co response:', JSON.stringify(pdfCoData, null, 2))
     
     if (!pdfCoData.body) {
       console.error('PDF.co error:', pdfCoData)
       throw new Error('Failed to extract text from PDF: ' + (pdfCoData.error || 'Unknown error'))
     }
 
-    console.log('Extracted text from PDF:', pdfCoData.body.substring(0, 200) + '...')
+    console.log('Extracted text from PDF (first 200 chars):', pdfCoData.body.substring(0, 200) + '...')
 
     // Step 2: Process with ChatGPT
+    console.log('Step 2: Processing with ChatGPT...')
     const openAIApiKey = Deno.env.get('OPENAI_API_KEY')
     if (!openAIApiKey) {
+      console.error('OpenAI API key not found in environment')
       throw new Error('OpenAI API key not configured')
     }
 
@@ -116,6 +124,7 @@ Return only the following valid JSON structure (no extra text):
       }),
     })
 
+    console.log('ChatGPT response status:', chatGPTResponse.status)
     const chatGPTData = await chatGPTResponse.json()
     
     if (!chatGPTData.choices || !chatGPTData.choices[0]) {
@@ -123,12 +132,14 @@ Return only the following valid JSON structure (no extra text):
       throw new Error('Failed to process CV with ChatGPT: ' + (chatGPTData.error?.message || 'Unknown error'))
     }
 
-    console.log('ChatGPT response:', chatGPTData.choices[0].message.content)
+    console.log('ChatGPT response received, processing...')
 
     // Parse the JSON response from ChatGPT
     let candidateData
     try {
       const responseText = chatGPTData.choices[0].message.content
+      console.log('Raw ChatGPT response:', responseText)
+      
       // Extract JSON from markdown code blocks if present
       const jsonMatch = responseText.match(/```json\s*([\s\S]*?)\s*```/) || responseText.match(/```\s*([\s\S]*?)\s*```/)
       const jsonText = jsonMatch ? jsonMatch[1] : responseText
@@ -141,6 +152,7 @@ Return only the following valid JSON structure (no extra text):
     }
 
     // Step 3: Store in candidates table
+    console.log('Step 3: Storing candidate in database...')
     const { data: insertedCandidate, error: insertError } = await supabaseClient
       .from('candidates')
       .insert({
@@ -173,7 +185,8 @@ Return only the following valid JSON structure (no extra text):
       throw new Error('Failed to save candidate data: ' + insertError.message)
     }
 
-    console.log('Successfully created candidate:', insertedCandidate.id)
+    console.log('Successfully created candidate with ID:', insertedCandidate.id)
+    console.log('=== CV Processing Completed Successfully ===')
 
     return new Response(
       JSON.stringify({ 
@@ -189,6 +202,7 @@ Return only the following valid JSON structure (no extra text):
 
   } catch (error) {
     console.error('Error processing CV:', error)
+    console.error('Error stack:', error.stack)
     return new Response(
       JSON.stringify({ 
         error: error.message,

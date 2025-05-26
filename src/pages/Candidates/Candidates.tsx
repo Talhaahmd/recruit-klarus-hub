@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Header } from '@/components/Layout/MainLayout';
@@ -100,6 +99,18 @@ const Candidates: React.FC = () => {
       fetchCandidates();
     }
   }, [isAuthenticated, authLoading, navigate]);
+
+  // Add polling to refresh candidates periodically
+  useEffect(() => {
+    if (isAuthenticated) {
+      const interval = setInterval(() => {
+        console.log('Polling for new candidates...');
+        fetchCandidates();
+      }, 10000); // Check every 10 seconds
+
+      return () => clearInterval(interval);
+    }
+  }, [isAuthenticated]);
 
   const fetchCandidates = async () => {
     setIsLoading(true);
@@ -354,9 +365,20 @@ const Candidates: React.FC = () => {
       </div>
 
       {/* Results count */}
-      <div className="mb-4 text-sm text-gray-500">
-        Showing {filteredCandidates.length} candidate{filteredCandidates.length !== 1 ? 's' : ''}
-        {activeFiltersCount > 0 && ' with applied filters'}
+      <div className="mb-4 flex justify-between items-center">
+        <div className="text-sm text-gray-500">
+          Showing {filteredCandidates.length} candidate{filteredCandidates.length !== 1 ? 's' : ''}
+          {activeFiltersCount > 0 && ' with applied filters'}
+        </div>
+        <Button 
+          onClick={fetchCandidates} 
+          variant="outline" 
+          size="sm"
+          className="flex items-center gap-2"
+        >
+          <Loader2 className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
+          Refresh
+        </Button>
       </div>
 
       {viewMode === 'grid' ? (

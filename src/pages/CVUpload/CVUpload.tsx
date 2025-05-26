@@ -78,22 +78,34 @@ const CVUpload: React.FC = () => {
       setProcessingStatus('Processing CV with AI...');
 
       // Process CV using the edge function
+      console.log('Calling process-cv edge function with URL:', fileUrl);
+      
       const { data: processResult, error: processError } = await supabase.functions.invoke('process-cv', {
         body: { fileUrl }
       });
 
       if (processError) {
         console.error('CV processing error:', processError);
-        throw new Error('Failed to process CV. Please try again.');
+        throw new Error(`Failed to process CV: ${processError.message}`);
       }
 
       console.log('CV processed successfully:', processResult);
-      setSuccess(true);
-      toast.success('CV uploaded and processed successfully!');
+      
+      if (processResult?.success) {
+        setSuccess(true);
+        toast.success('CV uploaded and processed successfully!');
+        
+        // Add a delay before showing success to ensure processing is complete
+        setTimeout(() => {
+          console.log('CV processing completed, candidate should now be in database');
+        }, 2000);
+      } else {
+        throw new Error(processResult?.error || 'CV processing failed');
+      }
     } catch (err: any) {
       console.error('Error submitting application:', err);
       setError(err.message || 'Failed to upload CV. Please try again.');
-      toast.error('Upload failed');
+      toast.error(`Upload failed: ${err.message}`);
     } finally {
       setIsSubmitting(false);
       setProcessingStatus('');
@@ -120,12 +132,21 @@ const CVUpload: React.FC = () => {
               <p className="text-gray-300 mb-6 leading-relaxed">
                 Thank you for submitting your CV to Klarus HR. We've processed it with AI and added you to our candidate database.
               </p>
-              <Button 
-                onClick={() => navigate('/')}
-                className="w-full bg-gradient-to-r from-cyan-500 to-purple-600 hover:from-cyan-600 hover:to-purple-700 text-white font-semibold py-3 rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-cyan-500/25"
-              >
-                Visit Klarus HR
-              </Button>
+              <div className="space-y-3">
+                <Button 
+                  onClick={() => navigate('/candidates')}
+                  className="w-full bg-gradient-to-r from-cyan-500 to-purple-600 hover:from-cyan-600 hover:to-purple-700 text-white font-semibold py-3 rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-cyan-500/25"
+                >
+                  View Candidates
+                </Button>
+                <Button 
+                  onClick={() => navigate('/')}
+                  variant="outline"
+                  className="w-full border-cyan-500/20 text-cyan-400 hover:bg-cyan-500/10"
+                >
+                  Visit Klarus HR
+                </Button>
+              </div>
             </div>
           </CardContent>
         </Card>
