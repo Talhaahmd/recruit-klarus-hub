@@ -59,7 +59,7 @@ const extractSkillsArray = (candidate: NewCandidate): string[] => {
   
   // If skills is a string, split it by commas
   if (typeof candidate.skills === 'string') {
-    return candidate.skills.split(',').map((s: string) => s.trim()).filter(Boolean);
+    return candidate.skills.split(',').map(s => s.trim()).filter(Boolean);
   }
   
   return [];
