@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Header } from '@/components/Layout/MainLayout';
@@ -50,16 +49,18 @@ const getUniqueValues = (data: NewCandidate[], property: keyof NewCandidate): st
 
 // Helper to safely extract skills from candidate data
 const extractSkillsArray = (candidate: NewCandidate): string[] => {
-  if (!candidate.skills) return [];
+  const skills = candidate.skills;
+  
+  if (!skills) return [];
   
   // Handle array case
-  if (Array.isArray(candidate.skills)) {
-    return candidate.skills.filter((skill): skill is string => typeof skill === 'string');
+  if (Array.isArray(skills)) {
+    return skills.filter((skill): skill is string => typeof skill === 'string');
   }
   
-  // Handle string case
-  if (typeof candidate.skills === 'string') {
-    return candidate.skills.split(',').map(s => s.trim()).filter(Boolean);
+  // Handle string case - be explicit about the type
+  if (typeof skills === 'string' && skills.length > 0) {
+    return skills.split(',').map(s => s.trim()).filter(Boolean);
   }
   
   return [];
