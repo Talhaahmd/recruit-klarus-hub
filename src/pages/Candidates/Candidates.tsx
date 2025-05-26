@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Header } from '@/components/Layout/MainLayout';
@@ -54,15 +53,14 @@ const extractSkillsArray = (candidate: NewCandidate): string[] => {
   
   if (!skills) return [];
   
-  // Handle array case
+  // Handle array case (which is the expected type according to NewCandidate)
   if (Array.isArray(skills)) {
     return skills.filter((skill): skill is string => typeof skill === 'string');
   }
   
-  // Handle string case - use type assertion after checking
-  const skillsValue = skills as unknown;
-  if (typeof skillsValue === 'string') {
-    return skillsValue.length > 0 ? skillsValue.split(',').map(s => s.trim()).filter(Boolean) : [];
+  // Fallback: if somehow skills is a string (from database transformation), handle it
+  if (typeof skills === 'string') {
+    return skills.length > 0 ? skills.split(',').map(s => s.trim()).filter(Boolean) : [];
   }
   
   return [];
@@ -110,7 +108,7 @@ const Candidates: React.FC = () => {
       const interval = setInterval(() => {
         console.log('Polling for new candidates...');
         fetchCandidates();
-      }, 10000); // Check every 10 seconds
+      }, 5000); // Check every 5 seconds for more frequent updates
 
       return () => clearInterval(interval);
     }
