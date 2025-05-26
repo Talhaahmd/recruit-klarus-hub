@@ -18,7 +18,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import CandidateCard from '@/components/UI/CandidateCard';
-import { NewCandidate, newCandidatesService } from '@/services/newCandidatesService';
+import { supabase } from '@/integrations/supabase/client';
 import { 
   Table,
   TableBody,
@@ -39,19 +39,25 @@ import { Slider } from "@/components/ui/slider";
 import { EmailActionsModal } from '@/components/UI/EmailActionsModals';
 import { useAuth } from '@/contexts/AuthContext';
 
-// Helper to get unique values from an array of objects for a specific property
-const getUniqueValues = (data: NewCandidate[], property: keyof NewCandidate): string[] => {
-  const values = data.map(item => {
-    const value = item[property];
-    return typeof value === 'string' ? value : '';
-  }).filter(Boolean);
-  return [...new Set(values)];
+// Simplified candidate type that matches the database
+type Candidate = {
+  id: string;
+  full_name: string;
+  email: string;
+  phone?: string;
+  linkedin?: string;
+  current_job_title?: string;
+  years_experience?: string;
+  ai_rating?: number;
+  location?: string;
+  timestamp?: string;
+  source?: string;
 };
 
 const Candidates: React.FC = () => {
   const navigate = useNavigate();
   const { isAuthenticated, isLoading: authLoading } = useAuth();
-  const [candidates, setCandidates] = useState<NewCandidate[]>([]);
+  const [candidates, setCandidates] = useState<Candidate[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid');
@@ -65,52 +71,117 @@ const Candidates: React.FC = () => {
   
   // Email modal state
   const [emailModalOpen, setEmailModalOpen] = useState(false);
-  const [selectedCandidate, setSelectedCandidate] = useState<NewCandidate | null>(null);
+  const [selectedCandidate, setSelectedCandidate] = useState<Candidate | null>(null);
 
   useEffect(() => {
-    // Wait for auth to be ready, then check authentication
+    console.log('🔍 Auth state check - authenticated:', isAuthenticated, 'loading:', authLoading);
     if (!authLoading) {
-      if (!isAuthenticated) {
-        console.log('User not authenticated, redirecting to login');
-        toast.error('You must be logged in to view candidates');
-        navigate('/login');
-        return;
-      }
-      
-      console.log('User authenticated, fetching candidates');
       fetchCandidates();
     }
-  }, [isAuthenticated, authLoading, navigate]);
+  }, [isAuthenticated, authLoading]);
 
-  // Add polling to refresh candidates periodically
+  // Simplified polling every 3 seconds
   useEffect(() => {
-    if (isAuthenticated) {
-      const interval = setInterval(() => {
-        console.log('Polling for new candidates...');
-        fetchCandidates();
-      }, 5000); // Check every 5 seconds for more frequent updates
+    const interval = setInterval(() => {
+      console.log('🔄 Polling for candidates...');
+      fetchCandidatesQuietly();
+    }, 3000);
 
-      return () => clearInterval(interval);
-    }
-  }, [isAuthenticated]);
+    return () => clearInterval(interval);
+  }, []);
 
   const fetchCandidates = async () => {
     setIsLoading(true);
     try {
-      console.log('Fetching candidates...');
-      const data = await newCandidatesService.getCandidates();
-      console.log('Fetched candidates:', data);
-      setCandidates(data);
+      console.log('📡 Fetching candidates from Supabase...');
       
-      // Extract unique values for filter dropdowns - safely handle the data
-      const validCandidates = data.filter(c => c && typeof c === 'object');
-      setJobsList(getUniqueValues(validCandidates, 'current_job_title'));
+      // Direct query to candidates table without any RLS checks
+      const { data, error } = await supabase
+        .from('candidates')
+        .select('*')
+        .order('timestamp', { ascending: false });
+        
+      console.log('📊 Raw Supabase response:', { data, error, count: data?.length });
       
-    } catch (error) {
-      console.error("Error fetching candidates:", error);
-      toast.error("Failed to fetch candidates. Please check your connection and try again.");
+      if (error) {
+        console.error('❌ Supabase error:', error);
+        toast.error(`Database error: ${error.message}`);
+        return;
+      }
+      
+      if (!data) {
+        console.log('⚠️ No data returned from Supabase');
+        setCandidates([]);
+        return;
+      }
+
+      console.log('✅ Successfully fetched candidates:', data.length);
+      
+      // Transform data to match our frontend expectations
+      const transformedCandidates = data.map(candidate => ({
+        id: candidate.id,
+        full_name: candidate.full_name || 'Unknown',
+        email: candidate.email || '',
+        phone: candidate.phone,
+        linkedin: candidate.linkedin,
+        current_job_title: candidate.current_job_title,
+        years_experience: candidate.years_experience,
+        ai_rating: candidate.ai_rating || 0,
+        location: candidate.location,
+        timestamp: candidate.timestamp,
+        source: candidate.source
+      }));
+
+      setCandidates(transformedCandidates);
+      
+      // Extract unique job titles for filter
+      const uniqueJobTitles = [...new Set(
+        transformedCandidates
+          .map(c => c.current_job_title)
+          .filter(Boolean)
+      )];
+      setJobsList(uniqueJobTitles);
+      
+    } catch (error: any) {
+      console.error("💥 Error fetching candidates:", error);
+      toast.error(`Failed to fetch candidates: ${error.message}`);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  // Quiet fetch for polling (no loading state changes)
+  const fetchCandidatesQuietly = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('candidates')
+        .select('*')
+        .order('timestamp', { ascending: false });
+        
+      if (error) {
+        console.error('❌ Polling error:', error);
+        return;
+      }
+      
+      if (data) {
+        const transformedCandidates = data.map(candidate => ({
+          id: candidate.id,
+          full_name: candidate.full_name || 'Unknown',
+          email: candidate.email || '',
+          phone: candidate.phone,
+          linkedin: candidate.linkedin,
+          current_job_title: candidate.current_job_title,
+          years_experience: candidate.years_experience,
+          ai_rating: candidate.ai_rating || 0,
+          location: candidate.location,
+          timestamp: candidate.timestamp,
+          source: candidate.source
+        }));
+
+        setCandidates(transformedCandidates);
+      }
+    } catch (error) {
+      console.error("🔄 Polling error:", error);
     }
   };
 
@@ -118,7 +189,7 @@ const Candidates: React.FC = () => {
     setSearchTerm(e.target.value);
   };
 
-  const handleEmail = (candidate: NewCandidate) => {
+  const handleEmail = (candidate: Candidate) => {
     setSelectedCandidate(candidate);
     setEmailModalOpen(true);
   };
@@ -129,10 +200,23 @@ const Candidates: React.FC = () => {
 
   const handleDelete = async (candidateId: string) => {
     if (window.confirm('Are you sure you want to delete this candidate?')) {
-      const success = await newCandidatesService.deleteCandidate(candidateId);
-      if (success) {
+      try {
+        const { error } = await supabase
+          .from('candidates')
+          .delete()
+          .eq('id', candidateId);
+          
+        if (error) {
+          console.error('Delete error:', error);
+          toast.error('Failed to delete candidate');
+          return;
+        }
+        
         setCandidates(candidates.filter(c => c.id !== candidateId));
         toast.success('Candidate deleted successfully');
+      } catch (error: any) {
+        console.error('Delete error:', error);
+        toast.error('Failed to delete candidate');
       }
     }
   };
@@ -147,19 +231,16 @@ const Candidates: React.FC = () => {
   };
 
   const filteredCandidates = candidates.filter(candidate => {
-    if (!candidate) return false;
-    
-    // Search filter - add null checks before calling toLowerCase()
+    // Search filter
     const nameMatch = candidate.full_name?.toLowerCase()?.includes(searchTerm.toLowerCase()) || false;
     const emailMatch = candidate.email?.toLowerCase()?.includes(searchTerm.toLowerCase()) || false;
-    
     const matchesSearch = searchTerm === '' || nameMatch || emailMatch;
     
     // Rating filter
     const matchesRating = ratingFilter === null || (candidate.ai_rating && candidate.ai_rating >= ratingFilter);
     
     // Job filter
-    const matchesJob = !jobFilter || (candidate.current_job_title && candidate.current_job_title === jobFilter);
+    const matchesJob = !jobFilter || candidate.current_job_title === jobFilter;
     
     return matchesSearch && matchesRating && matchesJob;
   });
@@ -314,6 +395,7 @@ const Candidates: React.FC = () => {
         <div className="text-sm text-gray-500">
           Showing {filteredCandidates.length} candidate{filteredCandidates.length !== 1 ? 's' : ''}
           {activeFiltersCount > 0 && ' with applied filters'}
+          {candidates.length > 0 && ` (Total: ${candidates.length})`}
         </div>
         <Button 
           onClick={fetchCandidates} 
@@ -327,22 +409,26 @@ const Candidates: React.FC = () => {
       </div>
 
       {/* Debug information */}
-      {candidates.length === 0 && !isLoading && (
-        <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-          <h3 className="font-medium text-blue-800">Debug Information:</h3>
-          <p className="text-sm text-blue-600">
-            No candidates found. This could be due to:
-          </p>
-          <ul className="text-sm text-blue-600 list-disc list-inside mt-2">
-            <li>Row Level Security (RLS) policies preventing data access</li>
-            <li>No candidates uploaded yet</li>
-            <li>Authentication issues</li>
-          </ul>
-          <p className="text-sm text-blue-600 mt-2">
-            Authentication status: {isAuthenticated ? 'Authenticated' : 'Not authenticated'}
-          </p>
-        </div>
-      )}
+      <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+        <h3 className="font-medium text-blue-800">Debug Information:</h3>
+        <p className="text-sm text-blue-600">
+          Candidates in state: {candidates.length}
+        </p>
+        <p className="text-sm text-blue-600">
+          Authentication status: {isAuthenticated ? 'Authenticated' : 'Not authenticated'}
+        </p>
+        <p className="text-sm text-blue-600">
+          Loading status: {isLoading ? 'Loading' : 'Loaded'}
+        </p>
+        {candidates.length > 0 && (
+          <details className="mt-2">
+            <summary className="text-sm text-blue-600 cursor-pointer">Show candidate data</summary>
+            <pre className="text-xs bg-white p-2 mt-1 rounded overflow-auto max-h-40">
+              {JSON.stringify(candidates.slice(0, 2), null, 2)}
+            </pre>
+          </details>
+        )}
+      </div>
 
       {viewMode === 'grid' ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -355,23 +441,30 @@ const Candidates: React.FC = () => {
                 email: candidate.email || '',
                 phone: candidate.phone || '',
                 rating: candidate.ai_rating || 0,
-                current_job_title: candidate.current_job_title || candidate.current_job || '',
-                skills: '', // Removed skills display to avoid TypeScript issues
+                current_job_title: candidate.current_job_title || '',
+                skills: '', // Removed skills to avoid issues
                 years_experience: candidate.years_experience?.toString() || ''
               }}
               onEdit={handleEdit}
               onDelete={handleDelete}
               onView={() => handleView(candidate.id)}
               onEmail={() => handleEmail(candidate)}
-              jobTitle={candidate.current_job_title || candidate.current_job || "Candidate"}
+              jobTitle={candidate.current_job_title || "Candidate"}
             />
           ))}
           {filteredCandidates.length === 0 && !isLoading && (
             <div className="col-span-full text-center py-10">
               <div className="text-4xl mb-4 opacity-30">🔍</div>
               <h3 className="text-lg font-medium mb-2">No candidates found</h3>
-              <p className="text-gray-500 mb-6">Try adjusting your filters or search terms</p>
-              <Button onClick={resetFilters} variant="outline">Clear filters</Button>
+              <p className="text-gray-500 mb-6">
+                {candidates.length === 0 
+                  ? 'No candidates in database yet'
+                  : 'Try adjusting your filters or search terms'
+                }
+              </p>
+              {activeFiltersCount > 0 && (
+                <Button onClick={resetFilters} variant="outline">Clear filters</Button>
+              )}
             </div>
           )}
         </div>
@@ -385,6 +478,7 @@ const Candidates: React.FC = () => {
                 <TableHead className="hidden md:table-cell">Phone</TableHead>
                 <TableHead className="hidden sm:table-cell">Job Title</TableHead>
                 <TableHead>Rating</TableHead>
+                <TableHead>Source</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -394,12 +488,17 @@ const Candidates: React.FC = () => {
                   <TableRow key={candidate.id} onClick={() => handleView(candidate.id)} className="cursor-pointer hover:bg-gray-50">
                     <TableCell className="font-medium">{candidate.full_name}</TableCell>
                     <TableCell>{candidate.email}</TableCell>
-                    <TableCell className="hidden md:table-cell">{candidate.phone}</TableCell>
-                    <TableCell className="hidden sm:table-cell">{candidate.current_job_title || candidate.current_job || "-"}</TableCell>
+                    <TableCell className="hidden md:table-cell">{candidate.phone || '-'}</TableCell>
+                    <TableCell className="hidden sm:table-cell">{candidate.current_job_title || '-'}</TableCell>
                     <TableCell>
                       <span className={`inline-block px-2 py-1 text-xs rounded-full ${getAnalysisColor(candidate.ai_rating || 0)}`}>
                         {candidate.ai_rating || 0}/10
                       </span>
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant="outline" className="text-xs">
+                        {candidate.source || 'Unknown'}
+                      </Badge>
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2" onClick={e => e.stopPropagation()}>
@@ -418,11 +517,18 @@ const Candidates: React.FC = () => {
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center py-10">
+                  <TableCell colSpan={7} className="text-center py-10">
                     <div className="text-4xl mb-4 opacity-30">🔍</div>
                     <h3 className="text-lg font-medium mb-2">No candidates found</h3>
-                    <p className="text-gray-500 mb-6">Try adjusting your filters or search terms</p>
-                    <Button onClick={resetFilters} variant="outline">Clear filters</Button>
+                    <p className="text-gray-500 mb-6">
+                      {candidates.length === 0 
+                        ? 'No candidates in database yet'
+                        : 'Try adjusting your filters or search terms'
+                      }
+                    </p>
+                    {activeFiltersCount > 0 && (
+                      <Button onClick={resetFilters} variant="outline">Clear filters</Button>
+                    )}
                   </TableCell>
                 </TableRow>
               )}
@@ -436,7 +542,7 @@ const Candidates: React.FC = () => {
           candidateId={selectedCandidate.id}
           candidateName={selectedCandidate.full_name || "Candidate"}
           candidateEmail={selectedCandidate.email}
-          jobTitle={selectedCandidate.current_job_title || selectedCandidate.current_job || ""}
+          jobTitle={selectedCandidate.current_job_title || ""}
           open={emailModalOpen}
           onClose={() => {
             setEmailModalOpen(false);
