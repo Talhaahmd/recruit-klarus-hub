@@ -59,9 +59,10 @@ const extractSkillsArray = (candidate: NewCandidate): string[] => {
     return skills.filter((skill): skill is string => typeof skill === 'string');
   }
   
-  // Handle string case - explicitly check type to avoid TypeScript issues
-  if (typeof skills === 'string') {
-    return skills.length > 0 ? skills.split(',').map(s => s.trim()).filter(Boolean) : [];
+  // Handle string case - use type assertion after checking
+  const skillsValue = skills as unknown;
+  if (typeof skillsValue === 'string') {
+    return skillsValue.length > 0 ? skillsValue.split(',').map(s => s.trim()).filter(Boolean) : [];
   }
   
   return [];
