@@ -50,12 +50,21 @@ serve(async (req) => {
     console.log('PDF.co response status:', pdfCoResponse.status)
     console.log('PDF.co response:', JSON.stringify(pdfCoData, null, 2))
     
-    if (!pdfCoData.body) {
+    if (pdfCoData.error || !pdfCoData.url) {
       console.error('PDF.co error:', pdfCoData)
-      throw new Error('Failed to extract text from PDF: ' + (pdfCoData.error || 'Unknown error'))
+      throw new Error('Failed to extract text from PDF: ' + (pdfCoData.error || 'No output URL provided'))
     }
 
-    console.log('Extracted text from PDF (first 200 chars):', pdfCoData.body.substring(0, 200) + '...')
+    // Step 1.5: Fetch the actual text content from the URL provided by PDF.co
+    console.log('Step 1.5: Fetching extracted text from URL:', pdfCoData.url)
+    const textResponse = await fetch(pdfCoData.url)
+    const extractedText = await textResponse.text()
+    
+    if (!extractedText || extractedText.trim().length === 0) {
+      throw new Error('No text could be extracted from the PDF')
+    }
+
+    console.log('Extracted text from PDF (first 200 chars):', extractedText.substring(0, 200) + '...')
 
     // Step 2: Process with ChatGPT
     console.log('Step 2: Processing with ChatGPT...')
@@ -69,7 +78,7 @@ serve(async (req) => {
 for each job: please evaluate the candidates. Be very very critical of your choices. if the candidate's degree, job positions and work experience does not align with the job applying for, give candidate a very low score. Below is the full raw text of a candidate's CV:
 """
 
-${pdfCoData.body}
+${extractedText}
 """
 
 Your task:
