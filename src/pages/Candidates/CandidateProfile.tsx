@@ -3,11 +3,9 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { 
   User, Mail, Phone, MapPin, Briefcase, FileText, Linkedin, 
-  Calendar, Star, MessageCircle, BookOpen, Building, Award, GraduationCap
+  Calendar, Star, MessageCircle, BookOpen, Building, Award, GraduationCap,
+  ArrowLeft, Loader2
 } from 'lucide-react';
-import { candidatesService, Candidate } from '@/services/candidatesService';
-import { submissionService } from '@/services/submissionService';
-import { jobsService } from '@/services/jobsService'; 
 import { Header } from '@/components/Layout/MainLayout';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -20,108 +18,118 @@ import {
 } from "@/components/ui/hover-card";
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import JobApplicationInfo from '@/components/UI/JobApplicationInfo';
-import { ArrowLeft } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
+
+// Simplified candidate type that matches our database
+type Candidate = {
+  id: string;
+  full_name: string;
+  email: string;
+  phone?: string;
+  linkedin?: string;
+  current_job_title?: string;
+  years_experience?: string;
+  ai_rating?: number;
+  location?: string;
+  timestamp?: string;
+  source?: string;
+  skills?: string;
+  certifications?: string;
+  companies?: string;
+  job_titles?: string;
+  degrees?: string;
+  institutions?: string;
+  graduation_years?: string;
+  ai_summary?: string;
+  ai_content?: string;
+  experience_level?: string;
+};
 
 const CandidateProfile: React.FC = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { isAuthenticated, isLoading: authLoading } = useAuth();
   const [activeTab, setActiveTab] = useState<string>('details');
   const [candidate, setCandidate] = useState<Candidate | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
-  const [appliedJob, setAppliedJob] = useState<{id: string, title: string} | null>(null);
-  const [jobName, setJobName] = useState<string | null>(null);
   
   useEffect(() => {
-    const fetchCandidate = async () => {
-      if (!id) return;
-      
-      try {
-        setLoading(true);
-        const data = await candidatesService.getCandidateById(id);
-        setCandidate(data);
-        
-        // Fetch job application info if resume URL exists
-        if (data?.resume_url) {
-          fetchAppliedJob(data.resume_url);
-        }
-      } catch (error) {
-        console.error("Error fetching candidate:", error);
-        toast.error("Failed to load candidate profile");
-      } finally {
-        setLoading(false);
-      }
-    };
+    console.log('🔍 CandidateProfile - Auth state:', { isAuthenticated, authLoading, candidateId: id });
     
-    fetchCandidate();
-  }, [id]);
-
-  // Function to fetch job application information
-  const fetchAppliedJob = async (resumeUrl: string) => {
-    try {
-      // Extract submission ID from resume URL
-      const submissionId = extractSubmissionIdFromUrl(resumeUrl);
-      if (!submissionId) return;
-      
-      console.log("Found submission ID:", submissionId);
-      
-      // First check if job_id exists directly in the submission
-      const submission = await submissionService.getSubmissionById(submissionId);
-      
-      if (submission?.job_id) {
-        const jobData = await jobsService.getJobById(submission.job_id);
-        if (jobData) {
-          setAppliedJob({
-            id: jobData.id,
-            title: jobData.title
-          });
-          setJobName(jobData.title);
-          return;
-        }
+    if (!authLoading) {
+      if (!isAuthenticated) {
+        console.log('❌ User not authenticated, redirecting to login');
+        navigate(`/login?from=/candidates/${id}`);
+        return;
       }
       
-      // If not, try to get it from job_applications table
-      const jobApplication = await submissionService.getJobApplicationByCvLinkId(submissionId);
-      if (jobApplication?.job_id) {
-        // First try to use job_name from the job application if available
-        if (jobApplication.job_name) {
-          setAppliedJob({
-            id: jobApplication.job_id,
-            title: jobApplication.job_name
-          });
-          setJobName(jobApplication.job_name);
-          return;
-        }
-        
-        // If job_name is not available, fetch the job title from jobs table
-        const jobData = await jobsService.getJobById(jobApplication.job_id);
-        if (jobData) {
-          setAppliedJob({
-            id: jobData.id,
-            title: jobData.title
-          });
-          setJobName(jobData.title);
-        }
+      if (id) {
+        fetchCandidate();
       }
-    } catch (error) {
-      console.error("Error fetching job application info:", error);
     }
-  };
-  
-  // Helper function to extract submission ID from URL
-  const extractSubmissionIdFromUrl = (url: string): string | null => {
+  }, [id, isAuthenticated, authLoading, navigate]);
+
+  const fetchCandidate = async () => {
+    if (!id) return;
+    
     try {
-      const parts = url.split('/');
-      // Try to find a UUID pattern in the URL
-      for (const part of parts) {
-        if (/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(part)) {
-          return part;
-        }
+      setLoading(true);
+      console.log('📡 Fetching candidate with ID:', id);
+      
+      const { data, error } = await supabase
+        .from('candidates')
+        .select('*')
+        .eq('id', id)
+        .single();
+        
+      console.log('📊 Candidate fetch result:', { data, error });
+      
+      if (error) {
+        console.error('❌ Error fetching candidate:', error);
+        toast.error('Failed to load candidate profile');
+        return;
       }
-      return null;
-    } catch (error) {
-      console.error('Error extracting submission ID:', error);
-      return null;
+      
+      if (!data) {
+        console.log('⚠️ No candidate found with ID:', id);
+        toast.error('Candidate not found');
+        return;
+      }
+
+      // Transform data to match our component expectations
+      const transformedCandidate: Candidate = {
+        id: data.id,
+        full_name: data.full_name || 'Unknown',
+        email: data.email || '',
+        phone: data.phone,
+        linkedin: data.linkedin,
+        current_job_title: data.current_job_title,
+        years_experience: data.years_experience,
+        ai_rating: data.ai_rating || 0,
+        location: data.location,
+        timestamp: data.timestamp,
+        source: data.source,
+        skills: data.skills,
+        certifications: data.certifications,
+        companies: data.companies,
+        job_titles: data.job_titles,
+        degrees: data.degrees,
+        institutions: data.institutions,
+        graduation_years: data.graduation_years,
+        ai_summary: data.ai_summary,
+        ai_content: data.ai_content,
+        experience_level: data.experience_level
+      };
+
+      console.log('✅ Successfully loaded candidate:', transformedCandidate.full_name);
+      setCandidate(transformedCandidate);
+      
+    } catch (error: any) {
+      console.error("💥 Error fetching candidate:", error);
+      toast.error(`Failed to load candidate profile: ${error.message}`);
+    } finally {
+      setLoading(false);
     }
   };
   
@@ -135,81 +143,47 @@ const CandidateProfile: React.FC = () => {
     return 'bg-red-100 text-red-800';
   };
 
-  // Parse skills as array 
-  const skills = candidate?.skills ? candidate.skills.split(',').map(skill => skill.trim()) : [];
+  // Parse arrays from comma-separated strings
+  const parseCommaSeparatedString = (str?: string): string[] => {
+    return str ? str.split(',').map(item => item.trim()).filter(Boolean) : [];
+  };
 
-  // Parse previous companies as array
-  const companies = candidate?.companies ? candidate.companies.split(',').map(company => company.trim()) : [];
+  const skills = parseCommaSeparatedString(candidate?.skills);
+  const companies = parseCommaSeparatedString(candidate?.companies);
+  const jobTitles = parseCommaSeparatedString(candidate?.job_titles);
+  const degrees = parseCommaSeparatedString(candidate?.degrees);
+  const institutions = parseCommaSeparatedString(candidate?.institutions);
+  const certifications = parseCommaSeparatedString(candidate?.certifications);
 
-  // Parse job titles as array
-  const jobTitles = candidate?.job_titles ? candidate.job_titles.split(',').map(title => title.trim()) : [];
-
-  // Parse degrees as array
-  const degrees = candidate?.degrees ? candidate.degrees.split(',').map(degree => degree.trim()) : [];
-
-  // Parse institutions as array
-  const institutions = candidate?.institutions ? candidate.institutions.split(',').map(institution => institution.trim()) : [];
-
-  // Parse certifications as array
-  const certifications = candidate?.certifications ? candidate.certifications.split(',').map(cert => cert.trim()) : [];
+  if (authLoading || loading) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <Loader2 className="h-8 w-8 animate-spin text-primary-100" />
+      </div>
+    );
+  }
 
   if (!id) {
     return (
       <div className="p-8 text-center">
         <p className="text-lg font-medium">Invalid candidate ID</p>
-        <Button 
-          onClick={() => navigate('/candidates')}
-          className="mt-4"
-        >
+        <Button onClick={() => navigate('/candidates')} className="mt-4">
           Return to Candidates
         </Button>
       </div>
     );
   }
 
-  // Rendering Application Status card with job name
-  const renderApplicationStatusCard = () => {
+  if (!candidate) {
     return (
-      <Card className="border-none shadow-md bg-white">
-        <CardContent className="p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold">Application Status</h3>
-            <span className={`px-2 py-1 text-xs rounded-full 
-              ${candidate?.status === 'New' ? 'bg-blue-100 text-blue-800' : 
-                candidate?.status === 'Screening' ? 'bg-purple-100 text-purple-800' :
-                candidate?.status === 'Interview' ? 'bg-yellow-100 text-yellow-800' :
-                candidate?.status === 'Assessment' ? 'bg-orange-100 text-orange-800' :
-                candidate?.status === 'Offer' ? 'bg-green-100 text-green-800' :
-                candidate?.status === 'Hired' ? 'bg-green-200 text-green-900' :
-                'bg-gray-100 text-gray-800'
-              }`}
-            >
-              {candidate?.status || 'New'}
-            </span>
-          </div>
-          
-          <div className="space-y-2">
-            {candidate?.applied_date && (
-              <p className="text-sm text-gray-500">
-                Applied on: {new Date(candidate.applied_date).toLocaleDateString()}
-              </p>
-            )}
-            
-            {/* Display the job name prominently */}
-            {jobName && (
-              <div className="mt-2 p-3 bg-primary-50 rounded-md border border-primary-100">
-                <p className="text-sm font-medium flex items-center gap-2">
-                  <Briefcase size={16} className="text-primary-100" />
-                  <span>Applied Position:</span> 
-                  <span className="text-primary-900 font-semibold">{jobName}</span>
-                </p>
-              </div>
-            )}
-          </div>
-        </CardContent>
-      </Card>
+      <div className="p-8 text-center">
+        <p className="text-lg font-medium">Candidate not found</p>
+        <Button onClick={() => navigate('/candidates')} className="mt-4">
+          Return to Candidates
+        </Button>
+      </div>
     );
-  };
+  }
 
   const renderSkillTags = () => {
     return skills.map((skill, index) => (
@@ -224,7 +198,7 @@ const CandidateProfile: React.FC = () => {
       <div className="sticky top-0 z-10 bg-background pb-4">
         <Header 
           title="Candidate Profile" 
-          subtitle={loading ? "Loading candidate information..." : `Viewing profile for ${candidate?.full_name || 'Unknown candidate'}`}
+          subtitle={`Viewing profile for ${candidate.full_name}`}
         />
         <div className="ml-4 mt-2">
           <Button 
@@ -238,436 +212,334 @@ const CandidateProfile: React.FC = () => {
         </div>
       </div>
       
-      {loading ? (
-        <div className="p-6 bg-background">
-          <div className="flex flex-col md:flex-row gap-6">
-            {/* Left column skeleton */}
-            <div className="w-full md:w-1/3 space-y-6">
-              <Card>
-                <CardContent className="p-6">
-                  <Skeleton className="h-8 w-3/4 mb-2" />
-                  <Skeleton className="h-4 w-1/2 mb-6" />
-                  <div className="space-y-4">
-                    <Skeleton className="h-4 w-full" />
-                    <Skeleton className="h-4 w-full" />
-                    <Skeleton className="h-4 w-full" />
+      <div className="p-6 bg-background">
+        <div className="flex flex-col md:flex-row gap-6">
+          {/* Left column - Basic info */}
+          <div className="w-full md:w-1/3 space-y-6">
+            <Card className="border-none shadow-md hover:shadow-lg transition-shadow bg-white">
+              <CardContent className="p-6">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <h2 className="text-2xl font-bold">{candidate.full_name}</h2>
+                    <p className="text-gray-500">{candidate.current_job_title || 'Job Seeker'}</p>
                   </div>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardContent className="p-6">
-                  <Skeleton className="h-6 w-1/3 mb-4" />
-                  <Skeleton className="h-4 w-full" />
-                </CardContent>
-              </Card>
-            </div>
-            
-            {/* Right column skeleton */}
-            <div className="w-full md:w-2/3">
-              <Card>
-                <CardContent className="p-6">
-                  <Skeleton className="h-8 w-1/4 mb-4" />
-                  <Skeleton className="h-4 w-full mb-2" />
-                  <Skeleton className="h-4 w-full mb-2" />
-                  <Skeleton className="h-4 w-3/4" />
-                </CardContent>
-              </Card>
-            </div>
-          </div>
-        </div>
-      ) : candidate ? (
-        <div className="p-6 bg-background">
-          <div className="flex flex-col md:flex-row gap-6">
-            {/* Left column - Basic info */}
-            <div className="w-full md:w-1/3 space-y-6">
-              <Card className="border-none shadow-md hover:shadow-lg transition-shadow bg-white">
-                <CardContent className="p-6">
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <h2 className="text-2xl font-bold">{candidate.full_name}</h2>
-                      <p className="text-gray-500">{candidate.current_job_title || 'Job Seeker'}</p>
 
-                      {/* Show Applied Job Name if available */}
-                      {(appliedJob?.title || jobName) && (
-                        <p className="text-sm text-primary-600 mt-2 flex items-center bg-primary-50 p-1.5 px-2 rounded-md">
-                          <Briefcase size={14} className="mr-1.5 text-primary-700" />
-                          <span className="font-medium">Applied for:</span>
-                          <span className="ml-1.5 font-semibold">{appliedJob?.title || jobName}</span>
-                        </p>
-                      )}
-                    </div>
-
-                    <div className={`px-3 py-1 rounded-full text-sm font-medium ${getAnalysisColor(candidate.rating)}`}>
-                      {candidate.rating}/10
-                    </div>
+                  <div className={`px-3 py-1 rounded-full text-sm font-medium ${getAnalysisColor(candidate.ai_rating || 0)}`}>
+                    {candidate.ai_rating || 0}/10
+                  </div>
+                </div>
+                
+                <div className="mt-6 space-y-4">
+                  <div className="flex items-center bg-gray-50 p-2 rounded-md hover:bg-gray-100 transition-colors">
+                    <Mail className="w-5 h-5 mr-3 text-primary-100" />
+                    <a href={`mailto:${candidate.email}`} className="text-primary-100 hover:underline">
+                      {candidate.email}
+                    </a>
                   </div>
                   
-                  {/* Add job application information */}
-                  {(candidate.resume_url || appliedJob) && (
-                    <div className="mt-4">
-                      <JobApplicationInfo 
-                        resumeUrl={candidate.resume_url} 
-                        candidateId={id}
-                        appliedJob={appliedJob}
-                      />
+                  {candidate.phone && (
+                    <div className="flex items-center bg-gray-50 p-2 rounded-md hover:bg-gray-100 transition-colors">
+                      <Phone className="w-5 h-5 mr-3 text-primary-100" />
+                      <span>{candidate.phone}</span>
                     </div>
                   )}
                   
-                  <div className="mt-6 space-y-4">
+                  {candidate.location && (
                     <div className="flex items-center bg-gray-50 p-2 rounded-md hover:bg-gray-100 transition-colors">
-                      <Mail className="w-5 h-5 mr-3 text-primary-100" />
-                      <a href={`mailto:${candidate.email}`} className="text-primary-100 hover:underline">
-                        {candidate.email}
+                      <MapPin className="w-5 h-5 mr-3 text-primary-100" />
+                      <span>{candidate.location}</span>
+                    </div>
+                  )}
+                  
+                  {candidate.linkedin && (
+                    <div className="flex items-center bg-gray-50 p-2 rounded-md hover:bg-gray-100 transition-colors">
+                      <Linkedin className="w-5 h-5 mr-3 text-primary-100" />
+                      <a 
+                        href={candidate.linkedin.startsWith('http') ? candidate.linkedin : `https://${candidate.linkedin}`} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="text-primary-100 hover:underline"
+                      >
+                        LinkedIn Profile
                       </a>
                     </div>
-                    
-                    {candidate.phone && (
-                      <div className="flex items-center bg-gray-50 p-2 rounded-md hover:bg-gray-100 transition-colors">
-                        <Phone className="w-5 h-5 mr-3 text-primary-100" />
-                        <span>{candidate.phone}</span>
-                      </div>
-                    )}
-                    
-                    {candidate.location && (
-                      <div className="flex items-center bg-gray-50 p-2 rounded-md hover:bg-gray-100 transition-colors">
-                        <MapPin className="w-5 h-5 mr-3 text-primary-100" />
-                        <span>{candidate.location}</span>
-                      </div>
-                    )}
-                    
-                    {candidate.linkedin && (
-                      <div className="flex items-center bg-gray-50 p-2 rounded-md hover:bg-gray-100 transition-colors">
-                        <Linkedin className="w-5 h-5 mr-3 text-primary-100" />
-                        <a 
-                          href={candidate.linkedin.startsWith('http') ? candidate.linkedin : `https://${candidate.linkedin}`} 
-                          target="_blank" 
-                          rel="noopener noreferrer"
-                          className="text-primary-100 hover:underline"
-                        >
-                          LinkedIn Profile
-                        </a>
-                      </div>
-                    )}
-                    
-                    {candidate.years_experience && (
-                      <div className="flex items-center bg-gray-50 p-2 rounded-md hover:bg-gray-100 transition-colors">
-                        <Briefcase className="w-5 h-5 mr-3 text-primary-100" />
-                        <span>{candidate.years_experience} Years Experience</span>
-                      </div>
-                    )}
-                    
-                    {candidate.applied_date && (
-                      <div className="flex items-center bg-gray-50 p-2 rounded-md hover:bg-gray-100 transition-colors">
-                        <Calendar className="w-5 h-5 mr-3 text-primary-100" />
-                        <span>Applied: {new Date(candidate.applied_date).toLocaleDateString()}</span>
-                      </div>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-              
-              {/* Application Status Card */}
-              {renderApplicationStatusCard()}
-              
-              <Card className="border-none shadow-md bg-white">
-                <CardContent className="p-6">
-                  <h3 className="text-lg font-semibold mb-4">AI Analysis</h3>
-                  <div className="flex items-center mb-4">
-                    <div className="w-full bg-gray-200 rounded-full h-2.5">
-                      <div 
-                        className={`h-2.5 rounded-full ${
-                          candidate.rating >= 8 ? 'bg-green-500' :
-                          candidate.rating >= 5 ? 'bg-yellow-500' : 'bg-red-500'
-                        }`}
-                        style={{ width: `${(candidate.rating / 10) * 100}%` }}
-                      ></div>
+                  )}
+                  
+                  {candidate.years_experience && (
+                    <div className="flex items-center bg-gray-50 p-2 rounded-md hover:bg-gray-100 transition-colors">
+                      <Briefcase className="w-5 h-5 mr-3 text-primary-100" />
+                      <span>{candidate.years_experience} Years Experience</span>
                     </div>
-                    <span className={`ml-3 font-medium ${
-                      candidate.rating >= 8 ? 'text-green-700' :
-                      candidate.rating >= 5 ? 'text-yellow-700' : 'text-red-700'
-                    }`}>
-                      {candidate.rating}/10
-                    </span>
-                  </div>
-                  <Button
-                    onClick={() => setActiveTab('ai')}
-                    variant="outline"
-                    className="w-full mt-2 gap-2 bg-white hover:bg-gray-50"
-                  >
-                    <FileText size={16} />
-                    View AI Analysis
-                  </Button>
-                </CardContent>
-              </Card>
-            </div>
+                  )}
+                  
+                  {candidate.timestamp && (
+                    <div className="flex items-center bg-gray-50 p-2 rounded-md hover:bg-gray-100 transition-colors">
+                      <Calendar className="w-5 h-5 mr-3 text-primary-100" />
+                      <span>Added: {new Date(candidate.timestamp).toLocaleDateString()}</span>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
             
-            {/* Right column - Detailed info */}
-            <div className="w-full md:w-2/3">
-              <Tabs 
-                defaultValue="details"
-                value={activeTab}
-                onValueChange={setActiveTab}
-                className="w-full"
-              >
-                <TabsList className="grid w-full grid-cols-2 bg-gray-100">
-                  <TabsTrigger value="details" className="flex items-center gap-2 data-[state=active]:bg-white">
-                    <User size={16} /> Profile Details
-                  </TabsTrigger>
-                  <TabsTrigger value="ai" className="flex items-center gap-2 data-[state=active]:bg-white">
-                    <Star size={16} /> AI Analysis
-                  </TabsTrigger>
-                </TabsList>
-                
-                <TabsContent value="details" className="mt-6 space-y-6">
-                  {/* Professional Summary */}
-                  {candidate.notes && (
-                    <Card className="border-none shadow-sm hover:shadow-md transition-shadow bg-white">
-                      <CardHeader className="pb-2">
-                        <CardTitle className="text-lg font-semibold">Professional Summary</CardTitle>
-                      </CardHeader>
-                      <CardContent className="pt-0">
-                        <p className="text-gray-700">{candidate.notes}</p>
-                      </CardContent>
-                    </Card>
-                  )}
-                  
-                  {/* Expertise/Skills */}
-                  {skills.length > 0 && (
-                    <Card className="border-none shadow-sm hover:shadow-md transition-shadow bg-white">
-                      <CardHeader className="pb-2">
-                        <CardTitle className="text-lg font-semibold">Skills & Expertise</CardTitle>
-                      </CardHeader>
-                      <CardContent className="pt-0">
-                        <div className="flex flex-wrap">{renderSkillTags()}</div>
-                      </CardContent>
-                    </Card>
-                  )}
-                  
-                  {/* Work History */}
-                  {(jobTitles.length > 0 || companies.length > 0) && (
-                    <Card className="border-none shadow-sm hover:shadow-md transition-shadow bg-white">
-                      <CardHeader className="pb-2">
-                        <CardTitle className="text-lg font-semibold">Work History</CardTitle>
-                      </CardHeader>
-                      <CardContent className="pt-0">
-                        <div className="space-y-4">
-                          {jobTitles.length > 0 && (
-                            <div className="flex items-start">
-                              <Briefcase className="w-5 h-5 mr-3 text-primary-100 mt-0.5" />
-                              <div>
-                                <h4 className="text-sm font-medium text-gray-600">Previous Job Titles</h4>
-                                <div className="flex flex-wrap gap-2 mt-1">
-                                  {jobTitles.map((title, index) => (
-                                    <Badge key={index} variant="secondary" className="bg-gray-100">{title}</Badge>
-                                  ))}
-                                </div>
-                              </div>
-                            </div>
-                          )}
-                          
-                          {companies.length > 0 && (
-                            <div className="flex items-start">
-                              <Building className="w-5 h-5 mr-3 text-primary-100 mt-0.5" />
-                              <div>
-                                <h4 className="text-sm font-medium text-gray-600">Companies</h4>
-                                <div className="flex flex-wrap gap-2 mt-1">
-                                  {companies.map((company, index) => (
-                                    <Badge key={index} variant="outline">{company}</Badge>
-                                  ))}
-                                </div>
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      </CardContent>
-                    </Card>
-                  )}
-                  
-                  {/* Education */}
-                  {(degrees.length > 0 || institutions.length > 0) && (
-                    <Card className="border-none shadow-sm hover:shadow-md transition-shadow bg-white">
-                      <CardHeader className="pb-2">
-                        <CardTitle className="text-lg font-semibold">Education</CardTitle>
-                      </CardHeader>
-                      <CardContent className="pt-0">
-                        <div className="space-y-4">
-                          {degrees.length > 0 && (
-                            <div className="flex items-start">
-                              <GraduationCap className="w-5 h-5 mr-3 text-primary-100 mt-0.5" />
-                              <div>
-                                <h4 className="text-sm font-medium text-gray-600">Degrees</h4>
-                                <div className="flex flex-wrap gap-2 mt-1">
-                                  {degrees.map((degree, index) => (
-                                    <Badge key={index} variant="secondary" className="bg-gray-100">{degree}</Badge>
-                                  ))}
-                                </div>
-                              </div>
-                            </div>
-                          )}
-                          
-                          {institutions.length > 0 && (
-                            <div className="flex items-start">
-                              <BookOpen className="w-5 h-5 mr-3 text-primary-100 mt-0.5" />
-                              <div>
-                                <h4 className="text-sm font-medium text-gray-600">Institutions</h4>
-                                <div className="flex flex-wrap gap-2 mt-1">
-                                  {institutions.map((institution, index) => (
-                                    <Badge key={index} variant="outline">{institution}</Badge>
-                                  ))}
-                                </div>
-                              </div>
-                            </div>
-                          )}
-                          
-                          {candidate.graduation_years && (
-                            <div className="flex items-start">
-                              <Calendar className="w-5 h-5 mr-3 text-primary-100 mt-0.5" />
-                              <div>
-                                <h4 className="text-sm font-medium text-gray-600">Graduation Years</h4>
-                                <p className="text-gray-700">{candidate.graduation_years}</p>
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      </CardContent>
-                    </Card>
-                  )}
-                  
-                  {/* Certifications */}
-                  {certifications.length > 0 && (
-                    <Card className="border-none shadow-sm hover:shadow-md transition-shadow bg-white">
-                      <CardHeader className="pb-2">
-                        <CardTitle className="text-lg font-semibold">Certifications</CardTitle>
-                      </CardHeader>
-                      <CardContent className="pt-0">
-                        <div className="flex items-start">
-                          <Award className="w-5 h-5 mr-3 text-primary-100 mt-0.5" />
-                          <div className="flex flex-wrap gap-2">
-                            {certifications.map((cert, index) => (
-                              <Badge key={index} variant="outline">{cert}</Badge>
-                            ))}
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  )}
-                  
-                  {/* Experience Level */}
-                  {candidate.experience_level && (
-                    <Card className="border-none shadow-sm hover:shadow-md transition-shadow bg-white">
-                      <CardHeader className="pb-2">
-                        <CardTitle className="text-lg font-semibold">Experience Level</CardTitle>
-                      </CardHeader>
-                      <CardContent className="pt-0">
-                        <div className="flex items-center gap-2">
-                          <Briefcase className="text-primary-100" size={18} />
-                          <span className="text-gray-700">{candidate.experience_level}</span>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  )}
-                  
-                  {/* Notes */}
+            <Card className="border-none shadow-md bg-white">
+              <CardContent className="p-6">
+                <h3 className="text-lg font-semibold mb-4">AI Analysis</h3>
+                <div className="flex items-center mb-4">
+                  <div className="w-full bg-gray-200 rounded-full h-2.5">
+                    <div 
+                      className={`h-2.5 rounded-full ${
+                        (candidate.ai_rating || 0) >= 8 ? 'bg-green-500' :
+                        (candidate.ai_rating || 0) >= 5 ? 'bg-yellow-500' : 'bg-red-500'
+                      }`}
+                      style={{ width: `${((candidate.ai_rating || 0) / 10) * 100}%` }}
+                    ></div>
+                  </div>
+                  <span className={`ml-3 font-medium ${
+                    (candidate.ai_rating || 0) >= 8 ? 'text-green-700' :
+                    (candidate.ai_rating || 0) >= 5 ? 'text-yellow-700' : 'text-red-700'
+                  }`}>
+                    {candidate.ai_rating || 0}/10
+                  </span>
+                </div>
+                <Button
+                  onClick={() => setActiveTab('ai')}
+                  variant="outline"
+                  className="w-full mt-2 gap-2 bg-white hover:bg-gray-50"
+                >
+                  <FileText size={16} />
+                  View AI Analysis
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+          
+          {/* Right column - Detailed info */}
+          <div className="w-full md:w-2/3">
+            <Tabs 
+              defaultValue="details"
+              value={activeTab}
+              onValueChange={setActiveTab}
+              className="w-full"
+            >
+              <TabsList className="grid w-full grid-cols-2 bg-gray-100">
+                <TabsTrigger value="details" className="flex items-center gap-2 data-[state=active]:bg-white">
+                  <User size={16} /> Profile Details
+                </TabsTrigger>
+                <TabsTrigger value="ai" className="flex items-center gap-2 data-[state=active]:bg-white">
+                  <Star size={16} /> AI Analysis
+                </TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="details" className="mt-6 space-y-6">
+                {/* Skills */}
+                {skills.length > 0 && (
                   <Card className="border-none shadow-sm hover:shadow-md transition-shadow bg-white">
                     <CardHeader className="pb-2">
-                      <div className="flex justify-between items-center">
-                        <CardTitle className="text-lg font-semibold">Notes</CardTitle>
-                      </div>
+                      <CardTitle className="text-lg font-semibold">Skills & Expertise</CardTitle>
                     </CardHeader>
                     <CardContent className="pt-0">
-                      <div className="bg-gray-50 rounded-lg p-4 border">
-                        {candidate.notes ? (
-                          <div className="text-gray-700">{candidate.notes}</div>
-                        ) : (
-                          <div className="text-gray-400 italic">No notes have been added yet.</div>
-                        )}
-                      </div>
+                      <div className="flex flex-wrap">{renderSkillTags()}</div>
                     </CardContent>
                   </Card>
-                </TabsContent>
+                )}
                 
-                <TabsContent value="ai" className="mt-6">
-                  <Card className="border-none shadow-md overflow-hidden bg-white">
-                    <CardContent className="p-6">
-                      <div className="flex items-center justify-between mb-6">
-                        <h3 className="text-lg font-semibold flex items-center gap-2">
-                          <Star className="text-primary-100" size={18} />
-                          AI Analysis
-                        </h3>
-                        <HoverCard>
-                          <HoverCardTrigger asChild>
-                            <div className={`flex items-center cursor-help px-3 py-1 rounded-full ${getAnalysisColor(candidate.rating)}`}>
-                              <span className="text-lg font-bold">{candidate.rating}</span>
-                              <span className="text-sm ml-1">/10</span>
-                            </div>
-                          </HoverCardTrigger>
-                          <HoverCardContent className="w-80 bg-white">
-                            <div className="space-y-2">
-                              <h4 className="font-medium">AI Analysis Score Explained</h4>
-                              <p className="text-sm text-gray-500">
-                                The AI Analysis score evaluates the candidate's fit based on skills, experience, 
-                                education, and overall match to the job requirements. A score above 7 
-                                indicates a strong candidate.
-                              </p>
-                            </div>
-                          </HoverCardContent>
-                        </HoverCard>
-                      </div>
-                      
-                      <div className="space-y-6">
-                        {/* AI Summary */}
-                        {candidate.ai_summary && (
-                          <div className="animate-fade-in">
-                            <h4 className="font-medium mb-2 flex items-center gap-2">
-                              <MessageCircle size={16} className="text-primary-100" />
-                              Summary Analysis
-                            </h4>
-                            <div className="bg-gray-50 rounded-lg p-4 border">
-                              <p className="text-gray-700 whitespace-pre-line">{candidate.ai_summary}</p>
+                {/* Work History */}
+                {(jobTitles.length > 0 || companies.length > 0) && (
+                  <Card className="border-none shadow-sm hover:shadow-md transition-shadow bg-white">
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-lg font-semibold">Work History</CardTitle>
+                    </CardHeader>
+                    <CardContent className="pt-0">
+                      <div className="space-y-4">
+                        {jobTitles.length > 0 && (
+                          <div className="flex items-start">
+                            <Briefcase className="w-5 h-5 mr-3 text-primary-100 mt-0.5" />
+                            <div>
+                              <h4 className="text-sm font-medium text-gray-600">Previous Job Titles</h4>
+                              <div className="flex flex-wrap gap-2 mt-1">
+                                {jobTitles.map((title, index) => (
+                                  <Badge key={index} variant="secondary" className="bg-gray-100">{title}</Badge>
+                                ))}
+                              </div>
                             </div>
                           </div>
                         )}
                         
-                        {/* AI Content (full analysis) */}
-                        {candidate.ai_content && (
-                          <div className="mt-6 animate-fade-in">
-                            <h4 className="font-medium mb-2 flex items-center gap-2">
-                              <FileText size={16} className="text-primary-100" />
-                              Detailed Analysis
-                            </h4>
-                            <div className="bg-gray-50 rounded-lg p-4 border max-h-96 overflow-y-auto">
-                              <pre className="text-gray-700 whitespace-pre-line font-sans">{candidate.ai_content}</pre>
+                        {companies.length > 0 && (
+                          <div className="flex items-start">
+                            <Building className="w-5 h-5 mr-3 text-primary-100 mt-0.5" />
+                            <div>
+                              <h4 className="text-sm font-medium text-gray-600">Companies</h4>
+                              <div className="flex flex-wrap gap-2 mt-1">
+                                {companies.map((company, index) => (
+                                  <Badge key={index} variant="outline">{company}</Badge>
+                                ))}
+                              </div>
                             </div>
-                          </div>
-                        )}
-                        
-                        {/* Placeholder if no AI data */}
-                        {!candidate.ai_summary && !candidate.ai_content && (
-                          <div className="text-center py-10">
-                            <div className="text-4xl mb-4 opacity-30">🤖</div>
-                            <h3 className="text-lg font-medium mb-2">No AI analysis available</h3>
-                            <p className="text-gray-500 mb-6">This candidate hasn't been analyzed by the AI system yet.</p>
                           </div>
                         )}
                       </div>
                     </CardContent>
                   </Card>
-                </TabsContent>
-              </Tabs>
-            </div>
+                )}
+                
+                {/* Education */}
+                {(degrees.length > 0 || institutions.length > 0) && (
+                  <Card className="border-none shadow-sm hover:shadow-md transition-shadow bg-white">
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-lg font-semibold">Education</CardTitle>
+                    </CardHeader>
+                    <CardContent className="pt-0">
+                      <div className="space-y-4">
+                        {degrees.length > 0 && (
+                          <div className="flex items-start">
+                            <GraduationCap className="w-5 h-5 mr-3 text-primary-100 mt-0.5" />
+                            <div>
+                              <h4 className="text-sm font-medium text-gray-600">Degrees</h4>
+                              <div className="flex flex-wrap gap-2 mt-1">
+                                {degrees.map((degree, index) => (
+                                  <Badge key={index} variant="secondary" className="bg-gray-100">{degree}</Badge>
+                                ))}
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                        
+                        {institutions.length > 0 && (
+                          <div className="flex items-start">
+                            <BookOpen className="w-5 h-5 mr-3 text-primary-100 mt-0.5" />
+                            <div>
+                              <h4 className="text-sm font-medium text-gray-600">Institutions</h4>
+                              <div className="flex flex-wrap gap-2 mt-1">
+                                {institutions.map((institution, index) => (
+                                  <Badge key={index} variant="outline">{institution}</Badge>
+                                ))}
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                        
+                        {candidate.graduation_years && (
+                          <div className="flex items-start">
+                            <Calendar className="w-5 h-5 mr-3 text-primary-100 mt-0.5" />
+                            <div>
+                              <h4 className="text-sm font-medium text-gray-600">Graduation Years</h4>
+                              <p className="text-gray-700">{candidate.graduation_years}</p>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+                
+                {/* Certifications */}
+                {certifications.length > 0 && (
+                  <Card className="border-none shadow-sm hover:shadow-md transition-shadow bg-white">
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-lg font-semibold">Certifications</CardTitle>
+                    </CardHeader>
+                    <CardContent className="pt-0">
+                      <div className="flex items-start">
+                        <Award className="w-5 h-5 mr-3 text-primary-100 mt-0.5" />
+                        <div className="flex flex-wrap gap-2">
+                          {certifications.map((cert, index) => (
+                            <Badge key={index} variant="outline">{cert}</Badge>
+                          ))}
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+                
+                {/* Experience Level */}
+                {candidate.experience_level && (
+                  <Card className="border-none shadow-sm hover:shadow-md transition-shadow bg-white">
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-lg font-semibold">Experience Level</CardTitle>
+                    </CardHeader>
+                    <CardContent className="pt-0">
+                      <div className="flex items-center gap-2">
+                        <Briefcase className="text-primary-100" size={18} />
+                        <span className="text-gray-700">{candidate.experience_level}</span>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+              </TabsContent>
+              
+              <TabsContent value="ai" className="mt-6">
+                <Card className="border-none shadow-md overflow-hidden bg-white">
+                  <CardContent className="p-6">
+                    <div className="flex items-center justify-between mb-6">
+                      <h3 className="text-lg font-semibold flex items-center gap-2">
+                        <Star className="text-primary-100" size={18} />
+                        AI Analysis
+                      </h3>
+                      <HoverCard>
+                        <HoverCardTrigger asChild>
+                          <div className={`flex items-center cursor-help px-3 py-1 rounded-full ${getAnalysisColor(candidate.ai_rating || 0)}`}>
+                            <span className="text-lg font-bold">{candidate.ai_rating || 0}</span>
+                            <span className="text-sm ml-1">/10</span>
+                          </div>
+                        </HoverCardTrigger>
+                        <HoverCardContent className="w-80 bg-white">
+                          <div className="space-y-2">
+                            <h4 className="font-medium">AI Analysis Score Explained</h4>
+                            <p className="text-sm text-gray-500">
+                              The AI Analysis score evaluates the candidate's fit based on skills, experience, 
+                              education, and overall match to job requirements. A score above 7 
+                              indicates a strong candidate.
+                            </p>
+                          </div>
+                        </HoverCardContent>
+                      </HoverCard>
+                    </div>
+                    
+                    <div className="space-y-6">
+                      {/* AI Summary */}
+                      {candidate.ai_summary && (
+                        <div className="animate-fade-in">
+                          <h4 className="font-medium mb-2 flex items-center gap-2">
+                            <MessageCircle size={16} className="text-primary-100" />
+                            Summary Analysis
+                          </h4>
+                          <div className="bg-gray-50 rounded-lg p-4 border">
+                            <p className="text-gray-700 whitespace-pre-line">{candidate.ai_summary}</p>
+                          </div>
+                        </div>
+                      )}
+                      
+                      {/* AI Content (full analysis) */}
+                      {candidate.ai_content && (
+                        <div className="mt-6 animate-fade-in">
+                          <h4 className="font-medium mb-2 flex items-center gap-2">
+                            <FileText size={16} className="text-primary-100" />
+                            Detailed Analysis
+                          </h4>
+                          <div className="bg-gray-50 rounded-lg p-4 border max-h-96 overflow-y-auto">
+                            <pre className="text-gray-700 whitespace-pre-line font-sans">{candidate.ai_content}</pre>
+                          </div>
+                        </div>
+                      )}
+                      
+                      {/* Placeholder if no AI data */}
+                      {!candidate.ai_summary && !candidate.ai_content && (
+                        <div className="text-center py-10">
+                          <div className="text-4xl mb-4 opacity-30">🤖</div>
+                          <h3 className="text-lg font-medium mb-2">No AI analysis available</h3>
+                          <p className="text-gray-500 mb-6">This candidate hasn't been analyzed by the AI system yet.</p>
+                        </div>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+            </Tabs>
           </div>
         </div>
-      ) : (
-        <div className="p-8 text-center">
-          <p className="text-lg font-medium">Candidate not found</p>
-          <Button 
-            onClick={() => navigate('/candidates')}
-            className="mt-4"
-          >
-            Return to Candidates
-          </Button>
-        </div>
-      )}
+      </div>
     </div>
   );
 };

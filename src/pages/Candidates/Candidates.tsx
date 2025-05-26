@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Header } from '@/components/Layout/MainLayout';
@@ -76,9 +75,14 @@ const Candidates: React.FC = () => {
   useEffect(() => {
     console.log('🔍 Auth state check - authenticated:', isAuthenticated, 'loading:', authLoading);
     if (!authLoading) {
+      if (!isAuthenticated) {
+        console.log('❌ User not authenticated, redirecting to login');
+        navigate('/login');
+        return;
+      }
       fetchCandidates();
     }
-  }, [isAuthenticated, authLoading]);
+  }, [isAuthenticated, authLoading, navigate]);
 
   // Simplified polling every 3 seconds
   useEffect(() => {
@@ -222,6 +226,7 @@ const Candidates: React.FC = () => {
   };
 
   const handleView = (id: string) => {
+    console.log('🔍 Navigating to candidate profile:', id);
     navigate(`/candidates/${id}`);
   };
 
@@ -442,7 +447,6 @@ const Candidates: React.FC = () => {
                 phone: candidate.phone || '',
                 rating: candidate.ai_rating || 0,
                 current_job_title: candidate.current_job_title || '',
-                skills: '', // Removed skills to avoid issues
                 years_experience: candidate.years_experience?.toString() || ''
               }}
               onEdit={handleEdit}
@@ -485,7 +489,11 @@ const Candidates: React.FC = () => {
             <TableBody>
               {filteredCandidates.length > 0 ? (
                 filteredCandidates.map(candidate => (
-                  <TableRow key={candidate.id} onClick={() => handleView(candidate.id)} className="cursor-pointer hover:bg-gray-50">
+                  <TableRow 
+                    key={candidate.id} 
+                    onClick={() => handleView(candidate.id)} 
+                    className="cursor-pointer hover:bg-gray-50"
+                  >
                     <TableCell className="font-medium">{candidate.full_name}</TableCell>
                     <TableCell>{candidate.email}</TableCell>
                     <TableCell className="hidden md:table-cell">{candidate.phone || '-'}</TableCell>

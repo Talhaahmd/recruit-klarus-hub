@@ -93,6 +93,7 @@ const CandidateCard: React.FC<CandidateCardProps> = ({
   const handleCardClick = (e: React.MouseEvent) => {
     // Prevent navigation if clicking on action buttons
     if ((e.target as Element).closest('button')) return;
+    console.log('🔍 Card clicked, navigating to profile:', candidate.id);
     onView(candidate.id);
   };
 
