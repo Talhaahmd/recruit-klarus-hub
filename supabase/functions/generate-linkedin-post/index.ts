@@ -1,4 +1,3 @@
-
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
@@ -209,7 +208,7 @@ Recent industry content for reference:
 ${rssContent}
 
 CRITICAL REQUIREMENTS:
-- Keep the post STRICTLY under 1800 characters (much shorter than before)
+- Keep the post STRICTLY under 1300 characters (very short and punchy)
 - Write a ${tone.toLowerCase()} LinkedIn post about ${niche}
 - Make it engaging but concise
 - Include 3-4 relevant hashtags
@@ -225,7 +224,7 @@ CRITICAL REQUIREMENTS:
 - Write naturally without any formatting symbols
 - Make it punchy and to the point
 
-The post should feel authentic and provide value to the LinkedIn audience. Remember: STAY UNDER 1800 CHARACTERS and NO ASTERISKS OR MARKDOWN FORMATTING.`;
+The post should feel authentic and provide value to the LinkedIn audience. Remember: STAY UNDER 1300 CHARACTERS and NO ASTERISKS OR MARKDOWN FORMATTING.`;
 
     console.log('Generating post content with ChatGPT...');
 
@@ -240,11 +239,11 @@ The post should feel authentic and provide value to the LinkedIn audience. Remem
         messages: [
           { 
             role: 'system', 
-            content: 'You are a professional LinkedIn content creator who creates engaging, valuable posts that resonate with professional audiences. Always maintain the specified tone, include relevant hashtags, and CRITICALLY IMPORTANT: keep posts under 1800 characters to ensure they are concise and impactful. NEVER use asterisks (*) or any markdown formatting - use plain text only. Write headings as normal text without any special formatting characters.' 
+            content: 'You are a professional LinkedIn content creator who creates engaging, valuable posts that resonate with professional audiences. Always maintain the specified tone, include relevant hashtags, and CRITICALLY IMPORTANT: keep posts under 1300 characters to ensure they are concise and impactful. NEVER use asterisks (*) or any markdown formatting - use plain text only. Write headings as normal text without any special formatting characters.' 
           },
           { role: 'user', content: postPrompt }
         ],
-        max_tokens: 500,
+        max_tokens: 400,
         temperature: 0.7,
       }),
     });
@@ -268,13 +267,13 @@ The post should feel authentic and provide value to the LinkedIn audience. Remem
     generatedContent = generatedContent.replace(/\*\*/g, '').replace(/\*/g, '');
     
     // Validate and truncate content if necessary (now with lower limit)
-    if (generatedContent.length > 1800) {
+    if (generatedContent.length > 1300) {
       console.warn(`Generated content too long (${generatedContent.length} chars), truncating...`);
-      generatedContent = generatedContent.substring(0, 1800);
+      generatedContent = generatedContent.substring(0, 1300);
       // Find the last complete sentence or word to avoid cutting off mid-word
       const lastPeriod = generatedContent.lastIndexOf('.');
       const lastSpace = generatedContent.lastIndexOf(' ');
-      const cutPoint = lastPeriod > 1600 ? lastPeriod + 1 : lastSpace;
+      const cutPoint = lastPeriod > 1200 ? lastPeriod + 1 : lastSpace;
       generatedContent = generatedContent.substring(0, cutPoint);
     }
     
@@ -327,64 +326,29 @@ The post should feel authentic and provide value to the LinkedIn audience. Remem
       );
     }
 
-    // For immediate posts, post to LinkedIn with image if available
+    // For immediate posts, post to LinkedIn - simplified approach without image for now
     console.log('Posting to LinkedIn...');
     console.log('LinkedIn member ID:', linkedinToken.linkedin_id);
     console.log('Content length:', generatedContent.length);
-    console.log('Image URL:', imageUrl);
 
-    // Prepare LinkedIn post data with image support
-    let linkedinPostData;
-    
-    if (imageUrl) {
-      // Post with image
-      linkedinPostData = {
-        author: `urn:li:person:${linkedinToken.linkedin_id}`,
-        lifecycleState: 'PUBLISHED',
-        specificContent: {
-          'com.linkedin.ugc.ShareContent': {
-            shareCommentary: {
-              text: generatedContent
-            },
-            shareMediaCategory: 'IMAGE',
-            media: [
-              {
-                status: 'READY',
-                description: {
-                  text: 'Generated professional image'
-                },
-                media: imageUrl,
-                title: {
-                  text: 'Professional LinkedIn Post'
-                }
-              }
-            ]
-          }
-        },
-        visibility: {
-          'com.linkedin.ugc.MemberNetworkVisibility': 'PUBLIC'
+    // Use simplified LinkedIn post format (text-only to avoid media upload complexity)
+    const linkedinPostData = {
+      author: `urn:li:person:${linkedinToken.linkedin_id}`,
+      lifecycleState: 'PUBLISHED',
+      specificContent: {
+        'com.linkedin.ugc.ShareContent': {
+          shareCommentary: {
+            text: generatedContent
+          },
+          shareMediaCategory: 'NONE'
         }
-      };
-    } else {
-      // Text-only post (fallback)
-      linkedinPostData = {
-        author: `urn:li:person:${linkedinToken.linkedin_id}`,
-        lifecycleState: 'PUBLISHED',
-        specificContent: {
-          'com.linkedin.ugc.ShareContent': {
-            shareCommentary: {
-              text: generatedContent
-            },
-            shareMediaCategory: 'NONE'
-          }
-        },
-        visibility: {
-          'com.linkedin.ugc.MemberNetworkVisibility': 'PUBLIC'
-        }
-      };
-    }
+      },
+      visibility: {
+        'com.linkedin.ugc.MemberNetworkVisibility': 'PUBLIC'
+      }
+    };
 
-    console.log('Posting to LinkedIn with payload:', JSON.stringify(linkedinPostData, null, 2));
+    console.log('Posting to LinkedIn with simplified payload:', JSON.stringify(linkedinPostData, null, 2));
 
     const linkedinResponse = await fetch('https://api.linkedin.com/v2/ugcPosts', {
       method: 'POST',
