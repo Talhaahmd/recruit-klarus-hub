@@ -413,27 +413,7 @@ const Candidates: React.FC = () => {
         </Button>
       </div>
 
-      {/* Debug information */}
-      <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-        <h3 className="font-medium text-blue-800">Debug Information:</h3>
-        <p className="text-sm text-blue-600">
-          Candidates in state: {candidates.length}
-        </p>
-        <p className="text-sm text-blue-600">
-          Authentication status: {isAuthenticated ? 'Authenticated' : 'Not authenticated'}
-        </p>
-        <p className="text-sm text-blue-600">
-          Loading status: {isLoading ? 'Loading' : 'Loaded'}
-        </p>
-        {candidates.length > 0 && (
-          <details className="mt-2">
-            <summary className="text-sm text-blue-600 cursor-pointer">Show candidate data</summary>
-            <pre className="text-xs bg-white p-2 mt-1 rounded overflow-auto max-h-40">
-              {JSON.stringify(candidates.slice(0, 2), null, 2)}
-            </pre>
-          </details>
-        )}
-      </div>
+      
 
       {viewMode === 'grid' ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
