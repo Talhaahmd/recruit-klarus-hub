@@ -1,3 +1,4 @@
+
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
@@ -114,7 +115,7 @@ Deno.serve(async (req) => {
       
       // Parse RSS and extract recent articles
       const articles = parseRssContent(rssText);
-      rssContent = articles.slice(0, 2).map(article => 
+      rssContent = articles.slice(0, 1).map(article => 
         `Title: ${article.title}\nSummary: ${article.description}`
       ).join('\n\n');
       
@@ -125,13 +126,16 @@ Deno.serve(async (req) => {
     }
 
     // Generate image prompt based on content
-    const imagePromptGeneration = `Create a professional, concise image description for a LinkedIn post about ${niche} with a ${tone.toLowerCase()} tone. The content is about: ${contentPrompt}. 
+    const imagePromptGeneration = `Create a professional, simple image description for a LinkedIn post about ${niche}. 
 
-    Generate a simple, professional image prompt (max 100 characters) that would create a relevant business/professional image. Focus on:
+    Content theme: ${contentPrompt}
+    Tone: ${tone}
+
+    Generate a concise image prompt (max 80 characters) for a clean, professional business image suitable for LinkedIn. Focus on:
     - Professional business imagery
     - Clean, modern aesthetics
     - Relevant to ${niche}
-    - Suitable for LinkedIn
+    - Simple and clear
 
     Return ONLY the image prompt, nothing else.`;
 
@@ -148,7 +152,7 @@ Deno.serve(async (req) => {
         messages: [
           { role: 'user', content: imagePromptGeneration }
         ],
-        max_tokens: 100,
+        max_tokens: 80,
         temperature: 0.7,
       }),
     });
@@ -180,7 +184,7 @@ Deno.serve(async (req) => {
       },
       body: JSON.stringify({
         model: 'dall-e-3',
-        prompt: `Professional business image: ${imagePrompt}`,
+        prompt: `Professional business image: ${imagePrompt}. Clean, modern, high-quality business photography style.`,
         n: 1,
         size: '1024x1024',
         quality: 'standard',
@@ -189,16 +193,83 @@ Deno.serve(async (req) => {
     });
 
     let imageUrl = null;
+    let mediaUrn = null;
+    
     if (imageResponse.ok) {
       const imageData = await imageResponse.json();
       imageUrl = imageData.data[0].url;
       console.log('Image generated successfully:', imageUrl);
+      
+      // Only upload image to LinkedIn if it's not a scheduled post
+      if (!scheduleDate) {
+        try {
+          console.log('Uploading image to LinkedIn...');
+          
+          // Step 1: Register upload
+          const registerUploadResponse = await fetch('https://api.linkedin.com/v2/assets?action=registerUpload', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${linkedinToken.access_token}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              registerUploadRequest: {
+                recipes: ['urn:li:digitalmediaRecipe:feedshare-image'],
+                owner: `urn:li:person:${linkedinToken.linkedin_id}`,
+                serviceRelationships: [{
+                  relationshipType: 'OWNER',
+                  identifier: 'urn:li:userGeneratedContent'
+                }]
+              }
+            }),
+          });
+          
+          if (!registerUploadResponse.ok) {
+            console.error('Failed to register upload:', await registerUploadResponse.text());
+            throw new Error('Failed to register upload');
+          }
+          
+          const uploadData = await registerUploadResponse.json();
+          const uploadUrl = uploadData.value.uploadMechanism['com.linkedin.digitalmedia.uploading.MediaUploadHttpRequest'].uploadUrl;
+          const asset = uploadData.value.asset;
+          
+          console.log('Upload URL obtained:', uploadUrl);
+          
+          // Step 2: Download image from DALL-E
+          const imageDownloadResponse = await fetch(imageUrl);
+          if (!imageDownloadResponse.ok) {
+            throw new Error('Failed to download generated image');
+          }
+          const imageBlob = await imageDownloadResponse.arrayBuffer();
+          
+          // Step 3: Upload image to LinkedIn
+          const uploadImageResponse = await fetch(uploadUrl, {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${linkedinToken.access_token}`,
+            },
+            body: imageBlob,
+          });
+          
+          if (!uploadImageResponse.ok) {
+            console.error('Failed to upload image:', await uploadImageResponse.text());
+            throw new Error('Failed to upload image');
+          }
+          
+          mediaUrn = asset;
+          console.log('Image uploaded successfully, asset URN:', mediaUrn);
+          
+        } catch (error) {
+          console.warn('Image upload failed, continuing with text-only post:', error);
+          mediaUrn = null;
+        }
+      }
     } else {
       console.warn('Image generation failed, continuing without image');
     }
 
-    // Generate LinkedIn post content with reduced length
-    const postPrompt = `Create a concise, professional LinkedIn post based on the following requirements:
+    // Generate LinkedIn post content with much shorter length
+    const postPrompt = `Create a very short, punchy LinkedIn post based on these requirements:
 
 Niche: ${niche}
 Tone: ${tone}
@@ -208,23 +279,20 @@ Recent industry content for reference:
 ${rssContent}
 
 CRITICAL REQUIREMENTS:
-- Keep the post STRICTLY under 1300 characters (very short and punchy)
+- Keep the post STRICTLY under 1000 characters (very short and impactful)
 - Write a ${tone.toLowerCase()} LinkedIn post about ${niche}
-- Make it engaging but concise
-- Include 3-4 relevant hashtags
-- Incorporate insights from recent industry content if relevant
+- Make it highly engaging but very concise
+- Include 2-3 relevant hashtags only
+- Focus on one key insight or takeaway
 - Match the ${tone.toLowerCase()} tone throughout
 - Include a brief call to action
-- Structure it with line breaks for readability
-- Focus on impact over length - be very concise
-- DO NOT use asterisks (*) around headings or any text formatting
-- DO NOT use markdown formatting like **bold** or *italic*
-- Use plain text only - no special characters for formatting
-- Keep headings as plain text without any asterisks or special characters
-- Write naturally without any formatting symbols
-- Make it punchy and to the point
+- Structure with line breaks for readability
+- Be punchy and direct - no fluff
+- DO NOT use asterisks (*) or any markdown formatting
+- Use plain text only
+- Keep it simple and powerful
 
-The post should feel authentic and provide value to the LinkedIn audience. Remember: STAY UNDER 1300 CHARACTERS and NO ASTERISKS OR MARKDOWN FORMATTING.`;
+The post should provide immediate value. Remember: STAY UNDER 1000 CHARACTERS and NO FORMATTING SYMBOLS.`;
 
     console.log('Generating post content with ChatGPT...');
 
@@ -239,11 +307,11 @@ The post should feel authentic and provide value to the LinkedIn audience. Remem
         messages: [
           { 
             role: 'system', 
-            content: 'You are a professional LinkedIn content creator who creates engaging, valuable posts that resonate with professional audiences. Always maintain the specified tone, include relevant hashtags, and CRITICALLY IMPORTANT: keep posts under 1300 characters to ensure they are concise and impactful. NEVER use asterisks (*) or any markdown formatting - use plain text only. Write headings as normal text without any special formatting characters.' 
+            content: 'You are a professional LinkedIn content creator who creates highly engaging, short posts that get results. Always maintain the specified tone, include relevant hashtags, and CRITICALLY IMPORTANT: keep posts under 1000 characters to ensure maximum engagement and readability. NEVER use asterisks (*) or any markdown formatting - use plain text only.' 
           },
           { role: 'user', content: postPrompt }
         ],
-        max_tokens: 400,
+        max_tokens: 300,
         temperature: 0.7,
       }),
     });
@@ -266,14 +334,14 @@ The post should feel authentic and provide value to the LinkedIn audience. Remem
     // Remove any asterisks that might have been added for formatting
     generatedContent = generatedContent.replace(/\*\*/g, '').replace(/\*/g, '');
     
-    // Validate and truncate content if necessary (now with lower limit)
-    if (generatedContent.length > 1300) {
+    // Validate and truncate content if necessary (now with much lower limit)
+    if (generatedContent.length > 1000) {
       console.warn(`Generated content too long (${generatedContent.length} chars), truncating...`);
-      generatedContent = generatedContent.substring(0, 1300);
+      generatedContent = generatedContent.substring(0, 1000);
       // Find the last complete sentence or word to avoid cutting off mid-word
       const lastPeriod = generatedContent.lastIndexOf('.');
       const lastSpace = generatedContent.lastIndexOf(' ');
-      const cutPoint = lastPeriod > 1200 ? lastPeriod + 1 : lastSpace;
+      const cutPoint = lastPeriod > 900 ? lastPeriod + 1 : lastSpace;
       generatedContent = generatedContent.substring(0, cutPoint);
     }
     
@@ -326,29 +394,62 @@ The post should feel authentic and provide value to the LinkedIn audience. Remem
       );
     }
 
-    // For immediate posts, post to LinkedIn - simplified approach without image for now
+    // For immediate posts, post to LinkedIn with image if available
     console.log('Posting to LinkedIn...');
     console.log('LinkedIn member ID:', linkedinToken.linkedin_id);
     console.log('Content length:', generatedContent.length);
+    console.log('Media URN:', mediaUrn);
 
-    // Use simplified LinkedIn post format (text-only to avoid media upload complexity)
-    const linkedinPostData = {
-      author: `urn:li:person:${linkedinToken.linkedin_id}`,
-      lifecycleState: 'PUBLISHED',
-      specificContent: {
-        'com.linkedin.ugc.ShareContent': {
-          shareCommentary: {
-            text: generatedContent
-          },
-          shareMediaCategory: 'NONE'
+    // Create LinkedIn post data with or without image
+    let linkedinPostData;
+    
+    if (mediaUrn) {
+      // Post with image
+      linkedinPostData = {
+        author: `urn:li:person:${linkedinToken.linkedin_id}`,
+        lifecycleState: 'PUBLISHED',
+        specificContent: {
+          'com.linkedin.ugc.ShareContent': {
+            shareCommentary: {
+              text: generatedContent
+            },
+            shareMediaCategory: 'IMAGE',
+            media: [{
+              status: 'READY',
+              description: {
+                text: 'Generated content image'
+              },
+              media: mediaUrn,
+              title: {
+                text: 'LinkedIn Post Image'
+              }
+            }]
+          }
+        },
+        visibility: {
+          'com.linkedin.ugc.MemberNetworkVisibility': 'PUBLIC'
         }
-      },
-      visibility: {
-        'com.linkedin.ugc.MemberNetworkVisibility': 'PUBLIC'
-      }
-    };
+      };
+    } else {
+      // Text-only post
+      linkedinPostData = {
+        author: `urn:li:person:${linkedinToken.linkedin_id}`,
+        lifecycleState: 'PUBLISHED',
+        specificContent: {
+          'com.linkedin.ugc.ShareContent': {
+            shareCommentary: {
+              text: generatedContent
+            },
+            shareMediaCategory: 'NONE'
+          }
+        },
+        visibility: {
+          'com.linkedin.ugc.MemberNetworkVisibility': 'PUBLIC'
+        }
+      };
+    }
 
-    console.log('Posting to LinkedIn with simplified payload:', JSON.stringify(linkedinPostData, null, 2));
+    console.log('Posting to LinkedIn with payload:', JSON.stringify(linkedinPostData, null, 2));
 
     const linkedinResponse = await fetch('https://api.linkedin.com/v2/ugcPosts', {
       method: 'POST',
@@ -421,7 +522,8 @@ The post should feel authentic and provide value to the LinkedIn audience. Remem
         content: generatedContent,
         posted: true,
         linkedinPostId: linkedinResult.id,
-        imageUrl: imageUrl
+        imageUrl: imageUrl,
+        hasImage: !!mediaUrn
       }),
       { 
         status: 200, 
@@ -464,7 +566,7 @@ function parseRssContent(rssText: string): Array<{title: string, description: st
     const itemMatches = rssText.match(/<item[^>]*>[\s\S]*?<\/item>/gi);
     
     if (itemMatches) {
-      for (const item of itemMatches.slice(0, 5)) {
+      for (const item of itemMatches.slice(0, 3)) {
         const titleMatch = item.match(/<title[^>]*><!\[CDATA\[(.*?)\]\]><\/title>|<title[^>]*>(.*?)<\/title>/i);
         const descMatch = item.match(/<description[^>]*><!\[CDATA\[(.*?)\]\]><\/description>|<description[^>]*>(.*?)<\/description>/i);
         
@@ -474,8 +576,8 @@ function parseRssContent(rssText: string): Array<{title: string, description: st
           
           if (title && description) {
             articles.push({
-              title: title.substring(0, 150),
-              description: description.substring(0, 300)
+              title: title.substring(0, 100),
+              description: description.substring(0, 200)
             });
           }
         }
