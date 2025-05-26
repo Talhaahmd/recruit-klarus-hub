@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Header } from '@/components/Layout/MainLayout';
@@ -58,9 +59,9 @@ const extractSkillsArray = (candidate: NewCandidate): string[] => {
     return skills.filter((skill): skill is string => typeof skill === 'string');
   }
   
-  // Handle string case - be explicit about the type
-  if (typeof skills === 'string' && skills.length > 0) {
-    return skills.split(',').map(s => s.trim()).filter(Boolean);
+  // Handle string case - explicitly check type to avoid TypeScript issues
+  if (typeof skills === 'string') {
+    return skills.length > 0 ? skills.split(',').map(s => s.trim()).filter(Boolean) : [];
   }
   
   return [];
