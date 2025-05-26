@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Header } from '@/components/Layout/MainLayout';
@@ -17,7 +18,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import CandidateCard from '@/components/UI/CandidateCard';
-import { Candidate, candidatesService } from '@/services/candidatesService';
+import { NewCandidate, newCandidatesService } from '@/services/newCandidatesService';
 import { 
   Table,
   TableBody,
@@ -47,7 +48,7 @@ const getUniqueValues = (data: any[], property: string): string[] => {
 const Candidates: React.FC = () => {
   const navigate = useNavigate();
   const { isAuthenticated, isLoading: authLoading } = useAuth();
-  const [candidates, setCandidates] = useState<Candidate[]>([]);
+  const [candidates, setCandidates] = useState<NewCandidate[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid');
@@ -65,7 +66,7 @@ const Candidates: React.FC = () => {
   
   // Email modal state
   const [emailModalOpen, setEmailModalOpen] = useState(false);
-  const [selectedCandidate, setSelectedCandidate] = useState<Candidate | null>(null);
+  const [selectedCandidate, setSelectedCandidate] = useState<NewCandidate | null>(null);
 
   useEffect(() => {
     // Wait for auth to be ready, then check authentication
@@ -85,16 +86,20 @@ const Candidates: React.FC = () => {
   const fetchCandidates = async () => {
     setIsLoading(true);
     try {
-      const data = await candidatesService.getCandidates();
+      console.log('Fetching candidates...');
+      const data = await newCandidatesService.getCandidates();
       console.log('Fetched candidates:', data);
       setCandidates(data);
       
       // Extract unique values for filter dropdowns
       setJobsList(getUniqueValues(data, 'current_job_title'));
       
-      // Safely handle skills which might need splitting
+      // Safely handle skills which might be arrays or strings
       const skillsArray = data.flatMap(c => {
         if (!c.skills) return [];
+        if (Array.isArray(c.skills)) {
+          return c.skills;
+        }
         return c.skills.split(',').map(s => s.trim());
       });
       setSkillsList([...new Set(skillsArray)]);
@@ -113,7 +118,7 @@ const Candidates: React.FC = () => {
     setSearchTerm(e.target.value);
   };
 
-  const handleEmail = (candidate: Candidate) => {
+  const handleEmail = (candidate: NewCandidate) => {
     setSelectedCandidate(candidate);
     setEmailModalOpen(true);
   };
@@ -123,10 +128,8 @@ const Candidates: React.FC = () => {
   };
 
   const handleDelete = async (candidateId: string) => {
-    const candidate = candidates.find(c => c.id === candidateId);
     if (window.confirm('Are you sure you want to delete this candidate?')) {
-      // Pass both candidateId and job_id to deleteCandidate
-      const success = await candidatesService.deleteCandidate(candidateId, candidate?.job_id);
+      const success = await newCandidatesService.deleteCandidate(candidateId);
       if (success) {
         setCandidates(candidates.filter(c => c.id !== candidateId));
         toast.success('Candidate deleted successfully');
@@ -149,17 +152,33 @@ const Candidates: React.FC = () => {
     // Search filter - add null checks before calling toLowerCase()
     const nameMatch = (candidate.full_name?.toLowerCase().includes(searchTerm.toLowerCase())) || false;
     const emailMatch = candidate.email?.toLowerCase().includes(searchTerm.toLowerCase()) || false;
-    const skillsMatch = candidate.skills?.toLowerCase().includes(searchTerm.toLowerCase()) || false;
+    
+    // Handle skills search for both array and string formats
+    let skillsMatch = false;
+    if (candidate.skills) {
+      if (Array.isArray(candidate.skills)) {
+        skillsMatch = candidate.skills.some(skill => 
+          skill.toLowerCase().includes(searchTerm.toLowerCase())
+        );
+      } else {
+        skillsMatch = candidate.skills.toLowerCase().includes(searchTerm.toLowerCase());
+      }
+    }
+    
     const matchesSearch = searchTerm === '' || nameMatch || emailMatch || skillsMatch;
     
     // Rating filter
-    const matchesRating = ratingFilter === null || candidate.rating >= ratingFilter;
+    const matchesRating = ratingFilter === null || (candidate.ai_rating && candidate.ai_rating >= ratingFilter);
     
     // Job filter
     const matchesJob = !jobFilter || (candidate.current_job_title && candidate.current_job_title === jobFilter);
     
     // Skills filter
-    const matchesSkills = !skillsFilter || (candidate.skills?.toLowerCase().includes(skillsFilter.toLowerCase()) || false);
+    const matchesSkills = !skillsFilter || (candidate.skills && (
+      Array.isArray(candidate.skills) 
+        ? candidate.skills.some(skill => skill.toLowerCase().includes(skillsFilter.toLowerCase()))
+        : candidate.skills.toLowerCase().includes(skillsFilter.toLowerCase())
+    ));
     
     // Location filter
     const matchesLocation = !locationFilter || (candidate.location === locationFilter);
@@ -371,17 +390,19 @@ const Candidates: React.FC = () => {
           {filteredCandidates.map(candidate => (
             <CandidateCard
               key={candidate.id}
-              candidate={candidate}
+              candidate={{
+                ...candidate,
+                rating: candidate.ai_rating || 0,
+                current_job_title: candidate.current_job_title || candidate.current_job
+              }}
               onEdit={handleEdit}
               onDelete={handleDelete}
               onView={() => handleView(candidate.id)}
               onEmail={() => handleEmail(candidate)}
-              jobTitle={candidate.current_job_title || "Candidate"}
+              jobTitle={candidate.current_job_title || candidate.current_job || "Candidate"}
             />
           ))}
-          {filteredCandidates.length > 0 ? (
-            null
-          ) : (
+          {filteredCandidates.length === 0 && (
             <div className="col-span-full text-center py-10">
               <div className="text-4xl mb-4 opacity-30">🔍</div>
               <h3 className="text-lg font-medium mb-2">No candidates found</h3>
@@ -410,10 +431,10 @@ const Candidates: React.FC = () => {
                     <TableCell className="font-medium">{candidate.full_name}</TableCell>
                     <TableCell>{candidate.email}</TableCell>
                     <TableCell className="hidden md:table-cell">{candidate.phone}</TableCell>
-                    <TableCell className="hidden sm:table-cell">{candidate.current_job_title || "-"}</TableCell>
+                    <TableCell className="hidden sm:table-cell">{candidate.current_job_title || candidate.current_job || "-"}</TableCell>
                     <TableCell>
-                      <span className={`inline-block px-2 py-1 text-xs rounded-full ${getAnalysisColor(candidate.rating)}`}>
-                        {candidate.rating}/10
+                      <span className={`inline-block px-2 py-1 text-xs rounded-full ${getAnalysisColor(candidate.ai_rating || 0)}`}>
+                        {candidate.ai_rating || 0}/10
                       </span>
                     </TableCell>
                     <TableCell className="text-right">
@@ -451,7 +472,7 @@ const Candidates: React.FC = () => {
           candidateId={selectedCandidate.id}
           candidateName={selectedCandidate.full_name || "Candidate"}
           candidateEmail={selectedCandidate.email}
-          jobTitle={selectedCandidate.current_job_title || ""}
+          jobTitle={selectedCandidate.current_job_title || selectedCandidate.current_job || ""}
           open={emailModalOpen}
           onClose={() => {
             setEmailModalOpen(false);
