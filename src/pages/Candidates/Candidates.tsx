@@ -57,12 +57,10 @@ const Candidates: React.FC = () => {
   const [ratingFilter, setRatingFilter] = useState<number | null>(null);
   const [jobFilter, setJobFilter] = useState<string | null>(null);
   const [skillsFilter, setSkillsFilter] = useState<string | null>(null);
-  const [locationFilter, setLocationFilter] = useState<string | null>(null);
   
   // Lists for filter dropdowns
   const [jobsList, setJobsList] = useState<string[]>([]);
   const [skillsList, setSkillsList] = useState<string[]>([]);
-  const [locationsList, setLocationsList] = useState<string[]>([]);
   
   // Email modal state
   const [emailModalOpen, setEmailModalOpen] = useState(false);
@@ -107,9 +105,6 @@ const Candidates: React.FC = () => {
       });
       setSkillsList([...new Set(skillsArray)]);
       
-      // Note: NewCandidate type doesn't have location property, so we'll skip location filters for now
-      setLocationsList([]);
-      
     } catch (error) {
       console.error("Error fetching candidates:", error);
       toast.error("Failed to fetch candidates");
@@ -149,7 +144,6 @@ const Candidates: React.FC = () => {
     setRatingFilter(null);
     setJobFilter(null);
     setSkillsFilter(null);
-    setLocationFilter(null);
   };
 
   const filteredCandidates = candidates.filter(candidate => {
@@ -159,7 +153,7 @@ const Candidates: React.FC = () => {
     
     // Handle skills search for both array and string formats
     let skillsMatch = false;
-    if (candidate.skills) {
+    if (candidate.skills && searchTerm) {
       if (Array.isArray(candidate.skills)) {
         skillsMatch = candidate.skills.some(skill => 
           skill?.toLowerCase().includes(searchTerm.toLowerCase())
@@ -184,10 +178,7 @@ const Candidates: React.FC = () => {
         : typeof candidate.skills === 'string' && candidate.skills.toLowerCase().includes(skillsFilter.toLowerCase())
     ));
     
-    // Skip location filter since NewCandidate doesn't have location property
-    const matchesLocation = true;
-    
-    return matchesSearch && matchesRating && matchesJob && matchesSkills && matchesLocation;
+    return matchesSearch && matchesRating && matchesJob && matchesSkills;
   });
 
   const getAnalysisColor = (score: number) => {
@@ -200,7 +191,6 @@ const Candidates: React.FC = () => {
     ratingFilter !== null,
     jobFilter !== null,
     skillsFilter !== null,
-    // Remove location filter from count since it's not available
   ].filter(Boolean).length;
 
   // Show loading while auth is being checked or candidates are being fetched
@@ -378,7 +368,8 @@ const Candidates: React.FC = () => {
                 // Convert skills array to string for CandidateCard component
                 skills: Array.isArray(candidate.skills) 
                   ? candidate.skills.join(', ') 
-                  : candidate.skills || ''
+                  : candidate.skills || '',
+                years_experience: candidate.years_experience?.toString() || ''
               }}
               onEdit={handleEdit}
               onDelete={handleDelete}

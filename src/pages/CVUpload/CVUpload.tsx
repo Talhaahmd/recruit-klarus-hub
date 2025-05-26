@@ -4,7 +4,7 @@ import { FileUpload } from '@/components/ui/file-upload';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { CheckCircle2, Upload } from 'lucide-react';
+import { CheckCircle2, Upload, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -14,6 +14,7 @@ const CVUpload: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [processingStatus, setProcessingStatus] = useState<string>('');
   const navigate = useNavigate();
 
   const handleFileUpload = (uploadedFiles: File[]) => {
@@ -44,6 +45,7 @@ const CVUpload: React.FC = () => {
 
     setIsSubmitting(true);
     setError(null);
+    setProcessingStatus('Uploading CV...');
 
     try {
       // Upload file to Supabase storage
@@ -73,27 +75,28 @@ const CVUpload: React.FC = () => {
       const fileUrl = urlData.publicUrl;
       console.log('File uploaded successfully:', fileUrl);
 
-      // Save job application record using link_for_cv
-      const { error: insertError } = await supabase
-        .from('job_applications')
-        .insert({
-          link_for_cv: fileUrl
-        });
+      setProcessingStatus('Processing CV with AI...');
 
-      if (insertError) {
-        console.error('Database insert error:', insertError);
-        throw new Error('Failed to submit your application. Please try again.');
+      // Process CV using the edge function
+      const { data: processResult, error: processError } = await supabase.functions.invoke('process-cv', {
+        body: { fileUrl }
+      });
+
+      if (processError) {
+        console.error('CV processing error:', processError);
+        throw new Error('Failed to process CV. Please try again.');
       }
 
-      console.log('Application submitted successfully');
+      console.log('CV processed successfully:', processResult);
       setSuccess(true);
-      toast.success('CV uploaded successfully!');
+      toast.success('CV uploaded and processed successfully!');
     } catch (err: any) {
       console.error('Error submitting application:', err);
       setError(err.message || 'Failed to upload CV. Please try again.');
       toast.error('Upload failed');
     } finally {
       setIsSubmitting(false);
+      setProcessingStatus('');
     }
   };
 
@@ -112,10 +115,10 @@ const CVUpload: React.FC = () => {
                 <div className="absolute inset-0 w-16 h-16 mx-auto bg-cyan-400/20 rounded-full animate-ping" />
               </div>
               <h2 className="text-2xl font-bold mb-2 bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent">
-                CV Uploaded Successfully!
+                CV Processed Successfully!
               </h2>
               <p className="text-gray-300 mb-6 leading-relaxed">
-                Thank you for submitting your CV to Klarus HR. We'll review it and get back to you soon.
+                Thank you for submitting your CV to Klarus HR. We've processed it with AI and added you to our candidate database.
               </p>
               <Button 
                 onClick={() => navigate('/')}
@@ -179,6 +182,15 @@ const CVUpload: React.FC = () => {
               </div>
             )}
 
+            {processingStatus && (
+              <div className="mb-6 p-4 bg-blue-900/30 border border-blue-500/50 rounded-lg backdrop-blur-sm">
+                <div className="flex items-center gap-3">
+                  <Loader2 className="h-5 w-5 animate-spin text-blue-400" />
+                  <p className="text-blue-300">{processingStatus}</p>
+                </div>
+              </div>
+            )}
+
             <Button
               onClick={handleSubmit}
               disabled={isSubmitting || files.length === 0}
@@ -186,8 +198,8 @@ const CVUpload: React.FC = () => {
             >
               {isSubmitting ? (
                 <>
-                  <div className="animate-spin rounded-full h-6 w-6 border-2 border-white border-t-transparent mr-3" />
-                  Uploading CV...
+                  <Loader2 className="animate-spin rounded-full h-6 w-6 border-2 border-white border-t-transparent mr-3" />
+                  Processing CV...
                 </>
               ) : (
                 'Submit CV'
