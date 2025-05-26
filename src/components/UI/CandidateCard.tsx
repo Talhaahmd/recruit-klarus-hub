@@ -1,13 +1,12 @@
+
 import React from 'react';
 import { Candidate } from '@/services/candidatesService';
-import { Mail, Phone, Edit, Trash2, MapPin, Star, Briefcase, Brain } from 'lucide-react';
+import { Mail, Phone, Edit, Trash2, MapPin, Star, Briefcase } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useEffect, useState } from 'react';
 import { submissionService } from '@/services/submissionService';
 import { jobsService } from '@/services/jobsService';
 import { EmailActionsModal } from './EmailActionsModals';
-import { aiInterviewService } from '@/services/aiInterviewService';
-import { toast } from 'sonner';
 
 interface CandidateCardProps {
   candidate: Candidate;
@@ -28,7 +27,6 @@ const CandidateCard: React.FC<CandidateCardProps> = ({
 }) => {
   const [appliedJob, setAppliedJob] = useState<string | null>(null);
   const [emailModalOpen, setEmailModalOpen] = useState(false);
-  const [initiatingInterview, setInitiatingInterview] = useState(false);
   
   useEffect(() => {
     // Try to fetch the job the candidate applied for if resumeUrl exists
@@ -109,30 +107,6 @@ const CandidateCard: React.FC<CandidateCardProps> = ({
     setEmailModalOpen(true);
   };
 
-  const handleAIInterview = async (e: React.MouseEvent) => {
-    e.stopPropagation();
-    
-    if (!candidate.phone) {
-      toast.error('Phone number is required for AI interviews');
-      return;
-    }
-
-    setInitiatingInterview(true);
-    
-    try {
-      await aiInterviewService.initiateInterview(
-        candidate.id,
-        candidate.full_name || 'Candidate',
-        candidate.phone,
-        candidate.current_job_title || jobTitle || 'Software Developer'
-      );
-    } catch (error) {
-      console.error('Error initiating AI interview:', error);
-    } finally {
-      setInitiatingInterview(false);
-    }
-  };
-
   const getAnalysisColor = (score: number) => {
     if (score >= 8) return 'bg-green-100 text-green-800';
     if (score >= 5) return 'bg-yellow-100 text-yellow-800';
@@ -161,16 +135,6 @@ const CandidateCard: React.FC<CandidateCardProps> = ({
             </div>
           </div>
           <div className="flex gap-1">
-            <Button 
-              onClick={handleAIInterview}
-              disabled={!candidate.phone || initiatingInterview}
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8"
-              title={candidate.phone ? "AI Interview" : "Phone required for AI interview"}
-            >
-              <Brain size={15} className={candidate.phone ? "text-blue-600" : "text-gray-300"} />
-            </Button>
             <Button 
               onClick={handleEmail}
               variant="ghost"

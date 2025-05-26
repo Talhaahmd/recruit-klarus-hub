@@ -1,9 +1,10 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { 
   User, Mail, Phone, MapPin, Briefcase, FileText, Linkedin, 
   Calendar, Star, MessageCircle, BookOpen, Building, Award, GraduationCap,
-  ArrowLeft, Loader2, Brain
+  ArrowLeft, Loader2
 } from 'lucide-react';
 import { Header } from '@/components/Layout/MainLayout';
 import { Badge } from '@/components/ui/badge';
@@ -19,7 +20,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { aiInterviewService } from '@/services/aiInterviewService';
 
 // Simplified candidate type that matches our database
 type Candidate = {
@@ -53,7 +53,6 @@ const CandidateProfile: React.FC = () => {
   const [activeTab, setActiveTab] = useState<string>('details');
   const [candidate, setCandidate] = useState<Candidate | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
-  const [initiatingInterview, setInitiatingInterview] = useState<boolean>(false);
   
   useEffect(() => {
     console.log('🔍 CandidateProfile - Auth state:', { isAuthenticated, authLoading, candidateId: id });
@@ -138,37 +137,6 @@ const CandidateProfile: React.FC = () => {
     navigate('/candidates');
   };
 
-  const handleInitiateAIInterview = async () => {
-    if (!candidate) return;
-    
-    if (!candidate.phone) {
-      toast.error('Phone number is required for AI interviews. Please update the candidate profile.');
-      return;
-    }
-
-    setInitiatingInterview(true);
-    
-    try {
-      const result = await aiInterviewService.initiateInterview(
-        candidate.id,
-        candidate.full_name,
-        candidate.phone,
-        candidate.current_job_title || 'Software Developer'
-      );
-
-      if (result) {
-        // Optionally navigate to the AI interviews page
-        setTimeout(() => {
-          navigate('/ai-interviews');
-        }, 2000);
-      }
-    } catch (error) {
-      console.error('Error initiating AI interview:', error);
-    } finally {
-      setInitiatingInterview(false);
-    }
-  };
-
   const getAnalysisColor = (score: number) => {
     if (score >= 8) return 'bg-green-100 text-green-800';
     if (score >= 5) return 'bg-yellow-100 text-yellow-800';
@@ -232,7 +200,7 @@ const CandidateProfile: React.FC = () => {
           title="Candidate Profile" 
           subtitle={`Viewing profile for ${candidate.full_name}`}
         />
-        <div className="ml-4 mt-2 flex items-center gap-4">
+        <div className="ml-4 mt-2">
           <Button 
             onClick={handleGoBack}
             variant="ghost"
@@ -241,25 +209,6 @@ const CandidateProfile: React.FC = () => {
             <ArrowLeft size={20} />
             <span>Back to Candidates</span>
           </Button>
-          
-          <Button
-            onClick={handleInitiateAIInterview}
-            disabled={initiatingInterview || !candidate.phone}
-            className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white"
-          >
-            {initiatingInterview ? (
-              <Loader2 size={18} className="animate-spin" />
-            ) : (
-              <Brain size={18} />
-            )}
-            {initiatingInterview ? 'Calling...' : 'Call for AI Interview'}
-          </Button>
-          
-          {!candidate.phone && (
-            <p className="text-sm text-red-500">
-              Phone number required for AI interviews
-            </p>
-          )}
         </div>
       </div>
       

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -12,9 +13,7 @@ import {
   Filter, 
   Search,
   Eye,
-  AlertCircle,
-  Phone,
-  Loader2
+  AlertCircle
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -58,7 +57,6 @@ const CandidateCV: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [sortBy, setSortBy] = useState('newest');
-  const [conductingInterview, setConductingInterview] = useState<string | null>(null);
 
   useEffect(() => {
     if (user) {
@@ -124,48 +122,6 @@ const CandidateCV: React.FC = () => {
     } catch (error) {
       console.error('Error updating status:', error);
       toast.error('Failed to update status');
-    }
-  };
-
-  const handleConductInterview = async (cv: CandidateCV) => {
-    if (!cv.applicant_name) {
-      toast.error('Candidate name is required for interview');
-      return;
-    }
-
-    // For demo purposes, we'll use a placeholder phone number
-    // In a real scenario, you'd have the candidate's phone number
-    const phoneNumber = '+1234567890'; // This should come from candidate data
-
-    setConductingInterview(cv.id);
-
-    try {
-      const response = await fetch('/api/vapi-interview', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          action: 'initiate_call',
-          candidateId: cv.id,
-          candidateName: cv.applicant_name,
-          candidatePhone: phoneNumber,
-          role: cv.jobs?.title || 'Developer'
-        }),
-      });
-
-      const result = await response.json();
-
-      if (result.success) {
-        toast.success(`AI interview initiated for ${cv.applicant_name}`);
-      } else {
-        throw new Error(result.error || 'Failed to initiate interview');
-      }
-    } catch (error) {
-      console.error('Error conducting interview:', error);
-      toast.error('Failed to initiate AI interview');
-    } finally {
-      setConductingInterview(null);
     }
   };
 
@@ -363,51 +319,30 @@ const CandidateCV: React.FC = () => {
                     </div>
 
                     <div className="flex gap-2">
+                      <Select 
+                        value={cv.status} 
+                        onValueChange={(value) => handleStatusUpdate(cv.id, value)}
+                      >
+                        <SelectTrigger className="w-32 h-8 bg-gray-800/50 border-gray-600 text-white">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent className="bg-gray-800 border-gray-700">
+                          <SelectItem value="new">New</SelectItem>
+                          <SelectItem value="reviewed">Reviewed</SelectItem>
+                          <SelectItem value="shortlisted">Shortlisted</SelectItem>
+                          <SelectItem value="rejected">Rejected</SelectItem>
+                        </SelectContent>
+                      </Select>
+
                       <Button
                         size="sm"
-                        onClick={() => handleConductInterview(cv)}
-                        disabled={conductingInterview === cv.id}
-                        className="bg-blue-600 hover:bg-blue-700 text-white"
+                        variant="outline"
+                        onClick={() => handleDeleteCV(cv.id)}
+                        className="border-red-500 text-red-400 hover:bg-red-500/10"
                       >
-                        {conductingInterview === cv.id ? (
-                          <>
-                            <Loader2 className="h-4 w-4 mr-1 animate-spin" />
-                            Starting...
-                          </>
-                        ) : (
-                          <>
-                            <Phone className="h-4 w-4 mr-1" />
-                            Conduct AI Interview
-                          </>
-                        )}
+                        <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>
-                  </div>
-
-                  <div className="flex gap-2">
-                    <Select 
-                      value={cv.status} 
-                      onValueChange={(value) => handleStatusUpdate(cv.id, value)}
-                    >
-                      <SelectTrigger className="w-32 h-8 bg-gray-800/50 border-gray-600 text-white">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent className="bg-gray-800 border-gray-700">
-                        <SelectItem value="new">New</SelectItem>
-                        <SelectItem value="reviewed">Reviewed</SelectItem>
-                        <SelectItem value="shortlisted">Shortlisted</SelectItem>
-                        <SelectItem value="rejected">Rejected</SelectItem>
-                      </SelectContent>
-                    </Select>
-
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => handleDeleteCV(cv.id)}
-                      className="border-red-500 text-red-400 hover:bg-red-500/10"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
                   </div>
                 </CardContent>
               </Card>
