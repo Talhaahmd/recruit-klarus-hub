@@ -100,11 +100,15 @@ const Candidates: React.FC = () => {
         if (Array.isArray(c.skills)) {
           return c.skills;
         }
-        return c.skills.split(',').map(s => s.trim());
+        if (typeof c.skills === 'string') {
+          return c.skills.split(',').map(s => s.trim());
+        }
+        return [];
       });
       setSkillsList([...new Set(skillsArray)]);
       
-      setLocationsList(getUniqueValues(data, 'location'));
+      // Note: NewCandidate type doesn't have location property, so we'll skip location filters for now
+      setLocationsList([]);
       
     } catch (error) {
       console.error("Error fetching candidates:", error);
@@ -150,7 +154,7 @@ const Candidates: React.FC = () => {
 
   const filteredCandidates = candidates.filter(candidate => {
     // Search filter - add null checks before calling toLowerCase()
-    const nameMatch = (candidate.full_name?.toLowerCase().includes(searchTerm.toLowerCase())) || false;
+    const nameMatch = candidate.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) || false;
     const emailMatch = candidate.email?.toLowerCase().includes(searchTerm.toLowerCase()) || false;
     
     // Handle skills search for both array and string formats
@@ -158,9 +162,9 @@ const Candidates: React.FC = () => {
     if (candidate.skills) {
       if (Array.isArray(candidate.skills)) {
         skillsMatch = candidate.skills.some(skill => 
-          skill.toLowerCase().includes(searchTerm.toLowerCase())
+          skill?.toLowerCase().includes(searchTerm.toLowerCase())
         );
-      } else {
+      } else if (typeof candidate.skills === 'string') {
         skillsMatch = candidate.skills.toLowerCase().includes(searchTerm.toLowerCase());
       }
     }
@@ -176,12 +180,12 @@ const Candidates: React.FC = () => {
     // Skills filter
     const matchesSkills = !skillsFilter || (candidate.skills && (
       Array.isArray(candidate.skills) 
-        ? candidate.skills.some(skill => skill.toLowerCase().includes(skillsFilter.toLowerCase()))
-        : candidate.skills.toLowerCase().includes(skillsFilter.toLowerCase())
+        ? candidate.skills.some(skill => skill?.toLowerCase().includes(skillsFilter.toLowerCase()))
+        : typeof candidate.skills === 'string' && candidate.skills.toLowerCase().includes(skillsFilter.toLowerCase())
     ));
     
-    // Location filter
-    const matchesLocation = !locationFilter || (candidate.location === locationFilter);
+    // Skip location filter since NewCandidate doesn't have location property
+    const matchesLocation = true;
     
     return matchesSearch && matchesRating && matchesJob && matchesSkills && matchesLocation;
   });
@@ -196,7 +200,7 @@ const Candidates: React.FC = () => {
     ratingFilter !== null,
     jobFilter !== null,
     skillsFilter !== null,
-    locationFilter !== null
+    // Remove location filter from count since it's not available
   ].filter(Boolean).length;
 
   // Show loading while auth is being checked or candidates are being fetched
@@ -294,21 +298,6 @@ const Candidates: React.FC = () => {
                       ))}
                     </select>
                   </div>
-                  
-                  {/* Location filter */}
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">Location</label>
-                    <select 
-                      className="w-full px-3 py-2 border rounded-md"
-                      value={locationFilter || ''}
-                      onChange={(e) => setLocationFilter(e.target.value || null)}
-                    >
-                      <option value="">Any</option>
-                      {locationsList.map(location => (
-                        <option key={location} value={location}>{location}</option>
-                      ))}
-                    </select>
-                  </div>
                 </div>
               </PopoverContent>
             </Popover>
@@ -364,14 +353,6 @@ const Candidates: React.FC = () => {
                 </button>
               </Badge>
             )}
-            {locationFilter && (
-              <Badge variant="outline" className="flex items-center gap-1">
-                <MapPin size={12} /> Location: {locationFilter}
-                <button className="ml-1" onClick={() => setLocationFilter(null)}>
-                  <X size={12} />
-                </button>
-              </Badge>
-            )}
             <Button variant="ghost" size="sm" onClick={resetFilters} className="h-7 px-2">
               Clear all
             </Button>
@@ -393,7 +374,11 @@ const Candidates: React.FC = () => {
               candidate={{
                 ...candidate,
                 rating: candidate.ai_rating || 0,
-                current_job_title: candidate.current_job_title || candidate.current_job
+                current_job_title: candidate.current_job_title || candidate.current_job,
+                // Convert skills array to string for CandidateCard component
+                skills: Array.isArray(candidate.skills) 
+                  ? candidate.skills.join(', ') 
+                  : candidate.skills || ''
               }}
               onEdit={handleEdit}
               onDelete={handleDelete}
