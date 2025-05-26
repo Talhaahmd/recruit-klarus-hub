@@ -11,7 +11,14 @@ type ThemeContextType = {
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  console.log('ThemeProvider rendering...');
+  
   const [theme, setTheme] = useState<Theme>(() => {
+    // Check if we're in browser environment
+    if (typeof window === 'undefined') {
+      return 'light';
+    }
+    
     const savedTheme = localStorage.getItem('theme');
     // Check system preference if no saved theme
     if (!savedTheme) {
@@ -22,6 +29,11 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   });
 
   useEffect(() => {
+    // Check if we're in browser environment
+    if (typeof window === 'undefined') {
+      return;
+    }
+    
     localStorage.setItem('theme', theme);
     document.documentElement.classList.remove('light', 'dark');
     document.documentElement.classList.add(theme);
