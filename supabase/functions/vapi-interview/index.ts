@@ -22,7 +22,25 @@ serve(async (req) => {
       const { action, candidateId, candidateName, candidatePhone, role } = await req.json()
 
       if (action === 'initiate_call') {
-        console.log('Initiating call for candidate:', candidateName)
+        console.log('Initiating call for candidate:', candidateName, 'Phone:', candidatePhone)
+
+        // Validate phone number format
+        if (!candidatePhone || candidatePhone.trim() === '') {
+          throw new Error('Phone number is required')
+        }
+
+        // Format phone number for Vapi (ensure it starts with +)
+        let formattedPhone = candidatePhone.trim()
+        if (!formattedPhone.startsWith('+')) {
+          // If it doesn't start with +, assume it's a US number and add +1
+          if (formattedPhone.startsWith('1')) {
+            formattedPhone = '+' + formattedPhone
+          } else {
+            formattedPhone = '+1' + formattedPhone
+          }
+        }
+
+        console.log('Formatted phone number:', formattedPhone)
 
         // Create initial interview record
         const { data: interview, error: insertError } = await supabaseClient
@@ -30,7 +48,7 @@ serve(async (req) => {
           .insert({
             candidate_id: candidateId,
             candidate_name: candidateName,
-            candidate_phone: candidatePhone,
+            candidate_phone: formattedPhone,
             role: role,
             call_status: 'initiating'
           })
@@ -42,7 +60,9 @@ serve(async (req) => {
           throw insertError
         }
 
-        // Make call to Vapi
+        console.log('Created interview record:', interview.id)
+
+        // Make call to Vapi with proper phone number format
         const vapiResponse = await fetch('https://api.vapi.ai/call', {
           method: 'POST',
           headers: {
@@ -52,7 +72,7 @@ serve(async (req) => {
           body: JSON.stringify({
             assistantId: '1637d56c-c8f0-4397-8836-77ca4a8664be',
             customer: {
-              number: candidatePhone,
+              number: formattedPhone,
             },
             assistantOverrides: {
               variableValues: {
@@ -67,6 +87,7 @@ serve(async (req) => {
         console.log('Vapi response:', vapiData)
 
         if (!vapiResponse.ok) {
+          console.error('Vapi API error:', vapiData)
           throw new Error(`Vapi API error: ${vapiData.message || 'Unknown error'}`)
         }
 
@@ -78,6 +99,8 @@ serve(async (req) => {
             call_status: 'initiated'
           })
           .eq('id', interview.id)
+
+        console.log('Successfully initiated call with ID:', vapiData.id)
 
         return new Response(
           JSON.stringify({ success: true, callId: vapiData.id, interviewId: interview.id }),
