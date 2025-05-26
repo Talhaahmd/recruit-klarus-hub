@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Header } from '@/components/Layout/MainLayout';
@@ -37,7 +36,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Slider } from "@/components/ui/slider";
 import { EmailActionsModal } from '@/components/UI/EmailActionsModals';
-import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 
 // Helper to get unique values from an array of objects for a specific property
 const getUniqueValues = (data: any[], property: string): string[] => {
@@ -47,6 +46,7 @@ const getUniqueValues = (data: any[], property: string): string[] => {
 
 const Candidates: React.FC = () => {
   const navigate = useNavigate();
+  const { isAuthenticated, isLoading: authLoading } = useAuth();
   const [candidates, setCandidates] = useState<Candidate[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -68,22 +68,19 @@ const Candidates: React.FC = () => {
   const [selectedCandidate, setSelectedCandidate] = useState<Candidate | null>(null);
 
   useEffect(() => {
-    // First, verify authentication
-    const checkAuth = async () => {
-      const { data } = await supabase.auth.getUser();
-      if (!data.user) {
+    // Wait for auth to be ready, then check authentication
+    if (!authLoading) {
+      if (!isAuthenticated) {
         console.log('User not authenticated, redirecting to login');
         toast.error('You must be logged in to view candidates');
         navigate('/login');
         return;
       }
       
-      console.log('User authenticated as:', data.user.id);
+      console.log('User authenticated, fetching candidates');
       fetchCandidates();
-    };
-    
-    checkAuth();
-  }, [navigate]);
+    }
+  }, [isAuthenticated, authLoading, navigate]);
 
   const fetchCandidates = async () => {
     setIsLoading(true);
@@ -182,6 +179,15 @@ const Candidates: React.FC = () => {
     skillsFilter !== null,
     locationFilter !== null
   ].filter(Boolean).length;
+
+  // Show loading while auth is being checked or candidates are being fetched
+  if (authLoading || isLoading) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <Loader2 className="h-8 w-8 animate-spin text-primary-100" />
+      </div>
+    );
+  }
 
   return (
     <div className="animate-fade-in">
@@ -360,11 +366,7 @@ const Candidates: React.FC = () => {
         {activeFiltersCount > 0 && ' with applied filters'}
       </div>
 
-      {isLoading ? (
-        <div className="flex justify-center items-center h-64">
-          <Loader2 className="h-8 w-8 animate-spin text-primary-100" />
-        </div>
-      ) : viewMode === 'grid' ? (
+      {viewMode === 'grid' ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredCandidates.map(candidate => (
             <CandidateCard
