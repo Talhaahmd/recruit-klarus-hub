@@ -1,4 +1,3 @@
-
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
@@ -22,25 +21,35 @@ serve(async (req) => {
       const { action, candidateId, candidateName, candidatePhone, role } = await req.json()
 
       if (action === 'initiate_call') {
-        console.log('Initiating call for candidate:', candidateName, 'Phone:', candidatePhone)
+        console.log('Initiating call for candidate:', candidateName, 'Raw phone:', candidatePhone)
 
         // Validate phone number format
         if (!candidatePhone || candidatePhone.trim() === '') {
           throw new Error('Phone number is required')
         }
 
-        // Format phone number for Vapi (ensure it starts with +)
-        let formattedPhone = candidatePhone.trim()
-        if (!formattedPhone.startsWith('+')) {
-          // If it doesn't start with +, assume it's a US number and add +1
-          if (formattedPhone.startsWith('1')) {
-            formattedPhone = '+' + formattedPhone
+        // Clean and format phone number for Vapi
+        // Remove all non-digit characters except the leading +
+        let cleanPhone = candidatePhone.replace(/[^\d+]/g, '')
+        
+        // Ensure it starts with +
+        if (!cleanPhone.startsWith('+')) {
+          // If it starts with 1, assume it's a US number
+          if (cleanPhone.startsWith('1')) {
+            cleanPhone = '+' + cleanPhone
           } else {
-            formattedPhone = '+1' + formattedPhone
+            // Otherwise, assume US and add +1
+            cleanPhone = '+1' + cleanPhone
           }
         }
 
-        console.log('Formatted phone number:', formattedPhone)
+        console.log('Cleaned phone number:', cleanPhone)
+
+        // Validate phone number length (should be at least 10 digits after country code)
+        const digitsOnly = cleanPhone.replace(/[^\d]/g, '')
+        if (digitsOnly.length < 10) {
+          throw new Error('Phone number is too short')
+        }
 
         // Create initial interview record
         const { data: interview, error: insertError } = await supabaseClient
@@ -48,7 +57,7 @@ serve(async (req) => {
           .insert({
             candidate_id: candidateId,
             candidate_name: candidateName,
-            candidate_phone: formattedPhone,
+            candidate_phone: cleanPhone,
             role: role,
             call_status: 'initiating'
           })
@@ -62,7 +71,7 @@ serve(async (req) => {
 
         console.log('Created interview record:', interview.id)
 
-        // Make call to Vapi with proper phone number format
+        // Make call to Vapi with properly formatted phone number
         const vapiResponse = await fetch('https://api.vapi.ai/call', {
           method: 'POST',
           headers: {
@@ -72,7 +81,7 @@ serve(async (req) => {
           body: JSON.stringify({
             assistantId: '1637d56c-c8f0-4397-8836-77ca4a8664be',
             customer: {
-              number: formattedPhone,
+              number: cleanPhone,
             },
             assistantOverrides: {
               variableValues: {
