@@ -123,18 +123,7 @@ const Jobs = () => {
         subtitle="Create and manage job postings"
       />
 
-      {/* LinkedIn Connection Info */}
-      <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-        <div className="flex items-center gap-2">
-          <AlertCircle className="h-5 w-5 text-blue-600" />
-          <span className="text-sm font-medium text-blue-900">
-            Fresh LinkedIn Authentication Required
-          </span>
-        </div>
-        <p className="text-sm text-blue-700 mt-2">
-          Each job posting will request fresh LinkedIn authentication to ensure proper account access and avoid token conflicts.
-        </p>
-      </div>
+     
 
       <div className="mb-6 flex justify-between items-center">
         <div>
