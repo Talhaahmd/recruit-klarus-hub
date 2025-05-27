@@ -1,120 +1,101 @@
-
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { DraggableCardBody, DraggableCardContainer } from '@/components/ui/draggable-card';
+import { Star } from 'lucide-react';
+import { DraggableCard } from '@/components/UI/draggable-card';
 
-// Review content with actual reviews
-const cards = [
+const reviews = [
   {
     id: 1,
-    content: "The AI-driven interviews have revolutionized our hiring process. We're finding better candidates in half the time it used to take us.",
-    author: "Sarah Johnson",
-    role: "HR Director, TechFront Inc.",
-    image: "https://images.pexels.com/photos/1181686/pexels-photo-1181686.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2",
-    className: "absolute top-10 left-[20%] rotate-[-5deg] z-10"
+    name: 'Alice Johnson',
+    title: 'HR Manager at Tech Solutions Inc.',
+    rating: 5,
+    comment: "Klarus HR has revolutionized our hiring process. The AI-driven candidate screening is incredibly efficient, saving us countless hours.",
+    image: 'https://images.unsplash.com/photo-1494790108377-be9c29b108e2?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80',
   },
   {
     id: 2,
-    content: "We've reduced our time-to-hire by 40% and our retention rates have improved significantly. The AI interview platform has become an essential part of our recruiting toolkit.",
-    author: "Michael Chen",
-    role: "Talent Acquisition Lead, GlobalTech",
-    image: "https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2",
-    className: "absolute top-40 left-[25%] rotate-[-7deg] z-20"
+    name: 'Bob Williams',
+    title: 'CEO of InnovateTech',
+    rating: 4,
+    comment: "The automated interview scheduling feature is a game-changer. It seamlessly integrates with our team's calendars, making coordination a breeze.",
+    image: 'https://images.unsplash.com/photo-1570295999919-56ceb7e86ef3?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80',
   },
   {
     id: 3,
-    content: "The analytics and insights we get from each interview have been invaluable. It's like having an expert interviewer on our team 24/7.",
-    author: "Emily Rodriguez",
-    role: "CEO, StartupVision",
-    image: "https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2",
-    className: "absolute top-5 left-[40%] rotate-[8deg] z-30"
+    name: 'Charlie Brown',
+    title: 'CTO at FutureForward Corp',
+    rating: 5,
+    comment: "I'm impressed with the professional profile building tool. It helps our team members enhance their LinkedIn presence with AI-crafted content.",
+    image: 'https://images.unsplash.com/photo-1580489944761-15a19d674c80?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80',
   },
   {
     id: 4,
-    content: "Our hiring managers are now able to focus on the highest-potential candidates, rather than spending hours screening. The ROI has been excellent.",
-    author: "David Washington",
-    role: "COO, Enterprise Solutions",
-    image: "https://images.pexels.com/photos/1681010/pexels-photo-1681010.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2",
-    className: "absolute top-32 left-[55%] rotate-[10deg] z-40"
+    name: 'Diana Miller',
+    title: 'Head of Talent Acquisition at Global Solutions',
+    rating: 5,
+    comment: "The real-time analytics dashboard provides invaluable insights into our hiring metrics. It's a must-have for data-driven recruitment strategies.",
+    image: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80',
   },
-  {
-    id: 5,
-    content: "As a fast-growing startup, we needed a solution that could scale with us. This platform has allowed us to maintain high hiring standards while doubling our team size in six months.",
-    author: "Priya Patel",
-    role: "Recruiting Manager, NextGen Software",
-    image: "https://images.pexels.com/photos/1587009/pexels-photo-1587009.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2",
-    className: "absolute top-20 right-[35%] rotate-[2deg] z-50"
-  },
-  {
-    id: 6,
-    content: "The consistency of the interview process across all our global offices has improved dramatically. We're now confident that we're evaluating candidates fairly and thoroughly.",
-    author: "Thomas Schmidt",
-    role: "VP of HR, Global Innovations",
-    image: "https://images.pexels.com/photos/1516680/pexels-photo-1516680.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2",
-    className: "absolute top-24 left-[45%] rotate-[-7deg] z-60"
-  }
 ];
 
 const ReviewsSection: React.FC = () => {
+  const [shuffledReviews, setShuffledReviews] = useState([...reviews]);
+
+  useEffect(() => {
+    const shuffleReviews = () => {
+      const newOrder = [...reviews].sort(() => Math.random() - 0.5);
+      setShuffledReviews(newOrder);
+    };
+
+    shuffleReviews();
+  }, []);
+
   return (
-    <section className="py-24 bg-black text-white overflow-hidden">
+    <section id="reviews" className="py-24 bg-gray-900">
       <div className="container mx-auto px-4">
-        <div className="text-center mb-16">
+        <div className="text-center mb-10">
           <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-500 to-purple-500 text-sm font-medium tracking-widest uppercase">
-            Success Stories
+            Reviews
           </span>
-          <h2 className="mt-4 text-4xl font-bold text-white md:text-5xl">
-            What Our Clients Say
-          </h2>
-          <p className="mt-4 text-lg text-gray-400 max-w-2xl mx-auto">
-            Real experiences from companies that have transformed their hiring process with our platform
+          <h2 className="mt-4 text-4xl font-bold text-white md:text-5xl">What Our Clients Say</h2>
+          <p className="mt-4 text-lg text-gray-400 max-w-3xl mx-auto">
+            See how Klarus HR is transforming recruitment for leading companies
           </p>
         </div>
-        
-        <div className="relative mt-16">
-          {/* Background glow effects */}
-          <div className="absolute top-40 left-1/4 w-96 h-96 bg-purple-500/20 rounded-full filter blur-[120px] opacity-30" />
-          <div className="absolute bottom-20 right-1/4 w-96 h-96 bg-cyan-500/20 rounded-full filter blur-[120px] opacity-30" />
-          
-          <div className="min-h-[600px] md:min-h-[800px] w-full relative">
-            <DraggableCardContainer className="relative h-[600px] md:h-[800px] w-full overflow-visible">
-              {cards.map((card) => (
-                <DraggableCardBody key={card.id} className={card.className}>
-                  <div className="flex flex-col h-full">
-                    <div className="mb-4">
-                      <img 
-                        src={card.image} 
-                        alt={card.author} 
-                        className="w-16 h-16 rounded-full object-cover mx-auto mb-4"
-                      />
-                      <p className="text-neutral-800 dark:text-white/80 leading-relaxed">
-                        "{card.content}"
-                      </p>
-                    </div>
-                    <div className="mt-auto">
-                      <div className="font-bold text-neutral-900 dark:text-white text-center">{card.author}</div>
-                      <div className="text-neutral-600 dark:text-white/60 text-sm text-center">{card.role}</div>
-                    </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {shuffledReviews.map((review, index) => (
+            <DraggableCard key={review.id} id={review.id.toString()} index={index}>
+              <motion.div
+                className="glass-card p-6 hover:shadow-lg transition-all duration-300 h-full flex flex-col"
+                whileHover={{ scale: 1.05 }}
+                transition={{ duration: 0.3 }}
+              >
+                <div className="flex items-center mb-4">
+                  <img
+                    src={review.image}
+                    alt={review.name}
+                    className="w-12 h-12 rounded-full mr-4"
+                  />
+                  <div>
+                    <h3 className="text-lg font-semibold text-white">{review.name}</h3>
+                    <p className="text-sm text-gray-400">{review.title}</p>
                   </div>
-                </DraggableCardBody>
-              ))}
-            </DraggableCardContainer>
-          </div>
-        </div>
-        
-        <div className="mt-16 text-center">
-          <motion.a 
-            href="#contact"
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            className="inline-flex items-center text-white bg-gradient-to-r from-purple-500 to-cyan-500 rounded-full px-8 py-3 text-lg font-medium hover:from-purple-600 hover:to-cyan-600 transition-all duration-300"
-          >
-            Join Our Success Stories
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 ml-2" viewBox="0 0 20 20" fill="currentColor">
-              <path fillRule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clipRule="evenodd" />
-            </svg>
-          </motion.a>
+                </div>
+                <div className="mb-4">
+                  <div className="flex items-center">
+                    {[...Array(review.rating)].map((_, i) => (
+                      <Star key={i} className="h-5 w-5 text-yellow-500 fill-yellow-500" />
+                    ))}
+                    {[...Array(5 - review.rating)].map((_, i) => (
+                      <Star key={i + review.rating} className="h-5 w-5 text-gray-500" />
+                    ))}
+                  </div>
+                </div>
+                <p className="text-gray-300 flex-grow">{review.comment}</p>
+              </motion.div>
+            </DraggableCard>
+          ))}
         </div>
       </div>
     </section>

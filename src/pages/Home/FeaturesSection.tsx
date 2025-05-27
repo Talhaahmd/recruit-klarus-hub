@@ -1,6 +1,6 @@
 
 import React, { useEffect, useRef } from 'react';
-import LayoutGridDemo from '../../components/ui/layout-grid-demo';
+import LayoutGridDemo from '../../components/UI/layout-grid-demo';
 
 const FeaturesSection: React.FC = () => {
   const sectionRef = useRef<HTMLDivElement>(null);

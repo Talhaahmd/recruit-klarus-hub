@@ -353,7 +353,6 @@ const BuildProfile: React.FC = () => {
         isOpen={showModal}
         onConnect={handleLinkedInConnect} 
         onDismiss={handleLinkedInDismiss}
-        message="Connect your LinkedIn account to generate and schedule posts."
       />
 
       {/* Success Modal */}

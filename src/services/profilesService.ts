@@ -8,11 +8,10 @@ export type Profile = {
   avatar_url: string | null;
   phone: string | null;
   company_contact: string | null;
-  created_by: string | null;
   updated_at: string | null;
 };
 
-export type ProfileUpdateInput = Omit<Profile, 'id' | 'created_by' | 'updated_at'>;
+export type ProfileUpdateInput = Omit<Profile, 'id' | 'updated_at'>;
 
 export const profilesService = {
   // Get the current user's profile - RLS will ensure users can only access their own profile
@@ -30,7 +29,7 @@ export const profilesService = {
       // RLS will ensure users can only access their own profile
       const { data, error } = await supabase
         .from('profiles')
-        .select('id, full_name, company, avatar_url, phone, company_contact, created_by, updated_at')
+        .select('id, full_name, company, avatar_url, phone, company_contact, updated_at')
         .eq('id', user.id)
         .single();
         
@@ -61,11 +60,10 @@ export const profilesService = {
         return null;
       }
       
-      // Set up profile data with user id and created_by
+      // Set up profile data with user id
       const updatedData = {
         id: user.id, // Profile id is the user's auth id
         ...profileData,
-        created_by: user.id,
         updated_at: new Date().toISOString()
       };
       
@@ -84,14 +82,14 @@ export const profilesService = {
           .from('profiles')
           .update(updatedData)
           .eq('id', user.id)
-          .select('id, full_name, company, avatar_url, phone, company_contact, created_by, updated_at')
+          .select('id, full_name, company, avatar_url, phone, company_contact, updated_at')
           .single();
       } else {
         // Insert new profile
         result = await supabase
           .from('profiles')
           .insert(updatedData)
-          .select('id, full_name, company, avatar_url, phone, company_contact, created_by, updated_at')
+          .select('id, full_name, company, avatar_url, phone, company_contact, updated_at')
           .single();
       }
       
@@ -130,7 +128,7 @@ export const profilesService = {
       // The RLS policy will determine if the user has access to this profile
       const { data, error } = await supabase
         .from('profiles')
-        .select('id, full_name, company, avatar_url, phone, company_contact, created_by, updated_at')
+        .select('id, full_name, company, avatar_url, phone, company_contact, updated_at')
         .eq('id', id)
         .single();
         
