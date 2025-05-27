@@ -1,4 +1,3 @@
-
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
@@ -8,11 +7,12 @@ const corsHeaders = {
 };
 
 interface RequestBody {
-  action: 'generate_ideas' | 'generate_post' | 'regenerate_post';
-  themeId: string;
+  action: 'generate_ideas' | 'generate_post' | 'regenerate_post' | 'generate_sample_posts';
+  themeId?: string;
   postId?: string;
   additionalContent?: string;
   customization?: any;
+  themeData?: any;
 }
 
 serve(async (req) => {
@@ -37,9 +37,56 @@ serve(async (req) => {
       throw new Error('Unauthorized');
     }
 
-    const { action, themeId, postId, additionalContent, customization }: RequestBody = await req.json();
+    const { action, themeId, postId, additionalContent, customization, themeData }: RequestBody = await req.json();
 
-    console.log(`Processing ${action} for user ${user.id}, theme ${themeId}`);
+    console.log(`Processing ${action} for user ${user.id}`);
+
+    if (action === 'generate_sample_posts') {
+      // Generate 2 sample posts for custom theme using OpenAI
+      const openaiApiKey = Deno.env.get('OPENAI_API_KEY');
+      if (!openaiApiKey) {
+        throw new Error('OpenAI API key not configured');
+      }
+
+      const prompt = `Create 2 sample LinkedIn posts (500-700 words each) based on this custom theme:
+
+Theme: ${themeData.title}
+Category: ${themeData.category}
+Description: ${themeData.description}
+Target Audience: ${themeData.audience}
+Objectives: ${themeData.objectives?.join(', ')}
+
+Generate 2 distinct, engaging LinkedIn posts that would be typical for this theme. Each post should be between 500-700 words and showcase the style and content approach of this theme. Make them professional, engaging, and valuable to the target audience.
+
+Format: Return just the two posts separated by "---POST_SEPARATOR---"`;
+
+      const openaiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${openaiApiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'gpt-4o-mini',
+          messages: [{ role: 'user', content: prompt }],
+          max_tokens: 2000,
+          temperature: 0.7,
+        }),
+      });
+
+      const openaiData = await openaiResponse.json();
+      const generatedContent = openaiData.choices[0]?.message?.content;
+
+      if (!generatedContent) {
+        throw new Error('Failed to generate sample posts');
+      }
+
+      const posts = generatedContent.split('---POST_SEPARATOR---').map((post: string) => post.trim()).filter((post: string) => post.length > 0);
+
+      return new Response(JSON.stringify({ posts }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
 
     if (action === 'generate_ideas') {
       // Generate post ideas based on theme
@@ -128,7 +175,7 @@ Write an engaging LinkedIn post that would resonate with the target audience and
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          model: 'gpt-4',
+          model: 'gpt-4o-mini',
           messages: [{ role: 'user', content: prompt }],
           max_tokens: 1000,
           temperature: 0.7,

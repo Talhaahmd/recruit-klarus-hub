@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -28,6 +27,7 @@ export interface Theme {
   created_by?: string;
   created_at: string;
   updated_at: string;
+  sample_posts?: string[]; // Add sample posts for custom themes
 }
 
 export interface UserTheme {
@@ -199,6 +199,18 @@ export const useThemes = () => {
         return false;
       }
 
+      // Generate sample posts using ChatGPT
+      const { data: samplePostsData, error: postsError } = await supabase.functions.invoke('generate-content', {
+        body: {
+          action: 'generate_sample_posts',
+          themeData: themeData,
+        },
+      });
+
+      if (postsError) {
+        console.error('Error generating sample posts:', postsError);
+      }
+
       const { data, error } = await supabase
         .from('themes')
         .insert({
@@ -213,15 +225,19 @@ export const useThemes = () => {
           details: themeData.details,
           is_custom: true,
           created_by: user.id,
+          sample_posts: samplePostsData?.posts || [],
         })
         .select()
         .single();
 
       if (error) throw error;
 
+      // Automatically add the custom theme to user's collection
+      await addThemeToCollection(data.id);
+
       toast({
         title: "Success",
-        description: "Custom theme created successfully",
+        description: "Custom theme created and added to your collection",
       });
 
       await fetchThemes();

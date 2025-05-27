@@ -118,10 +118,14 @@ const ThemeDetailModal: React.FC<ThemeDetailModalProps> = ({
   const [selectedTargetAudience, setSelectedTargetAudience] = useState<string[]>([]);
   const [selectedComplexity, setSelectedComplexity] = useState<string[]>([]);
   const [isAdding, setIsAdding] = useState(false);
+  const [currentPostIndex, setCurrentPostIndex] = useState(0);
 
   if (!theme) return null;
 
   const handleToggleOption = (category: string, option: string) => {
+    // Only allow customization for custom themes that haven't been added yet
+    if (!theme.is_custom) return;
+
     const setters = {
       background: setSelectedBackground,
       purpose: setSelectedPurpose,
@@ -151,13 +155,13 @@ const ThemeDetailModal: React.FC<ThemeDetailModalProps> = ({
   const handleAddTheme = async () => {
     setIsAdding(true);
     
-    const customization = {
+    const customization = theme.is_custom ? {
       background: selectedBackground,
       purpose: selectedPurpose,
       mainTopic: selectedMainTopic,
       targetAudience: selectedTargetAudience,
       complexity: selectedComplexity,
-    };
+    } : undefined;
 
     const success = await onAddTheme(theme.id, customization);
     
@@ -187,6 +191,18 @@ const ThemeDetailModal: React.FC<ThemeDetailModalProps> = ({
     }
   };
 
+  // Parse theme details for display
+  const themeQualities = theme.details ? [
+    theme.details.background,
+    theme.details.purpose,
+    theme.details.mainTopic,
+    theme.details.targetAudience,
+    theme.details.complexityLevel
+  ].filter(Boolean) : [];
+
+  const samplePosts = theme.sample_posts || [];
+  const currentPost = samplePosts[currentPostIndex];
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
@@ -206,135 +222,42 @@ const ThemeDetailModal: React.FC<ThemeDetailModalProps> = ({
         </DialogHeader>
 
         <div className="py-6">
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-8">
-            <div className="flex items-center gap-2 text-blue-700">
-              <Check className="h-5 w-5" />
-              <span className="font-medium">You'll be able to customize every aspect after adding to your collection</span>
-            </div>
-          </div>
-
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Left Column - Customization Options */}
+            {/* Left Column - Theme Qualities */}
             <div className="lg:col-span-2 space-y-6">
               <div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-6">Customize Every Aspect</h3>
+                <h3 className="text-xl font-semibold text-gray-900 mb-6">Theme Qualities</h3>
                 
-                <Accordion type="multiple" className="space-y-4">
-                  <AccordionItem value="background" className="border border-gray-200 rounded-lg">
-                    <AccordionTrigger className="px-4 py-3 hover:no-underline hover:bg-gray-50">
+                <div className="space-y-4">
+                  {themeQualities.map((quality, index) => (
+                    <div key={index} className="border border-gray-200 rounded-lg p-4">
                       <div className="flex items-center gap-3">
                         <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                          <span className="text-blue-600 text-sm font-medium">1</span>
+                          <span className="text-blue-600 text-sm font-medium">{index + 1}</span>
                         </div>
-                        <div className="text-left">
-                          <div className="font-medium text-gray-900">Background & Offering</div>
-                          <div className="text-sm text-gray-500">What's the context of your post?</div>
-                        </div>
+                        <div className="text-gray-900 font-medium">{quality}</div>
                       </div>
-                    </AccordionTrigger>
-                    <AccordionContent className="px-4 pb-4">
-                      <OptionsSection
-                        title="Background"
-                        description="What's the context of your post?"
-                        options={backgroundOptions}
-                        selectedOptions={selectedBackground}
-                        onToggleOption={(option) => handleToggleOption('background', option)}
-                      />
-                    </AccordionContent>
-                  </AccordionItem>
+                    </div>
+                  ))}
+                </div>
 
-                  <AccordionItem value="purpose" className="border border-gray-200 rounded-lg">
-                    <AccordionTrigger className="px-4 py-3 hover:no-underline hover:bg-gray-50">
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-                          <span className="text-green-600 text-sm font-medium">2</span>
-                        </div>
-                        <div className="text-left">
-                          <div className="font-medium text-gray-900">Purpose</div>
-                          <div className="text-sm text-gray-500">What do you want to achieve with this post?</div>
-                        </div>
-                      </div>
-                    </AccordionTrigger>
-                    <AccordionContent className="px-4 pb-4">
-                      <OptionsSection
-                        title="Purpose"
-                        description="What do you want to achieve with this post?"
-                        options={purposeOptions}
-                        selectedOptions={selectedPurpose}
-                        onToggleOption={(option) => handleToggleOption('purpose', option)}
-                      />
-                    </AccordionContent>
-                  </AccordionItem>
+                {theme.description && (
+                  <div className="mt-6 p-4 bg-blue-50 rounded-lg">
+                    <h4 className="font-semibold text-blue-900 mb-2">Description</h4>
+                    <p className="text-blue-700">{theme.description}</p>
+                  </div>
+                )}
 
-                  <AccordionItem value="main-topic" className="border border-gray-200 rounded-lg">
-                    <AccordionTrigger className="px-4 py-3 hover:no-underline hover:bg-gray-50">
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
-                          <FileText className="w-4 h-4 text-purple-600" />
-                        </div>
-                        <div className="text-left">
-                          <div className="font-medium text-gray-900">Main Topic</div>
-                          <div className="text-sm text-gray-500">What is the central theme of your post?</div>
-                        </div>
-                      </div>
-                    </AccordionTrigger>
-                    <AccordionContent className="px-4 pb-4">
-                      <OptionsSection
-                        title="Main Topic"
-                        description="What is the central theme of your post?"
-                        options={mainTopicOptions}
-                        selectedOptions={selectedMainTopic}
-                        onToggleOption={(option) => handleToggleOption('mainTopic', option)}
-                      />
-                    </AccordionContent>
-                  </AccordionItem>
-
-                  <AccordionItem value="target-audience" className="border border-gray-200 rounded-lg">
-                    <AccordionTrigger className="px-4 py-3 hover:no-underline hover:bg-gray-50">
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center">
-                          <span className="text-orange-600 text-sm">👥</span>
-                        </div>
-                        <div className="text-left">
-                          <div className="font-medium text-gray-900">Target Audience</div>
-                          <div className="text-sm text-gray-500">Who are you trying to reach?</div>
-                        </div>
-                      </div>
-                    </AccordionTrigger>
-                    <AccordionContent className="px-4 pb-4">
-                      <OptionsSection
-                        title="Target Audience"
-                        description="Who are you trying to reach?"
-                        options={targetAudienceOptions}
-                        selectedOptions={selectedTargetAudience}
-                        onToggleOption={(option) => handleToggleOption('targetAudience', option)}
-                      />
-                    </AccordionContent>
-                  </AccordionItem>
-
-                  <AccordionItem value="complexity" className="border border-gray-200 rounded-lg">
-                    <AccordionTrigger className="px-4 py-3 hover:no-underline hover:bg-gray-50">
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center">
-                          <span className="text-red-600 text-sm">⚡</span>
-                        </div>
-                        <div className="text-left">
-                          <div className="font-medium text-gray-900">Complexity Level</div>
-                          <div className="text-sm text-gray-500">How technical or detailed is the content?</div>
-                        </div>
-                      </div>
-                    </AccordionTrigger>
-                    <AccordionContent className="px-4 pb-4">
-                      <OptionsSection
-                        title="Complexity Level"
-                        description="How technical or detailed is the content?"
-                        options={complexityOptions}
-                        selectedOptions={selectedComplexity}
-                        onToggleOption={(option) => handleToggleOption('complexity', option)}
-                      />
-                    </AccordionContent>
-                  </AccordionItem>
-                </Accordion>
+                {theme.objectives && theme.objectives.length > 0 && (
+                  <div className="mt-6 p-4 bg-green-50 rounded-lg">
+                    <h4 className="font-semibold text-green-900 mb-2">Objectives</h4>
+                    <ul className="list-disc list-inside text-green-700 space-y-1">
+                      {theme.objectives.map((objective, index) => (
+                        <li key={index}>{objective}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -345,54 +268,32 @@ const ThemeDetailModal: React.FC<ThemeDetailModalProps> = ({
                   <FileText className="h-5 w-5 text-blue-600" />
                   What type of posts to expect
                 </h3>
-                <div className="flex items-center gap-1 text-sm text-gray-500">
-                  <span>(1/3)</span>
-                  <ChevronRight className="h-4 w-4" />
-                </div>
+                {samplePosts.length > 1 && (
+                  <div className="flex items-center gap-1 text-sm text-gray-500">
+                    <span>({currentPostIndex + 1}/{samplePosts.length})</span>
+                    <button 
+                      onClick={() => setCurrentPostIndex((prev) => (prev + 1) % samplePosts.length)}
+                      className="ml-2 text-blue-600 hover:text-blue-700"
+                    >
+                      <ChevronRight className="h-4 w-4" />
+                    </button>
+                  </div>
+                )}
               </div>
 
-              <div className="bg-gradient-to-br from-red-50 to-orange-50 border-l-4 border-red-500 p-6 rounded-lg shadow-sm">
-                <p className="text-red-700 text-sm font-semibold mb-3">
-                  📈 VCs hate this pricing strategy.
-                </p>
-                <p className="text-sm text-gray-700 mb-3">
-                  Just helped a SaaS founder 5x revenue in 60 days.<br />
-                  No marketing budget.<br />
-                  No growth hacks.
-                </p>
-                <p className="text-sm text-gray-700 mb-4">
-                  Just one controversial change:
-                </p>
-                
-                <div className="space-y-4">
-                  <div className="bg-white/60 p-3 rounded">
-                    <p className="text-sm font-semibold text-gray-700 mb-1">Old way (broke):</p>
-                    <div className="text-sm text-gray-600 space-y-1">
-                      <p>• Freemium tier</p>
-                      <p>• $29/mo basic</p>
-                      <p>• $99/mo premium</p>
-                    </div>
-                  </div>
-                  
-                  <div className="bg-white/60 p-3 rounded">
-                    <p className="text-sm font-semibold text-gray-700 mb-1">New way (money):</p>
-                    <div className="text-sm text-gray-600 space-y-1">
-                      <p>• $199/mo minimum</p>
-                      <p>• 14-day free trial</p>
-                      <p>• No freemium</p>
-                    </div>
-                  </div>
-                  
-                  <div className="bg-white/60 p-3 rounded">
-                    <p className="text-sm font-semibold text-gray-700 mb-1">Results:</p>
-                    <div className="text-sm space-y-1">
-                      <p>• Revenue: <span className="text-green-600 font-semibold">+427%</span></p>
-                      <p>• CAC: <span className="text-green-600 font-semibold">-65%</span></p>
-                      <p>• Churn: <span className="text-green-600 font-semibold">-83%</span></p>
-                    </div>
+              {currentPost ? (
+                <div className="bg-gradient-to-br from-red-50 to-orange-50 border-l-4 border-red-500 p-6 rounded-lg shadow-sm max-h-96 overflow-y-auto">
+                  <div className="prose prose-sm text-gray-700">
+                    {currentPost.split('\n').map((paragraph, index) => (
+                      <p key={index} className="mb-3 last:mb-0">{paragraph}</p>
+                    ))}
                   </div>
                 </div>
-              </div>
+              ) : (
+                <div className="bg-gray-50 p-6 rounded-lg text-center">
+                  <p className="text-gray-500">Sample posts will be generated for custom themes</p>
+                </div>
+              )}
 
               <div className="flex flex-col gap-3">
                 <Button variant="outline" onClick={onClose} className="w-full">
