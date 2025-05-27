@@ -24,6 +24,9 @@ export interface AutomatedPost {
   max_regenerations: number;
   published_at?: string;
   created_at: string;
+  updated_at: string;
+  theme_id: string;
+  user_id: string;
 }
 
 export const useContentGeneration = () => {
@@ -192,7 +195,14 @@ export const useContentGeneration = () => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setPosts(data || []);
+      
+      // Type assertion to ensure proper typing
+      const typedData = (data || []).map(post => ({
+        ...post,
+        status: post.status as 'draft' | 'reviewing' | 'published'
+      }));
+      
+      setPosts(typedData);
     } catch (error) {
       console.error('Error fetching posts:', error);
     }

@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/UI/card';
 import { Badge } from '@/components/UI/badge';
 import ThemeDetailModal from '@/components/UI/ThemeDetailModal';
 import CreateThemeModal from '@/components/UI/CreateThemeModal';
-import { useThemes, Theme } from '@/hooks/useThemes';
+import { useThemes, type Theme as ThemeType } from '@/hooks/useThemes';
 
 const categories = [
   { id: 'all', name: 'All Themes', icon: Sparkles },
@@ -17,9 +17,9 @@ const categories = [
   { id: 'marketing-leaders', name: 'Marketing Leaders', icon: Target },
 ];
 
-const Theme: React.FC = () => {
+const ThemePage: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState('all');
-  const [selectedTheme, setSelectedTheme] = useState<Theme | null>(null);
+  const [selectedTheme, setSelectedTheme] = useState<ThemeType | null>(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   
@@ -49,7 +49,7 @@ const Theme: React.FC = () => {
     ).length;
   };
 
-  const handlePreview = (theme: Theme) => {
+  const handlePreview = (theme: ThemeType) => {
     setSelectedTheme(theme);
     setIsDetailModalOpen(true);
   };
@@ -280,4 +280,4 @@ const Theme: React.FC = () => {
   );
 };
 
-export default Theme;
+export default ThemePage;

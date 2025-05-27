@@ -26,6 +26,8 @@ export interface Theme {
   };
   is_custom: boolean;
   created_by?: string;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface UserTheme {
@@ -50,7 +52,16 @@ export const useThemes = () => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setThemes(data || []);
+      
+      // Type assertion to ensure proper typing
+      const typedData = (data || []).map(theme => ({
+        ...theme,
+        complexity: theme.complexity as 'Beginner' | 'Intermediate' | 'Advanced',
+        results: theme.results as { revenue: string; cac: string; churn: string; },
+        details: theme.details as { background: string; purpose: string; mainTopic: string; targetAudience: string; complexityLevel: string; }
+      }));
+      
+      setThemes(typedData);
     } catch (error) {
       console.error('Error fetching themes:', error);
       toast({
@@ -76,7 +87,19 @@ export const useThemes = () => {
         .order('added_at', { ascending: false });
 
       if (error) throw error;
-      setUserThemes(data || []);
+      
+      // Type assertion to ensure proper typing
+      const typedData = (data || []).map(userTheme => ({
+        ...userTheme,
+        theme: {
+          ...userTheme.theme,
+          complexity: userTheme.theme.complexity as 'Beginner' | 'Intermediate' | 'Advanced',
+          results: userTheme.theme.results as { revenue: string; cac: string; churn: string; },
+          details: userTheme.theme.details as { background: string; purpose: string; mainTopic: string; targetAudience: string; complexityLevel: string; }
+        }
+      }));
+      
+      setUserThemes(typedData);
     } catch (error) {
       console.error('Error fetching user themes:', error);
       toast({
@@ -108,7 +131,7 @@ export const useThemes = () => {
         });
 
       if (error) {
-        if (error.code === '23505') { // Unique constraint violation
+        if (error.code === '23505') {
           toast({
             title: "Theme already added",
             description: "This theme is already in your collection",
@@ -179,7 +202,15 @@ export const useThemes = () => {
       const { data, error } = await supabase
         .from('themes')
         .insert({
-          ...themeData,
+          title: themeData.title || '',
+          category: themeData.category || '',
+          description: themeData.description,
+          audience: themeData.audience,
+          objectives: themeData.objectives,
+          post_types: themeData.post_types,
+          complexity: themeData.complexity,
+          results: themeData.results,
+          details: themeData.details,
           is_custom: true,
           created_by: user.id,
         })
