@@ -4,42 +4,81 @@ export type Database = {
       profiles: {
         Row: {
           id: string;
-          profile_image: string | null;
-          header_image: string | null;
-          full_name: string;
+          full_name: string | null;
           headline: string | null;
-          current_position: string | null;
-          company: string | null;
           bio: string | null;
-          follower_count: number;
-          connection_count: number;
+          avatar_url: string | null;
+          header_image_url: string | null;
+          company: string | null;
+          current_position: string | null;
+          phone: string | null;
           profile_url: string | null;
-          last_updated: string;
-          created_at: string;
+          connection_count: number | null;
+          follower_count: number | null;
+          profile_strength_score: number | null;
+          network_score: number | null;
+          engagement_score: number | null;
+          updated_at: string | null;
+          created_at: string | null;
           skills: string[] | null;
           industry: string | null;
           experience_years: number | null;
           ai_summary: string | null;
-          ai_insights: {
-            profileStrength: string;
-            careerTrajectory: string;
-            networkAnalysis: string;
-            skillsAssessment: string;
-            industryPosition: string;
-          } | null;
-          ai_suggestions: {
-            profile: string[];
-            content: string[];
-            networking: string[];
-            skills: string[];
-          } | null;
+          ai_insights: Json | null;
+          ai_suggestions: Json | null;
           last_analysis_date: string | null;
-          engagement_score: number | null;
-          profile_strength_score: number | null;
-          network_score: number | null;
         };
-        Insert: Omit<Database['public']['Tables']['profiles']['Row'], 'created_at' | 'last_updated'>;
-        Update: Partial<Omit<Database['public']['Tables']['profiles']['Row'], 'id' | 'created_at'> & { id?: string }>;
+        Insert: {
+          id: string;
+          full_name?: string | null;
+          headline?: string | null;
+          bio?: string | null;
+          avatar_url?: string | null;
+          header_image_url?: string | null;
+          company?: string | null;
+          current_position?: string | null;
+          phone?: string | null;
+          profile_url?: string | null;
+          connection_count?: number | null;
+          follower_count?: number | null;
+          profile_strength_score?: number | null;
+          network_score?: number | null;
+          engagement_score?: number | null;
+          updated_at?: string | null;
+          created_at?: string | null;
+          skills?: string[] | null;
+          industry?: string | null;
+          experience_years?: number | null;
+          ai_summary?: string | null;
+          ai_insights?: Json | null;
+          ai_suggestions?: Json | null;
+          last_analysis_date?: string | null;
+        };
+        Update: {
+          id?: string;
+          full_name?: string | null;
+          headline?: string | null;
+          bio?: string | null;
+          avatar_url?: string | null;
+          header_image_url?: string | null;
+          company?: string | null;
+          current_position?: string | null;
+          phone?: string | null;
+          profile_url?: string | null;
+          connection_count?: number | null;
+          follower_count?: number | null;
+          profile_strength_score?: number | null;
+          network_score?: number | null;
+          engagement_score?: number | null;
+          updated_at?: string | null;
+          skills?: string[] | null;
+          industry?: string | null;
+          experience_years?: number | null;
+          ai_summary?: string | null;
+          ai_insights?: Json | null;
+          ai_suggestions?: Json | null;
+          last_analysis_date?: string | null;
+        };
       };
       linkedin_organizations: {
         Row: {
@@ -182,4 +221,6 @@ export type Database = {
       [_ in never]: never;
     };
   };
-}; 
+};
+
+export type Json = | string | number | boolean | null | { [key: string]: Json } | Json[]; 
