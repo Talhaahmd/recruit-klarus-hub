@@ -12,6 +12,7 @@ export interface PostIdea {
   rss_source: string;
   is_copied: boolean;
   created_at: string;
+  theme_id: string;
 }
 
 export interface AutomatedPost {
@@ -54,6 +55,52 @@ export const useContentGeneration = () => {
       });
     } catch (error) {
       console.error('Error generating ideas:', error);
+      toast({
+        title: "Error",
+        description: "Failed to generate ideas",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const generateIdeasForAllThemes = async () => {
+    setLoading(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      // Get all user themes
+      const { data: userThemes, error: themesError } = await supabase
+        .from('user_themes')
+        .select('theme_id')
+        .eq('user_id', user.id);
+
+      if (themesError) throw themesError;
+
+      // Generate ideas for each theme
+      const allIdeas: PostIdea[] = [];
+      for (const userTheme of userThemes) {
+        const { data, error } = await supabase.functions.invoke('generate-content', {
+          body: {
+            action: 'generate_ideas',
+            themeId: userTheme.theme_id,
+          },
+        });
+
+        if (data?.ideas) {
+          allIdeas.push(...data.ideas);
+        }
+      }
+
+      setIdeas(allIdeas);
+      toast({
+        title: "Success",
+        description: "Post ideas generated for all your themes",
+      });
+    } catch (error) {
+      console.error('Error generating ideas for all themes:', error);
       toast({
         title: "Error",
         description: "Failed to generate ideas",
@@ -236,6 +283,7 @@ export const useContentGeneration = () => {
     ideas,
     posts,
     generateIdeas,
+    generateIdeasForAllThemes,
     generatePost,
     regeneratePost,
     publishPost,
