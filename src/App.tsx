@@ -1,4 +1,3 @@
-
 import React, { useEffect } from "react";
 import { Toaster } from "@/components/UI/toaster.tsx";
 import { Toaster as Sonner } from "@/components/UI/sonner.tsx";
@@ -114,24 +113,14 @@ const App = () => (
 
               {/* Protected routes with MainLayout */}
               <Route
-                path="/dashboard"
+                path="/*"
                 element={
                   <ProtectedRouteHandler>
                     <MainLayout />
                   </ProtectedRouteHandler>
                 }
               >
-                <Route index element={<Dashboard />} />
-              </Route>
-              
-              <Route
-                path="/"
-                element={
-                  <ProtectedRouteHandler>
-                    <MainLayout />
-                  </ProtectedRouteHandler>
-                }
-              >
+                <Route path="dashboard" element={<Dashboard />} />
                 <Route path="jobs" element={<Jobs />} />
                 <Route path="candidates" element={<Candidates />} />
                 <Route path="candidates/:id" element={<CandidateProfile />} />
