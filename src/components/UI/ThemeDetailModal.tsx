@@ -1,6 +1,5 @@
-
 import React, { useState } from 'react';
-import { X, ChevronDown, ChevronUp, FileText, Check, ChevronRight } from 'lucide-react';
+import { X, Check, FileText, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/UI/button';
 import {
   Dialog,
@@ -14,34 +13,13 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from '@/components/UI/accordion';
-
-interface Theme {
-  id: string;
-  title: string;
-  category: string;
-  description: string;
-  audience: string;
-  objectives: string[];
-  postTypes: string[];
-  complexity: 'Beginner' | 'Intermediate' | 'Advanced';
-  results: {
-    revenue: string;
-    cac: string;
-    churn: string;
-  };
-  details: {
-    background: string;
-    purpose: string;
-    mainTopic: string;
-    targetAudience: string;
-    complexityLevel: string;
-  };
-}
+import { Theme } from '@/hooks/useThemes';
 
 interface ThemeDetailModalProps {
   isOpen: boolean;
   onClose: () => void;
   theme: Theme | null;
+  onAddTheme: (themeId: string, customization?: any) => Promise<boolean>;
 }
 
 const backgroundOptions = [
@@ -131,13 +109,15 @@ const OptionsSection: React.FC<OptionsSectionProps> = ({
 const ThemeDetailModal: React.FC<ThemeDetailModalProps> = ({
   isOpen,
   onClose,
-  theme
+  theme,
+  onAddTheme
 }) => {
   const [selectedBackground, setSelectedBackground] = useState<string[]>([]);
   const [selectedPurpose, setSelectedPurpose] = useState<string[]>([]);
   const [selectedMainTopic, setSelectedMainTopic] = useState<string[]>([]);
   const [selectedTargetAudience, setSelectedTargetAudience] = useState<string[]>([]);
   const [selectedComplexity, setSelectedComplexity] = useState<string[]>([]);
+  const [isAdding, setIsAdding] = useState(false);
 
   if (!theme) return null;
 
@@ -166,6 +146,32 @@ const ThemeDetailModal: React.FC<ThemeDetailModalProps> = ({
     } else {
       setter([...currentSelected, option]);
     }
+  };
+
+  const handleAddTheme = async () => {
+    setIsAdding(true);
+    
+    const customization = {
+      background: selectedBackground,
+      purpose: selectedPurpose,
+      mainTopic: selectedMainTopic,
+      targetAudience: selectedTargetAudience,
+      complexity: selectedComplexity,
+    };
+
+    const success = await onAddTheme(theme.id, customization);
+    
+    if (success) {
+      onClose();
+      // Reset selections
+      setSelectedBackground([]);
+      setSelectedPurpose([]);
+      setSelectedMainTopic([]);
+      setSelectedTargetAudience([]);
+      setSelectedComplexity([]);
+    }
+    
+    setIsAdding(false);
   };
 
   const getCategoryColor = (category: string) => {
@@ -392,8 +398,12 @@ const ThemeDetailModal: React.FC<ThemeDetailModalProps> = ({
                 <Button variant="outline" onClick={onClose} className="w-full">
                   Not right for me
                 </Button>
-                <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium">
-                  + Add to My Themes
+                <Button 
+                  onClick={handleAddTheme}
+                  disabled={isAdding}
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium"
+                >
+                  {isAdding ? 'Adding...' : '+ Add to My Themes'}
                 </Button>
               </div>
             </div>

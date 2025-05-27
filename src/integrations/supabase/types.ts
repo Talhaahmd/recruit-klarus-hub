@@ -110,6 +110,59 @@ export type Database = {
         }
         Relationships: []
       }
+      automated_posts: {
+        Row: {
+          additional_content: string | null
+          content: string | null
+          created_at: string | null
+          id: string
+          max_regenerations: number | null
+          published_at: string | null
+          regeneration_count: number | null
+          status: string | null
+          theme_id: string
+          title: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          additional_content?: string | null
+          content?: string | null
+          created_at?: string | null
+          id?: string
+          max_regenerations?: number | null
+          published_at?: string | null
+          regeneration_count?: number | null
+          status?: string | null
+          theme_id: string
+          title: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          additional_content?: string | null
+          content?: string | null
+          created_at?: string | null
+          id?: string
+          max_regenerations?: number | null
+          published_at?: string | null
+          regeneration_count?: number | null
+          status?: string | null
+          theme_id?: string
+          title?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "automated_posts_theme_id_fkey"
+            columns: ["theme_id"]
+            isOneToOne: false
+            referencedRelation: "themes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       calendar_events: {
         Row: {
           created_at: string | null
@@ -519,6 +572,53 @@ export type Database = {
         }
         Relationships: []
       }
+      post_ideas: {
+        Row: {
+          category: string | null
+          created_at: string | null
+          description: string | null
+          filter_tags: string[] | null
+          id: string
+          is_copied: boolean | null
+          rss_source: string | null
+          theme_id: string
+          title: string
+          user_id: string
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string | null
+          description?: string | null
+          filter_tags?: string[] | null
+          id?: string
+          is_copied?: boolean | null
+          rss_source?: string | null
+          theme_id: string
+          title: string
+          user_id: string
+        }
+        Update: {
+          category?: string | null
+          created_at?: string | null
+          description?: string | null
+          filter_tags?: string[] | null
+          id?: string
+          is_copied?: boolean | null
+          rss_source?: string | null
+          theme_id?: string
+          title?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "post_ideas_theme_id_fkey"
+            columns: ["theme_id"]
+            isOneToOne: false
+            referencedRelation: "themes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           ai_insights: Json | null
@@ -638,6 +738,89 @@ export type Database = {
           user_id?: string | null
         }
         Relationships: []
+      }
+      themes: {
+        Row: {
+          audience: string | null
+          category: string
+          complexity: string | null
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          details: Json | null
+          id: string
+          is_custom: boolean | null
+          objectives: string[] | null
+          post_types: string[] | null
+          results: Json | null
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          audience?: string | null
+          category: string
+          complexity?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          details?: Json | null
+          id?: string
+          is_custom?: boolean | null
+          objectives?: string[] | null
+          post_types?: string[] | null
+          results?: Json | null
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          audience?: string | null
+          category?: string
+          complexity?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          details?: Json | null
+          id?: string
+          is_custom?: boolean | null
+          objectives?: string[] | null
+          post_types?: string[] | null
+          results?: Json | null
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      user_themes: {
+        Row: {
+          added_at: string | null
+          customization: Json | null
+          id: string
+          theme_id: string
+          user_id: string
+        }
+        Insert: {
+          added_at?: string | null
+          customization?: Json | null
+          id?: string
+          theme_id: string
+          user_id: string
+        }
+        Update: {
+          added_at?: string | null
+          customization?: Json | null
+          id?: string
+          theme_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_themes_theme_id_fkey"
+            columns: ["theme_id"]
+            isOneToOne: false
+            referencedRelation: "themes"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {

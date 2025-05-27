@@ -3,191 +3,59 @@ import React, { useState } from 'react';
 import { Header } from '@/components/Layout/MainLayout';
 import { Eye, Plus, Target, Users, Zap, TrendingUp, Sparkles, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/UI/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/UI/tabs';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/UI/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/UI/card';
 import { Badge } from '@/components/UI/badge';
 import ThemeDetailModal from '@/components/UI/ThemeDetailModal';
-
-interface Theme {
-  id: string;
-  title: string;
-  category: string;
-  description: string;
-  audience: string;
-  objectives: string[];
-  postTypes: string[];
-  complexity: 'Beginner' | 'Intermediate' | 'Advanced';
-  results: {
-    revenue: string;
-    cac: string;
-    churn: string;
-  };
-  details: {
-    background: string;
-    purpose: string;
-    mainTopic: string;
-    targetAudience: string;
-    complexityLevel: string;
-  };
-}
-
-const themes: Theme[] = [
-  {
-    id: '1',
-    title: '10x or Die Trying',
-    category: 'Software Engineers',
-    description: 'Master organizational dynamics',
-    audience: 'Build exponential career moats',
-    objectives: ['10x impact without burning out'],
-    postTypes: ['Master organizational dynamics', 'Build exponential career moats', '10x impact without burning out'],
-    complexity: 'Advanced',
-    results: {
-      revenue: '+427%',
-      cac: '-65%',
-      churn: '-83%'
-    },
-    details: {
-      background: 'High-performance software engineering strategies',
-      purpose: 'Help engineers achieve exponential growth',
-      mainTopic: 'Career acceleration and technical excellence',
-      targetAudience: 'Ambitious software engineers',
-      complexityLevel: 'Advanced - requires deep technical knowledge'
-    }
-  },
-  {
-    id: '2',
-    title: 'Legacy Code Rebel',
-    category: 'Software Engineers',
-    description: 'Master legacy system politics',
-    audience: 'Turn maintenance into promotion',
-    objectives: ['Build power through constraints'],
-    postTypes: ['Master legacy system politics', 'Turn maintenance into promotion', 'Build power through constraints'],
-    complexity: 'Intermediate',
-    results: {
-      revenue: '+385%',
-      cac: '-72%',
-      churn: '-68%'
-    },
-    details: {
-      background: 'Legacy system modernization strategies',
-      purpose: 'Transform legacy work into career opportunities',
-      mainTopic: 'Legacy code management and career growth',
-      targetAudience: 'Software engineers working with legacy systems',
-      complexityLevel: 'Intermediate - some experience required'
-    }
-  },
-  {
-    id: '3',
-    title: 'Code Under Chaos',
-    category: 'Software Engineers',
-    description: 'Master high-stakes engineering',
-    audience: 'Turn chaos into leverage',
-    objectives: ['Scale through crisis'],
-    postTypes: ['Master high-stakes engineering', 'Turn chaos into leverage', 'Scale through crisis'],
-    complexity: 'Advanced',
-    results: {
-      revenue: '+512%',
-      cac: '-58%',
-      churn: '-91%'
-    },
-    details: {
-      background: 'Crisis management in software development',
-      purpose: 'Excel in high-pressure engineering environments',
-      mainTopic: 'Crisis management and technical leadership',
-      targetAudience: 'Senior engineers and tech leads',
-      complexityLevel: 'Advanced - leadership experience needed'
-    }
-  },
-  {
-    id: '4',
-    title: 'Profit Over Hype',
-    category: 'SaaS Founders',
-    description: 'Master profitable SaaS growth',
-    audience: 'Build wealth without VC',
-    objectives: ['Scale through real revenue'],
-    postTypes: ['Master profitable SaaS growth', 'Build wealth without VC', 'Scale through real revenue'],
-    complexity: 'Advanced',
-    results: {
-      revenue: '+627%',
-      cac: '-45%',
-      churn: '-76%'
-    },
-    details: {
-      background: 'Sustainable SaaS business models',
-      purpose: 'Build profitable companies without external funding',
-      mainTopic: 'Bootstrapped SaaS growth strategies',
-      targetAudience: 'SaaS founders and entrepreneurs',
-      complexityLevel: 'Advanced - business experience required'
-    }
-  },
-  {
-    id: '5',
-    title: 'Pricing Psychology',
-    category: 'SaaS Founders',
-    description: 'Master pricing psychology',
-    audience: 'Maximize revenue ethically',
-    objectives: ['Win through strategic pricing'],
-    postTypes: ['Master pricing psychology', 'Maximize revenue ethically', 'Win through strategic pricing'],
-    complexity: 'Intermediate',
-    results: {
-      revenue: '+394%',
-      cac: '-52%',
-      churn: '-64%'
-    },
-    details: {
-      background: 'Psychological pricing strategies',
-      purpose: 'Optimize pricing for maximum revenue',
-      mainTopic: 'Pricing psychology and revenue optimization',
-      targetAudience: 'SaaS founders and product managers',
-      complexityLevel: 'Intermediate - basic business knowledge needed'
-    }
-  },
-  {
-    id: '6',
-    title: 'Break The Algorithm',
-    category: 'Marketing Leaders',
-    description: 'Decode & exploit social algorithms',
-    audience: 'Engineer systematic virality',
-    objectives: ['Scale growth without ads'],
-    postTypes: ['Decode & exploit social algorithms', 'Engineer systematic virality', 'Scale growth without ads'],
-    complexity: 'Advanced',
-    results: {
-      revenue: '+445%',
-      cac: '-78%',
-      churn: '-82%'
-    },
-    details: {
-      background: 'Social media algorithm optimization',
-      purpose: 'Master organic social media growth',
-      mainTopic: 'Algorithm hacking and viral content',
-      targetAudience: 'Marketing leaders and content creators',
-      complexityLevel: 'Advanced - deep marketing experience required'
-    }
-  }
-];
+import CreateThemeModal from '@/components/UI/CreateThemeModal';
+import { useThemes, Theme } from '@/hooks/useThemes';
 
 const categories = [
-  { id: 'all', name: 'All Themes', icon: Sparkles, count: themes.length },
-  { id: 'my-themes', name: 'My Themes', icon: Users, count: 0 },
-  { id: 'software-engineers', name: 'Software Engineers', icon: Zap, count: 3 },
-  { id: 'saas-founders', name: 'SaaS Founders', icon: TrendingUp, count: 2 },
-  { id: 'marketing-leaders', name: 'Marketing Leaders', icon: Target, count: 1 },
+  { id: 'all', name: 'All Themes', icon: Sparkles },
+  { id: 'my-themes', name: 'My Themes', icon: Users },
+  { id: 'software-engineers', name: 'Software Engineers', icon: Zap },
+  { id: 'saas-founders', name: 'SaaS Founders', icon: TrendingUp },
+  { id: 'marketing-leaders', name: 'Marketing Leaders', icon: Target },
 ];
 
 const Theme: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [selectedTheme, setSelectedTheme] = useState<Theme | null>(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  
+  const { 
+    themes, 
+    userThemes, 
+    loading, 
+    addThemeToCollection, 
+    createCustomTheme 
+  } = useThemes();
 
-  const filteredThemes = selectedCategory === 'all' 
-    ? themes 
-    : themes.filter(theme => 
-        theme.category.toLowerCase().replace(' ', '-') === selectedCategory
-      );
+  const getFilteredThemes = () => {
+    if (selectedCategory === 'all') return themes;
+    if (selectedCategory === 'my-themes') return userThemes.map(ut => ut.theme);
+    
+    return themes.filter(theme => 
+      theme.category.toLowerCase().replace(/\s+/g, '-') === selectedCategory
+    );
+  };
+
+  const getCategoryCount = (categoryId: string) => {
+    if (categoryId === 'all') return themes.length;
+    if (categoryId === 'my-themes') return userThemes.length;
+    
+    return themes.filter(theme => 
+      theme.category.toLowerCase().replace(/\s+/g, '-') === categoryId
+    ).length;
+  };
 
   const handlePreview = (theme: Theme) => {
     setSelectedTheme(theme);
     setIsDetailModalOpen(true);
+  };
+
+  const handleCreateTheme = async (themeData: any) => {
+    await createCustomTheme(themeData);
   };
 
   const getCategoryGradient = (category: string) => {
@@ -215,6 +83,19 @@ const Theme: React.FC = () => {
         return 'bg-gray-100 text-gray-700 border-gray-200';
     }
   };
+
+  const filteredThemes = getFilteredThemes();
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading themes...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
@@ -244,6 +125,7 @@ const Theme: React.FC = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
               {categories.map((category) => {
                 const IconComponent = category.icon;
+                const count = getCategoryCount(category.id);
                 return (
                   <button
                     key={category.id}
@@ -263,7 +145,7 @@ const Theme: React.FC = () => {
                           ? 'bg-blue-100 text-blue-700' 
                           : 'bg-gray-100 text-gray-600'
                       }`}>
-                        {category.count}
+                        {count}
                       </span>
                     </div>
                     <h3 className={`font-medium ${
@@ -284,7 +166,10 @@ const Theme: React.FC = () => {
               <p className="text-indigo-100 mb-6">
                 Not finding the perfect fit? Design a custom theme tailored to your industry, audience, and goals.
               </p>
-              <Button className="bg-white text-indigo-600 hover:bg-indigo-50 font-medium">
+              <Button 
+                onClick={() => setIsCreateModalOpen(true)}
+                className="bg-white text-indigo-600 hover:bg-indigo-50 font-medium"
+              >
                 <Plus className="h-4 w-4 mr-2" />
                 Create Custom Theme
               </Button>
@@ -329,24 +214,25 @@ const Theme: React.FC = () => {
                     </div>
                   </div>
 
-                  {/* Results Preview */}
-                  <div className="bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg p-4">
-                    <h4 className="text-sm font-semibold text-gray-700 mb-2">Expected Results:</h4>
-                    <div className="grid grid-cols-3 gap-2 text-xs">
-                      <div className="text-center">
-                        <div className="font-bold text-green-600">{theme.results.revenue}</div>
-                        <div className="text-gray-500">Revenue</div>
-                      </div>
-                      <div className="text-center">
-                        <div className="font-bold text-blue-600">{theme.results.cac}</div>
-                        <div className="text-gray-500">CAC</div>
-                      </div>
-                      <div className="text-center">
-                        <div className="font-bold text-purple-600">{theme.results.churn}</div>
-                        <div className="text-gray-500">Churn</div>
+                  {theme.results && (
+                    <div className="bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg p-4">
+                      <h4 className="text-sm font-semibold text-gray-700 mb-2">Expected Results:</h4>
+                      <div className="grid grid-cols-3 gap-2 text-xs">
+                        <div className="text-center">
+                          <div className="font-bold text-green-600">{theme.results.revenue}</div>
+                          <div className="text-gray-500">Revenue</div>
+                        </div>
+                        <div className="text-center">
+                          <div className="font-bold text-blue-600">{theme.results.cac}</div>
+                          <div className="text-gray-500">CAC</div>
+                        </div>
+                        <div className="text-center">
+                          <div className="font-bold text-purple-600">{theme.results.churn}</div>
+                          <div className="text-gray-500">Churn</div>
+                        </div>
                       </div>
                     </div>
-                  </div>
+                  )}
                   
                   <Button 
                     onClick={() => handlePreview(theme)}
@@ -376,11 +262,18 @@ const Theme: React.FC = () => {
           )}
         </div>
 
-        {/* Theme Detail Modal */}
+        {/* Modals */}
         <ThemeDetailModal
           isOpen={isDetailModalOpen}
           onClose={() => setIsDetailModalOpen(false)}
           theme={selectedTheme}
+          onAddTheme={addThemeToCollection}
+        />
+
+        <CreateThemeModal
+          isOpen={isCreateModalOpen}
+          onClose={() => setIsCreateModalOpen(false)}
+          onCreateTheme={handleCreateTheme}
         />
       </div>
     </div>
