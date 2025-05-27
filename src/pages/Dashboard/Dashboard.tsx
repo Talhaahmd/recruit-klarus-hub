@@ -27,9 +27,13 @@ import { Button } from '@/components/ui/button';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/UI/avatar';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { linkedinEnhancedService } from '@/services/linkedinEnhancedService';
+import { linkedinAuthService } from '@/services/linkedinAuthService';
+import { toast } from 'sonner';
+import { useAuth } from '@/contexts/AuthContext';
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
+  const { user, isAuthenticated } = useAuth();
   const [jobs, setJobs] = useState<Job[]>([]);
   const [candidates, setCandidates] = useState<Candidate[]>([]);
   const [linkedinProfile, setLinkedinProfile] = useState<LinkedInProfile | null>(null);
@@ -39,8 +43,15 @@ const Dashboard: React.FC = () => {
   const [adAccounts, setAdAccounts] = useState<any[]>([]);
   const [isLoadingOrgs, setIsLoadingOrgs] = useState(false);
   const [isLoadingAds, setIsLoadingAds] = useState(false);
+  const [needsReconnect, setNeedsReconnect] = useState(false);
   
   useEffect(() => {
+    // Redirect to login if not authenticated
+    if (!isAuthenticated) {
+      navigate('/login');
+      return;
+    }
+
     const fetchData = async () => {
       setIsLoading(true);
       
@@ -57,16 +68,24 @@ const Dashboard: React.FC = () => {
         setLinkedinProfile(profileData);
       } catch (error) {
         console.error('Error fetching dashboard data:', error);
+        if (!user) {
+          navigate('/login');
+        }
       } finally {
         setIsLoading(false);
       }
     };
     
     fetchData();
-  }, []);
+  }, [isAuthenticated, navigate, user]);
   
   useEffect(() => {
     const fetchLinkedInData = async () => {
+      if (!isAuthenticated || !user) {
+        console.log('User not authenticated, skipping LinkedIn data fetch');
+        return;
+      }
+
       if (linkedinProfile) {
         setIsLoadingOrgs(true);
         setIsLoadingAds(true);
@@ -82,6 +101,13 @@ const Dashboard: React.FC = () => {
           }
         } catch (error) {
           console.error('Error fetching LinkedIn data:', error);
+          if (error instanceof Error && error.message.includes('Failed to fetch')) {
+            setNeedsReconnect(true);
+          }
+          // If authentication error, redirect to login
+          if (error instanceof Error && error.message.includes('not authenticated')) {
+            navigate('/login');
+          }
         } finally {
           setIsLoadingOrgs(false);
           setIsLoadingAds(false);
@@ -90,7 +116,7 @@ const Dashboard: React.FC = () => {
     };
 
     fetchLinkedInData();
-  }, [linkedinProfile]);
+  }, [linkedinProfile, isAuthenticated, user, navigate]);
   
   // Calculate statistics
   const activeJobs = jobs.filter(job => job.status === 'Active').length;
@@ -164,6 +190,20 @@ const Dashboard: React.FC = () => {
       console.error('Error creating test profile:', error);
     } finally {
       setIsCreatingProfile(false);
+    }
+  };
+  
+  const handleReconnectLinkedIn = async () => {
+    if (!isAuthenticated || !user) {
+      navigate('/login');
+      return;
+    }
+
+    try {
+      await linkedinAuthService.signInWithLinkedIn();
+    } catch (error) {
+      console.error('Error reconnecting LinkedIn:', error);
+      toast.error('Failed to reconnect LinkedIn. Please try again.');
     }
   };
   
@@ -241,15 +281,26 @@ const Dashboard: React.FC = () => {
                       {linkedinProfile.headline || 'Your Headline'}
                     </p>
                   </div>
-                  <a 
-                    href={linkedinProfile.profile_url} 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-2 text-[#0077B5] hover:underline"
-                  >
-                    <LinkedinIcon size={20} />
-                    <span className="hidden lg:inline">View Profile</span>
-                  </a>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      onClick={handleReconnectLinkedIn}
+                      size="sm"
+                      variant="outline"
+                      className="flex items-center gap-2"
+                    >
+                      <LinkedinIcon className="h-4 w-4 text-[#0077B5]" />
+                      <span className="hidden sm:inline">Refresh Token</span>
+                    </Button>
+                    <a 
+                      href={linkedinProfile.profile_url} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-2 text-[#0077B5] hover:underline"
+                    >
+                      <LinkedinIcon size={20} />
+                      <span className="hidden lg:inline">View Profile</span>
+                    </a>
+                  </div>
                 </div>
                 
                 {/* Current Position */}
@@ -596,6 +647,26 @@ const Dashboard: React.FC = () => {
           </button>
         </div>
       </div>
+
+      {needsReconnect && linkedinProfile && (
+        <div className="mt-4 p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-700 rounded-lg">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <LinkedinIcon className="h-5 w-5 text-[#0077B5]" />
+              <p className="text-sm text-yellow-800 dark:text-yellow-200">
+                Please reconnect your LinkedIn account to access organization and advertising data
+              </p>
+            </div>
+            <Button
+              onClick={handleReconnectLinkedIn}
+              className="bg-[#0077B5] hover:bg-[#006097] text-white"
+              size="sm"
+            >
+              Reconnect LinkedIn
+            </Button>
+          </div>
+        </div>
+      )}
 
       {linkedinProfile && (
         <>

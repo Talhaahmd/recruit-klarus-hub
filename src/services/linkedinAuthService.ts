@@ -1,5 +1,6 @@
 import { supabase } from '@/lib/supabase';
 import { linkedinProfileService } from './linkedinProfileService';
+import { toast } from 'sonner';
 
 const LINKEDIN_API_URL = 'https://api.linkedin.com/v2';
 
@@ -7,6 +8,9 @@ export const linkedinAuthService = {
   // Sign in with LinkedIn
   signInWithLinkedIn: async () => {
     try {
+      // Clear any existing session first
+      await supabase.auth.signOut();
+
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'linkedin',
         options: {
@@ -25,14 +29,23 @@ export const linkedinAuthService = {
             'rw_organization_admin',
             'rw_ads'
           ].join(' '),
-          redirectTo: `${window.location.origin}/linkedin-callback`
+          redirectTo: `${window.location.origin}/linkedin-callback`,
+          queryParams: {
+            auth_type: 'reauthenticate'  // Force LinkedIn to show consent screen
+          }
         }
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('LinkedIn OAuth error:', error);
+        toast.error('Failed to connect with LinkedIn');
+        throw error;
+      }
+
       return data;
     } catch (error) {
       console.error('Error signing in with LinkedIn:', error);
+      toast.error('Failed to sign in with LinkedIn');
       throw error;
     }
   },
@@ -40,15 +53,23 @@ export const linkedinAuthService = {
   // Fetch LinkedIn profile data using access token
   fetchLinkedInProfile: async (access_token: string) => {
     try {
+      if (!access_token) {
+        throw new Error('No access token provided');
+      }
+
       // Fetch basic profile information
       const profileResponse = await fetch(`${LINKEDIN_API_URL}/me`, {
         headers: {
           'Authorization': `Bearer ${access_token}`,
           'cache-control': 'no-cache',
+          'X-Restli-Protocol-Version': '2.0.0'
         }
       });
       
-      if (!profileResponse.ok) throw new Error('Failed to fetch LinkedIn profile');
+      if (!profileResponse.ok) {
+        throw new Error('Failed to fetch LinkedIn profile');
+      }
+      
       const profileData = await profileResponse.json();
 
       // Fetch profile picture
@@ -56,13 +77,15 @@ export const linkedinAuthService = {
         headers: {
           'Authorization': `Bearer ${access_token}`,
           'cache-control': 'no-cache',
+          'X-Restli-Protocol-Version': '2.0.0'
         }
       });
       
-      if (!pictureResponse.ok) throw new Error('Failed to fetch LinkedIn profile picture');
+      if (!pictureResponse.ok) {
+        console.warn('Failed to fetch LinkedIn profile picture');
+      }
+      
       const pictureData = await pictureResponse.json();
-
-      // Get the highest quality profile picture
       const profilePicture = pictureData.profilePicture?.['displayImage~']?.elements?.[0]?.identifiers?.[0]?.identifier || null;
 
       // Fetch email address
@@ -70,10 +93,14 @@ export const linkedinAuthService = {
         headers: {
           'Authorization': `Bearer ${access_token}`,
           'cache-control': 'no-cache',
+          'X-Restli-Protocol-Version': '2.0.0'
         }
       });
       
-      if (!emailResponse.ok) throw new Error('Failed to fetch LinkedIn email');
+      if (!emailResponse.ok) {
+        console.warn('Failed to fetch LinkedIn email');
+      }
+      
       const emailData = await emailResponse.json();
 
       // Fetch network size
@@ -81,6 +108,7 @@ export const linkedinAuthService = {
         headers: {
           'Authorization': `Bearer ${access_token}`,
           'cache-control': 'no-cache',
+          'X-Restli-Protocol-Version': '2.0.0'
         }
       });
 
@@ -108,7 +136,10 @@ export const linkedinAuthService = {
   handleCallback: async () => {
     try {
       const { data: { session } } = await supabase.auth.getSession();
-      if (!session?.provider_token) throw new Error('No provider token found');
+      if (!session?.provider_token) {
+        toast.error('No LinkedIn access token found');
+        throw new Error('No provider token found');
+      }
 
       // Fetch LinkedIn profile data
       const linkedinData = await linkedinAuthService.fetchLinkedInProfile(session.provider_token);
@@ -120,9 +151,11 @@ export const linkedinAuthService = {
         connection_count: linkedinData.connectionCount
       });
 
+      toast.success('LinkedIn profile updated successfully');
       return linkedinData;
     } catch (error) {
       console.error('Error handling LinkedIn callback:', error);
+      toast.error('Failed to complete LinkedIn authentication');
       throw error;
     }
   }
