@@ -521,34 +521,121 @@ export type Database = {
       }
       profiles: {
         Row: {
+          ai_insights: Json | null
+          ai_suggestions: Json | null
+          ai_summary: string | null
           avatar_url: string | null
+          bio: string | null
           company: string | null
           company_contact: string | null
-          created_by: string | null
+          connection_count: number | null
+          created_at: string | null
+          current_position: string | null
+          engagement_score: number | null
+          experience_years: number | null
+          follower_count: number | null
           full_name: string | null
+          header_image_url: string | null
+          headline: string | null
           id: string
+          industry: string | null
+          last_analysis_date: string | null
+          network_score: number | null
           phone: string | null
+          profile_strength_score: number | null
+          profile_url: string | null
+          skills: string[] | null
           updated_at: string | null
         }
         Insert: {
+          ai_insights?: Json | null
+          ai_suggestions?: Json | null
+          ai_summary?: string | null
           avatar_url?: string | null
+          bio?: string | null
           company?: string | null
           company_contact?: string | null
-          created_by?: string | null
+          connection_count?: number | null
+          created_at?: string | null
+          current_position?: string | null
+          engagement_score?: number | null
+          experience_years?: number | null
+          follower_count?: number | null
           full_name?: string | null
+          header_image_url?: string | null
+          headline?: string | null
           id: string
+          industry?: string | null
+          last_analysis_date?: string | null
+          network_score?: number | null
           phone?: string | null
+          profile_strength_score?: number | null
+          profile_url?: string | null
+          skills?: string[] | null
           updated_at?: string | null
         }
         Update: {
+          ai_insights?: Json | null
+          ai_suggestions?: Json | null
+          ai_summary?: string | null
           avatar_url?: string | null
+          bio?: string | null
           company?: string | null
           company_contact?: string | null
-          created_by?: string | null
+          connection_count?: number | null
+          created_at?: string | null
+          current_position?: string | null
+          engagement_score?: number | null
+          experience_years?: number | null
+          follower_count?: number | null
           full_name?: string | null
+          header_image_url?: string | null
+          headline?: string | null
           id?: string
+          industry?: string | null
+          last_analysis_date?: string | null
+          network_score?: number | null
           phone?: string | null
+          profile_strength_score?: number | null
+          profile_url?: string | null
+          skills?: string[] | null
           updated_at?: string | null
+        }
+        Relationships: []
+      }
+      subscribers: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          stripe_customer_id: string | null
+          subscribed: boolean
+          subscription_end: string | null
+          subscription_tier: string | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          stripe_customer_id?: string | null
+          subscribed?: boolean
+          subscription_end?: string | null
+          subscription_tier?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          stripe_customer_id?: string | null
+          subscribed?: boolean
+          subscription_end?: string | null
+          subscription_tier?: string | null
+          updated_at?: string
+          user_id?: string | null
         }
         Relationships: []
       }
