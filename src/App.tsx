@@ -136,9 +136,9 @@ const App = () => (
                 <Route path="candidates" element={<Candidates />} />
                 <Route path="candidates/:id" element={<CandidateProfile />} />
                 <Route path="calendar" element={<Calendar />} />
-                <Route path="build-profile" element={<BuildProfile />} />
+                <Route path="ideas" element={<Posts />} />
                 <Route path="theme" element={<Theme />} />
-                <Route path="posts" element={<Posts />} />
+                <Route path="build-profile" element={<BuildProfile />} />
                 <Route path="settings" element={<Settings />} />
               </Route>
 
