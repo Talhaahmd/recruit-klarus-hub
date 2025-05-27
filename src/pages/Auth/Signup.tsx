@@ -84,7 +84,7 @@ const Signup: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const from = new URLSearchParams(location.search).get('from') || '/payment';
+  const from = '/payment'; // Always redirect to payment after signup
   const isHandlingOAuth = sessionStorage.getItem('oauth_redirect_processed') === 'true';
 
   // Auto-scroll testimonials
