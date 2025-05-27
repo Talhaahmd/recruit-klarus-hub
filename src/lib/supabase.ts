@@ -1,5 +1,5 @@
-
 import { createClient } from '@supabase/supabase-js';
+import { Database } from '@/types/supabase';
 
 // Check for environment variables
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
@@ -16,22 +16,10 @@ if (!supabaseUrl || !supabaseAnonKey) {
 
 console.log('Initializing Supabase client with mobile-optimized auth configuration');
 
-export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-  auth: {
-    storage: localStorage,
-    persistSession: true,
-    autoRefreshToken: true,
-    detectSessionInUrl: true,
-    flowType: 'pkce', // Use PKCE flow for better mobile security
-    storageKey: 'sb-auth-token', // Consistent storage key
-    debug: false // Disable debug in production
-  },
-  global: {
-    headers: {
-      'X-Client-Info': 'supabase-js-web'
-    }
-  }
-});
+export const supabase = createClient<Database>(
+  SUPABASE_URL,
+  SUPABASE_ANON_KEY
+);
 
 // Add debugging for auth state changes
 supabase.auth.onAuthStateChange((event, session) => {

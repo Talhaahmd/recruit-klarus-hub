@@ -1,4 +1,4 @@
-
+# Project configuration
 project_id = "bzddkmmjqwgylckimwiq"
 
 [api]
@@ -26,29 +26,26 @@ pop3_port = 54326
 
 [storage]
 enabled = true
-port = 54327
 file_size_limit = "50MiB"
 
 [auth]
 enabled = true
-port = 54328
 site_url = "http://127.0.0.1:3000"
 additional_redirect_urls = ["https://localhost:3000"]
 jwt_expiry = 3600
 enable_signup = true
-enable_email_confirmations = false
 
 [auth.email]
 enable_signup = true
 double_confirm_changes = true
 enable_confirmations = false
 
+[functions]
 [functions.candidate-cv-api]
 verify_jwt = false
 
 [functions.linkedin-token-store]
 verify_jwt = true
 
-[edge-runtime]
-policy = "per_worker"
-inspector_port = 8083
+[functions.analyze-linkedin-profile]
+verify_jwt = true

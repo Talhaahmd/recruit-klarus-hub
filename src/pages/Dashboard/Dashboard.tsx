@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { Header } from '@/components/Layout/MainLayout';
 import { 
@@ -10,34 +9,47 @@ import {
   Clock,
   ArrowUpRight,
   Loader2,
-  Upload
+  Upload,
+  LinkedinIcon,
+  Building,
+  UserCircle,
+  Users2,
+  Plus,
+  Activity
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { jobsService } from '@/services/jobsService';
 import { candidatesService } from '@/services/candidatesService';
+import { linkedinProfileService, LinkedInProfile } from '@/services/linkedinProfileService';
 import { Job } from '@/services/jobsService';
 import { Candidate } from '@/services/candidatesService';
 import { Button } from '@/components/ui/button';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/UI/avatar';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
   const [jobs, setJobs] = useState<Job[]>([]);
   const [candidates, setCandidates] = useState<Candidate[]>([]);
+  const [linkedinProfile, setLinkedinProfile] = useState<LinkedInProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isCreatingProfile, setIsCreatingProfile] = useState(false);
   
   useEffect(() => {
     const fetchData = async () => {
       setIsLoading(true);
       
       try {
-        const [jobsData, candidatesData] = await Promise.all([
+        const [jobsData, candidatesData, profileData] = await Promise.all([
           jobsService.getJobs(),
-          candidatesService.getCandidates()
+          candidatesService.getCandidates(),
+          linkedinProfileService.getProfile()
         ]);
         
         console.log('Fetched jobs:', jobsData);
         setJobs(jobsData);
         setCandidates(candidatesData);
+        setLinkedinProfile(profileData);
       } catch (error) {
         console.error('Error fetching dashboard data:', error);
       } finally {
@@ -96,6 +108,33 @@ const Dashboard: React.FC = () => {
     .sort((a, b) => new Date(b.posted_date).getTime() - new Date(a.posted_date).getTime())
     .slice(0, 3);
   
+  const createTestProfile = async () => {
+    setIsCreatingProfile(true);
+    try {
+      const testProfile = {
+        full_name: "John Developer",
+        profile_image: "https://picsum.photos/200",
+        header_image: "https://picsum.photos/800/200",
+        headline: "Senior Software Engineer | Full Stack Developer | React & Node.js Expert",
+        current_position: "Senior Software Engineer",
+        company: "Tech Innovations Inc.",
+        bio: "Passionate about building scalable web applications and mentoring junior developers. Experienced in React, Node.js, and cloud technologies.",
+        follower_count: 1500,
+        connection_count: 500,
+        profile_url: "https://linkedin.com/in/johndeveloper"
+      };
+
+      const updatedProfile = await linkedinProfileService.updateProfile(testProfile);
+      if (updatedProfile) {
+        setLinkedinProfile(updatedProfile);
+      }
+    } catch (error) {
+      console.error('Error creating test profile:', error);
+    } finally {
+      setIsCreatingProfile(false);
+    }
+  };
+  
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center px-4">
@@ -113,6 +152,311 @@ const Dashboard: React.FC = () => {
         title="Dashboard" 
         subtitle="Welcome back! Here's an overview of your hiring activities."
       />
+      
+      {/* LinkedIn Profile Section */}
+      <div className="mb-8 px-4 lg:px-0">
+        <div className="glass-card overflow-hidden">
+          {!linkedinProfile && !isLoading && (
+            <div className="p-6 flex flex-col items-center justify-center">
+              <UserCircle className="w-16 h-16 text-gray-400 mb-4" />
+              <p className="text-gray-600 dark:text-gray-400 mb-4">No LinkedIn profile found</p>
+              <Button
+                onClick={createTestProfile}
+                disabled={isCreatingProfile}
+                className="flex items-center gap-2"
+              >
+                {isCreatingProfile ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Plus className="w-4 h-4" />
+                )}
+                Create Test Profile
+              </Button>
+            </div>
+          )}
+          
+          {linkedinProfile && (
+            <>
+              {/* Header Image */}
+              <div 
+                className="w-full h-32 lg:h-48 bg-cover bg-center"
+                style={{ 
+                  backgroundImage: linkedinProfile.header_image 
+                    ? `url(${linkedinProfile.header_image})` 
+                    : 'linear-gradient(to right, #0077B5, #00A0DC)' 
+                }}
+              />
+              
+              {/* Profile Content */}
+              <div className="p-4 lg:p-6 relative">
+                {/* Profile Image */}
+                <div className="absolute -top-16 left-6">
+                  <Avatar className="w-24 h-24 border-4 border-white dark:border-gray-900 shadow-lg">
+                    <AvatarImage src={linkedinProfile.profile_image} />
+                    <AvatarFallback>
+                      <UserCircle className="w-24 h-24" />
+                    </AvatarFallback>
+                  </Avatar>
+                </div>
+                
+                {/* Profile Info */}
+                <div className="flex items-start justify-between">
+                  <div>
+                    <h2 className="text-2xl font-bold text-text-100 dark:text-white">
+                      {linkedinProfile.full_name || 'Your Name'}
+                    </h2>
+                    <p className="text-text-200 dark:text-gray-400 mt-1">
+                      {linkedinProfile.headline || 'Your Headline'}
+                    </p>
+                  </div>
+                  <a 
+                    href={linkedinProfile.profile_url} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-2 text-[#0077B5] hover:underline"
+                  >
+                    <LinkedinIcon size={20} />
+                    <span className="hidden lg:inline">View Profile</span>
+                  </a>
+                </div>
+                
+                {/* Current Position */}
+                <div className="flex items-center gap-2 mt-4 text-text-200 dark:text-gray-400">
+                  <Building size={16} />
+                  <span>{linkedinProfile.current_position || 'Position'}</span>
+                  <span>at</span>
+                  <span className="font-medium text-text-100 dark:text-white">
+                    {linkedinProfile.company || 'Company'}
+                  </span>
+                </div>
+                
+                {/* Bio */}
+                <p className="mt-4 text-text-200 dark:text-gray-400">
+                  {linkedinProfile.bio || 'Your professional bio will appear here.'}
+                </p>
+                
+                {/* Profile Analysis */}
+                <div className="mt-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {/* Profile Strength */}
+                  <Card className="bg-white dark:bg-gray-800">
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-lg flex items-center gap-2">
+                        <TrendingUp className="w-5 h-5 text-primary-100" />
+                        Profile Strength
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="flex items-center gap-4">
+                        <div className="flex-1">
+                          <div className="h-2 bg-gray-200 rounded-full">
+                            <div 
+                              className="h-2 bg-primary-100 rounded-full transition-all"
+                              style={{ width: `${linkedinProfile.profile_strength_score || 0}%` }}
+                            />
+                          </div>
+                        </div>
+                        <span className="font-medium">{linkedinProfile.profile_strength_score || 0}%</span>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* Network Score */}
+                  <Card className="bg-white dark:bg-gray-800">
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-lg flex items-center gap-2">
+                        <Users2 className="w-5 h-5 text-primary-100" />
+                        Network Score
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="flex items-center gap-4">
+                        <div className="flex-1">
+                          <div className="h-2 bg-gray-200 rounded-full">
+                            <div 
+                              className="h-2 bg-primary-100 rounded-full transition-all"
+                              style={{ width: `${linkedinProfile.network_score || 0}%` }}
+                            />
+                          </div>
+                        </div>
+                        <span className="font-medium">{linkedinProfile.network_score || 0}%</span>
+                      </div>
+                      <div className="mt-2 flex items-center justify-between text-sm text-gray-500">
+                        <span>{linkedinProfile.connection_count || 0} connections</span>
+                        <span>{linkedinProfile.follower_count || 0} followers</span>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* Engagement Score */}
+                  <Card className="bg-white dark:bg-gray-800">
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-lg flex items-center gap-2">
+                        <Activity className="w-5 h-5 text-primary-100" />
+                        Engagement Score
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="flex items-center gap-4">
+                        <div className="flex-1">
+                          <div className="h-2 bg-gray-200 rounded-full">
+                            <div 
+                              className="h-2 bg-primary-100 rounded-full transition-all"
+                              style={{ width: `${linkedinProfile.engagement_score || 0}%` }}
+                            />
+                          </div>
+                        </div>
+                        <span className="font-medium">{linkedinProfile.engagement_score || 0}%</span>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+
+                {/* AI Analysis */}
+                {linkedinProfile.ai_insights && (
+                  <div className="mt-8">
+                    <h3 className="text-xl font-semibold mb-4">AI Analysis & Insights</h3>
+                    
+                    {/* Summary */}
+                    <Card className="bg-white dark:bg-gray-800 mb-6">
+                      <CardContent className="p-6">
+                        <p className="text-gray-600 dark:text-gray-300">
+                          {linkedinProfile.ai_summary}
+                        </p>
+                      </CardContent>
+                    </Card>
+
+                    {/* Detailed Insights */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <Card className="bg-white dark:bg-gray-800">
+                        <CardHeader>
+                          <CardTitle>Career Insights</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="space-y-4">
+                            <div>
+                              <h4 className="font-medium mb-2">Career Trajectory</h4>
+                              <p className="text-sm text-gray-600 dark:text-gray-300">
+                                {linkedinProfile.ai_insights.careerTrajectory}
+                              </p>
+                            </div>
+                            <div>
+                              <h4 className="font-medium mb-2">Skills Assessment</h4>
+                              <p className="text-sm text-gray-600 dark:text-gray-300">
+                                {linkedinProfile.ai_insights.skillsAssessment}
+                              </p>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+
+                      <Card className="bg-white dark:bg-gray-800">
+                        <CardHeader>
+                          <CardTitle>Network Insights</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="space-y-4">
+                            <div>
+                              <h4 className="font-medium mb-2">Network Analysis</h4>
+                              <p className="text-sm text-gray-600 dark:text-gray-300">
+                                {linkedinProfile.ai_insights.networkAnalysis}
+                              </p>
+                            </div>
+                            <div>
+                              <h4 className="font-medium mb-2">Industry Position</h4>
+                              <p className="text-sm text-gray-600 dark:text-gray-300">
+                                {linkedinProfile.ai_insights.industryPosition}
+                              </p>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </div>
+
+                    {/* Suggestions */}
+                    <div className="mt-8">
+                      <h3 className="text-xl font-semibold mb-4">Improvement Suggestions</h3>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <Card className="bg-white dark:bg-gray-800">
+                          <CardHeader>
+                            <CardTitle>Profile & Content</CardTitle>
+                          </CardHeader>
+                          <CardContent>
+                            <div className="space-y-2">
+                              {linkedinProfile.ai_suggestions.profile.map((suggestion, index) => (
+                                <div key={index} className="flex items-start gap-2">
+                                  <CheckCircle className="w-5 h-5 text-primary-100 mt-0.5" />
+                                  <p className="text-sm text-gray-600 dark:text-gray-300">{suggestion}</p>
+                                </div>
+                              ))}
+                              {linkedinProfile.ai_suggestions.content.map((suggestion, index) => (
+                                <div key={index} className="flex items-start gap-2">
+                                  <CheckCircle className="w-5 h-5 text-primary-100 mt-0.5" />
+                                  <p className="text-sm text-gray-600 dark:text-gray-300">{suggestion}</p>
+                                </div>
+                              ))}
+                            </div>
+                          </CardContent>
+                        </Card>
+
+                        <Card className="bg-white dark:bg-gray-800">
+                          <CardHeader>
+                            <CardTitle>Skills & Networking</CardTitle>
+                          </CardHeader>
+                          <CardContent>
+                            <div className="space-y-2">
+                              {linkedinProfile.ai_suggestions.skills.map((suggestion, index) => (
+                                <div key={index} className="flex items-start gap-2">
+                                  <CheckCircle className="w-5 h-5 text-primary-100 mt-0.5" />
+                                  <p className="text-sm text-gray-600 dark:text-gray-300">{suggestion}</p>
+                                </div>
+                              ))}
+                              {linkedinProfile.ai_suggestions.networking.map((suggestion, index) => (
+                                <div key={index} className="flex items-start gap-2">
+                                  <CheckCircle className="w-5 h-5 text-primary-100 mt-0.5" />
+                                  <p className="text-sm text-gray-600 dark:text-gray-300">{suggestion}</p>
+                                </div>
+                              ))}
+                            </div>
+                          </CardContent>
+                        </Card>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Analyze Button */}
+                <div className="mt-8 flex justify-center">
+                  <Button
+                    onClick={async () => {
+                      try {
+                        const analysis = await linkedinProfileService.analyzeProfile();
+                        if (analysis) {
+                          // Refresh the profile data to show new analysis
+                          const updatedProfile = await linkedinProfileService.getProfile();
+                          if (updatedProfile) {
+                            setLinkedinProfile(updatedProfile);
+                          }
+                        }
+                      } catch (error) {
+                        console.error('Error analyzing profile:', error);
+                      }
+                    }}
+                    className="flex items-center gap-2"
+                    disabled={isCreatingProfile}
+                  >
+                    {isCreatingProfile ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <Activity className="w-4 h-4" />
+                    )}
+                    {linkedinProfile.ai_insights ? 'Refresh Analysis' : 'Analyze Profile'}
+                  </Button>
+                </div>
+              </div>
+            </>
+          )}
+        </div>
+      </div>
       
       <div className="flex justify-end mb-6 px-4 lg:px-0">
         <Button 
