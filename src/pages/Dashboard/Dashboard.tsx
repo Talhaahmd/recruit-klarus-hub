@@ -26,6 +26,7 @@ import { Candidate } from '@/services/candidatesService';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/UI/avatar';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { linkedinEnhancedService } from '@/services/linkedinEnhancedService';
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
@@ -34,6 +35,10 @@ const Dashboard: React.FC = () => {
   const [linkedinProfile, setLinkedinProfile] = useState<LinkedInProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isCreatingProfile, setIsCreatingProfile] = useState(false);
+  const [organizations, setOrganizations] = useState<any[]>([]);
+  const [adAccounts, setAdAccounts] = useState<any[]>([]);
+  const [isLoadingOrgs, setIsLoadingOrgs] = useState(false);
+  const [isLoadingAds, setIsLoadingAds] = useState(false);
   
   useEffect(() => {
     const fetchData = async () => {
@@ -59,6 +64,33 @@ const Dashboard: React.FC = () => {
     
     fetchData();
   }, []);
+  
+  useEffect(() => {
+    const fetchLinkedInData = async () => {
+      if (linkedinProfile) {
+        setIsLoadingOrgs(true);
+        setIsLoadingAds(true);
+        try {
+          const orgsData = await linkedinEnhancedService.getOrganizationData();
+          if (orgsData) {
+            setOrganizations(orgsData);
+          }
+
+          const adsData = await linkedinEnhancedService.getAdvertisingAccounts();
+          if (adsData) {
+            setAdAccounts(adsData);
+          }
+        } catch (error) {
+          console.error('Error fetching LinkedIn data:', error);
+        } finally {
+          setIsLoadingOrgs(false);
+          setIsLoadingAds(false);
+        }
+      }
+    };
+
+    fetchLinkedInData();
+  }, [linkedinProfile]);
   
   // Calculate statistics
   const activeJobs = jobs.filter(job => job.status === 'Active').length;
@@ -564,6 +596,95 @@ const Dashboard: React.FC = () => {
           </button>
         </div>
       </div>
+
+      {linkedinProfile && (
+        <>
+          {/* LinkedIn Organizations Section */}
+          <div className="mt-8">
+            <h3 className="text-xl font-semibold mb-4">LinkedIn Organizations</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {isLoadingOrgs ? (
+                <Card className="col-span-full flex items-center justify-center p-6">
+                  <Loader2 className="h-8 w-8 animate-spin text-primary-100" />
+                </Card>
+              ) : organizations.length > 0 ? (
+                organizations.map((org: any) => (
+                  <Card key={org.id} className="bg-white dark:bg-gray-800">
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <Building className="w-5 h-5" />
+                        {org.name}
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-2">
+                        <p className="text-sm text-gray-600 dark:text-gray-300">
+                          Followers: {org.followerCount || 0}
+                        </p>
+                        {org.website && (
+                          <p className="text-sm text-gray-600 dark:text-gray-300">
+                            Website: {org.website}
+                          </p>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))
+              ) : (
+                <Card className="col-span-full p-6">
+                  <p className="text-center text-gray-600 dark:text-gray-400">
+                    No organizations found. Connect your LinkedIn account to manage your organizations.
+                  </p>
+                </Card>
+              )}
+            </div>
+          </div>
+
+          {/* LinkedIn Advertising Section */}
+          <div className="mt-8">
+            <h3 className="text-xl font-semibold mb-4">LinkedIn Advertising</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {isLoadingAds ? (
+                <Card className="col-span-full flex items-center justify-center p-6">
+                  <Loader2 className="h-8 w-8 animate-spin text-primary-100" />
+                </Card>
+              ) : adAccounts.length > 0 ? (
+                adAccounts.map((account: any) => (
+                  <Card key={account.id} className="bg-white dark:bg-gray-800">
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <TrendingUp className="w-5 h-5" />
+                        {account.name}
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-2">
+                        <p className="text-sm text-gray-600 dark:text-gray-300">
+                          Status: <span className="capitalize">{account.status}</span>
+                        </p>
+                        <p className="text-sm text-gray-600 dark:text-gray-300">
+                          Type: {account.type}
+                        </p>
+                        {account.currency && (
+                          <p className="text-sm text-gray-600 dark:text-gray-300">
+                            Currency: {account.currency}
+                          </p>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))
+              ) : (
+                <Card className="col-span-full p-6">
+                  <p className="text-center text-gray-600 dark:text-gray-400">
+                    No advertising accounts found. Connect your LinkedIn account to manage your ad campaigns.
+                  </p>
+                </Card>
+              )}
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 };
