@@ -112,7 +112,7 @@ const App = () => (
               <Route path="/cv-upload" element={<CVUpload />} />
               <Route path="/linkedin-token-callback" element={<LinkedInTokenCallback />} />
 
-              {/* Protected routes */}
+              {/* Protected routes with MainLayout */}
               <Route
                 path="/dashboard"
                 element={
@@ -136,9 +136,9 @@ const App = () => (
                 <Route path="candidates" element={<Candidates />} />
                 <Route path="candidates/:id" element={<CandidateProfile />} />
                 <Route path="calendar" element={<Calendar />} />
-                <Route path="ideas" element={<Posts />} />
-                <Route path="theme" element={<Theme />} />
-                <Route path="build-profile" element={<BuildProfile />} />
+                <Route path="posts" element={<Posts />} />
+                <Route path="themes" element={<Theme />} />
+                <Route path="ideas" element={<BuildProfile />} />
                 <Route path="settings" element={<Settings />} />
               </Route>
 
