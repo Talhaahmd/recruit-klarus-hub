@@ -29,6 +29,10 @@ import NewApply from "./pages/Apply/NewApply";
 import LinkedInTokenCallback from "./pages/LinkedInTokenCallback/LinkedInTokenCallback";
 import CVUpload from "./pages/CVUpload/CVUpload";
 
+// Payment Pages
+import Payment from "./pages/Payment/Payment";
+import PaymentSuccess from "./pages/Payment/PaymentSuccess";
+
 // Dashboard Pages
 import Dashboard from "./pages/Dashboard/Dashboard";
 import Jobs from "./pages/Jobs/Jobs";
