@@ -75,6 +75,8 @@ export const linkedinAuthService = {
         // 'positions(summary,title,company(name))' // Example, may need adjustment
         // For bio/summary:
         // 'summary' or 'aboutMeVersion(localizedSummary)' // These are common but need API version check
+        'summary', // Adding summary for bio
+        'positionsV2(elements(startYear,startMonth,endYear,endMonth,title,companyName,company(name)))' // Adding positions for current role
       ].join(',');
 
       const profileResponse = await fetch(`${LINKEDIN_API_URL}/me?projection=(${profileFields})`, {
@@ -178,6 +180,27 @@ export const linkedinAuthService = {
       // currentPosition = profileData.positions?.values?.[0]?.title;
       // company = profileData.positions?.values?.[0]?.company?.name;
       // For now, we'll leave them as null and they can be populated if the /me projection includes them.
+      // Attempt to get current position from positionsV2
+      if (profileData.positionsV2?.elements && profileData.positionsV2.elements.length > 0) {
+        // Find the position that doesn't have an end date, or the most recent one
+        const currentPositions = profileData.positionsV2.elements.filter((p: any) => !p.endYear && !p.endMonth);
+        let latestPosition = null;
+        if (currentPositions.length > 0) {
+          latestPosition = currentPositions.sort((a: any, b: any) => (b.startYear - a.startYear) || (b.startMonth - a.startMonth))[0];
+        } else if (profileData.positionsV2.elements.length > 0) {
+          // Fallback to most recent ended position if no current one is explicitly marked
+          latestPosition = profileData.positionsV2.elements.sort((a: any, b: any) => 
+            (b.endYear || b.startYear) - (a.endYear || a.startYear) || 
+            (b.endMonth || b.startMonth) - (a.endMonth || a.startMonth)
+          )[0];
+        }
+
+        if (latestPosition) {
+          currentPosition = latestPosition.title || null;
+          // companyName might be directly available, or nested under company.name
+          company = latestPosition.companyName || latestPosition.company?.name || null;
+        }
+      }
 
       const profileUrl = profileData.vanityName ? `https://www.linkedin.com/in/${profileData.vanityName}` : null;
 
