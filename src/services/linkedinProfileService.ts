@@ -18,7 +18,7 @@ export const linkedinProfileService = {
       const { data, error } = await supabase
         .from('profiles')
         .select()
-        .eq('user_id', user.id)
+        .eq('id', user.id)
         .maybeSingle();
 
       if (error) {
@@ -36,7 +36,7 @@ export const linkedinProfileService = {
   },
 
   // Update LinkedIn profile
-  updateProfile: async (profile: Partial<ProfileInput>): Promise<LinkedInProfile | null> => {
+  updateProfile: async (profile: Partial<Omit<LinkedInProfile, 'id' | 'created_at' | 'last_updated'>>): Promise<LinkedInProfile | null> => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
@@ -48,7 +48,7 @@ export const linkedinProfileService = {
         .from('profiles')
         .upsert({
           ...profile,
-          user_id: user.id,
+          id: user.id,
           last_updated: new Date().toISOString()
         })
         .select()

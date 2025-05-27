@@ -56,7 +56,7 @@ serve(async (req) => {
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
       .select('*')
-      .eq('user_id', user.id)
+      .eq('id', user.id)
       .single();
 
     if (profileError || !profile) {
@@ -166,7 +166,7 @@ Format your response as a JSON object with the following structure:
         engagement_score: engagementScore,
         last_analysis_date: new Date().toISOString()
       })
-      .eq('user_id', user.id);
+      .eq('id', user.id);
 
     if (updateError) {
       console.error('Error updating profile with analysis:', updateError);
