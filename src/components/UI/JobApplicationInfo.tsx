@@ -1,9 +1,10 @@
+
 import React, { useState, useEffect } from 'react';
 import { Briefcase, ExternalLink } from 'lucide-react';
 import { jobsService } from '@/services/jobsService';
 import { submissionService } from '@/services/submissionService';
 import { Badge } from '@/components/UI/badge';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/UI/card';
 import { Button } from '@/components/UI/button';
 
 interface JobApplicationInfoProps {

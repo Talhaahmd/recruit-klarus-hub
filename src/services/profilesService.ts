@@ -30,7 +30,7 @@ export const profilesService = {
       // RLS will ensure users can only access their own profile
       const { data, error } = await supabase
         .from('profiles')
-        .select('*')
+        .select('id, full_name, company, avatar_url, phone, company_contact, created_by, updated_at')
         .eq('id', user.id)
         .single();
         
@@ -84,14 +84,14 @@ export const profilesService = {
           .from('profiles')
           .update(updatedData)
           .eq('id', user.id)
-          .select()
+          .select('id, full_name, company, avatar_url, phone, company_contact, created_by, updated_at')
           .single();
       } else {
         // Insert new profile
         result = await supabase
           .from('profiles')
           .insert(updatedData)
-          .select()
+          .select('id, full_name, company, avatar_url, phone, company_contact, created_by, updated_at')
           .single();
       }
       
@@ -130,7 +130,7 @@ export const profilesService = {
       // The RLS policy will determine if the user has access to this profile
       const { data, error } = await supabase
         .from('profiles')
-        .select('*')
+        .select('id, full_name, company, avatar_url, phone, company_contact, created_by, updated_at')
         .eq('id', id)
         .single();
         
