@@ -1,3 +1,4 @@
+
 import React, { useEffect } from "react";
 import { Toaster } from "@/components/UI/toaster.tsx";
 import { Toaster as Sonner } from "@/components/UI/sonner.tsx";
@@ -35,6 +36,7 @@ import Candidates from "./pages/Candidates/Candidates";
 import CandidateProfile from "./pages/Candidates/CandidateProfile";
 import Calendar from "./pages/Calendar/Calendar";
 import BuildProfile from "./pages/BuildProfile/BuildProfile";
+import Theme from "./pages/Theme/Theme";
 import Settings from "./pages/Settings/Settings";
 import NotFound from "./pages/NotFound";
 
@@ -134,6 +136,7 @@ const App = () => (
                 <Route path="candidates/:id" element={<CandidateProfile />} />
                 <Route path="calendar" element={<Calendar />} />
                 <Route path="build-profile" element={<BuildProfile />} />
+                <Route path="theme" element={<Theme />} />
                 <Route path="settings" element={<Settings />} />
               </Route>
 
