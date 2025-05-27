@@ -95,7 +95,7 @@ export const linkedinProfileService = {
         return null;
       }
       // The Supabase function name is now 'process-linkedin-profile'
-      const { data, error } = await supabase.functions.invoke('process-linkedin-profile');
+      const { data, error } = await supabase.functions.invoke('analyze-linkedin-profile');
 
       if (error) {
         console.error('Error analyzing LinkedIn profile:', error);
