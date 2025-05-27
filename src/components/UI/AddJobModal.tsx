@@ -1,9 +1,8 @@
-
-import React from 'react';
+import React, { useState } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { X } from 'lucide-react';
+import { X, Link as LinkIcon, BriefcaseIcon, MapPinIcon, ClockIcon, CalendarIcon, Tags } from 'lucide-react';
 import { toast } from 'sonner';
 import { 
   Dialog, 
@@ -12,7 +11,7 @@ import {
   DialogHeader, 
   DialogTitle,
   DialogDescription
-} from '@/components/ui/dialog';
+} from '@/components/UI/dialog';
 import {
   Form,
   FormControl,
@@ -20,10 +19,23 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
+} from '@/components/UI/form';
+import { Input } from '@/components/UI/input';
+import { Button } from '@/components/UI/button';
+import { Textarea } from '@/components/UI/textarea';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/UI/select";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@/components/UI/tabs";
 
 // Validation schemas
 const jobFormSchema = z.object({

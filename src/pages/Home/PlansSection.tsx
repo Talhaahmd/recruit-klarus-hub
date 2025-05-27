@@ -1,8 +1,7 @@
-
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Check, ArrowRight } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Check, ArrowRight, CheckCircle2 } from 'lucide-react';
+import { Button } from '@/components/UI/button';
 
 interface PlanFeature {
   text: string;

@@ -1,9 +1,8 @@
-
 import React, { useState } from 'react';
-import { FileUpload } from '@/components/ui/file-upload';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Alert, AlertDescription } from '@/components/ui/alert';
+import { FileUpload } from '@/components/UI/file-upload';
+import { Button } from '@/components/UI/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/UI/card';
+import { Alert, AlertDescription } from '@/components/UI/alert';
 import { CheckCircle2, Upload, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';

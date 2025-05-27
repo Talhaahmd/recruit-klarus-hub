@@ -80,7 +80,7 @@ const MainLayout: React.FC = () => {
   }
   
   return (
-    <div className="flex h-screen bg-bg-200 overflow-hidden dark:bg-black">
+    <div className="flex h-screen bg-sky-50 overflow-hidden dark:bg-black">
       {!isDesktop && (
         <button
           onClick={toggleMobileMenu}
@@ -100,7 +100,7 @@ const MainLayout: React.FC = () => {
         closeMobileMenu={closeMobileMenu}
       />
       
-      <div className={`flex-1 overflow-y-auto p-4 lg:p-8 w-full transition-all duration-300 ease-in-out 
+      <div className={`flex-1 overflow-y-auto transition-all duration-300 ease-in-out 
                       ${isDesktop ? (isPinned ? 'lg:ml-64' : 'lg:ml-20') : 'ml-0'}
       `}>
         <Outlet />

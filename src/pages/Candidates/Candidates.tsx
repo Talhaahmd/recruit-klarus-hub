@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Header } from '@/components/Layout/MainLayout';
@@ -29,16 +28,16 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
-import { Input } from "@/components/ui/input";
+} from "@/components/UI/table";
+import { Input } from "@/components/UI/input";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@/components/ui/popover";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Slider } from "@/components/ui/slider";
+} from "@/components/UI/popover";
+import { Button } from "@/components/UI/button";
+import { Badge } from "@/components/UI/badge";
+import { Slider } from "@/components/UI/slider";
 import { EmailActionsModal } from '@/components/UI/EmailActionsModals';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -324,10 +323,10 @@ const Candidates: React.FC = () => {
   }
 
   return (
-    <div className="animate-fade-in">
+    <div className="p-4 lg:p-8">
       <Header
-        title="Candidates"
-        subtitle="View and manage your candidate pipeline"
+        title="Talent Pool"
+        subtitle="Browse, filter, and manage your candidates."
       />
 
       <div className="mb-6 space-y-4">

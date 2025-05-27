@@ -1,8 +1,10 @@
 import React from 'react';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/components/UI/button';
 import { LinkedinIcon } from 'lucide-react';
 import { linkedinAuthService } from '@/services/linkedinAuthService';
 import { toast } from 'sonner';
+import { Input } from "@/components/UI/input";
+import { supabase } from '@/integrations/supabase/client';
 
 const Login: React.FC = () => {
   const handleLinkedInLogin = async () => {

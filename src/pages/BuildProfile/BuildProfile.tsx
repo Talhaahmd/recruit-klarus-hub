@@ -3,9 +3,9 @@ import { Header } from '@/components/Layout/MainLayout';
 import { Calendar, Clock, Send, Plus, Trash2, Check, ThumbsUp, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
-import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Button } from '@/components/UI/button';
+import { Textarea } from '@/components/UI/textarea';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/UI/tabs';
 import {
   Dialog,
   DialogContent,
@@ -13,21 +13,21 @@ import {
   DialogTitle,
   DialogFooter,
   DialogDescription,
-} from '@/components/ui/dialog';
+} from '@/components/UI/dialog';
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from '@/components/ui/popover';
-import { Calendar as CalendarComponent } from '@/components/ui/calendar';
-import { Input } from '@/components/ui/input';
+} from '@/components/UI/popover';
+import { Calendar as CalendarComponent } from '@/components/UI/calendar';
+import { Input } from '@/components/UI/input';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
+} from '@/components/UI/select';
 import { linkedinService, LinkedInPost } from '@/services/linkedinService';
 import { useLinkedInPrompt } from '@/hooks/useLinkedInPrompt';
 import LinkedInPromptModal from '@/components/UI/LinkedInPromptModal';
@@ -347,12 +347,45 @@ const BuildProfile: React.FC = () => {
   };
   
   return (
-    <div>
-      <Header 
-        title="Build Your Profile" 
-        subtitle="Create and schedule AI-powered LinkedIn posts to build your professional brand."
+    <div className="p-4 lg:p-8">
+      {/* LinkedIn Prompt Modal - Placed early for portal rendering if needed */}
+      <LinkedInPromptModal
+        isOpen={showModal}
+        onConnect={handleLinkedInConnect} 
+        onDismiss={handleLinkedInDismiss}
+        message="Connect your LinkedIn account to generate and schedule posts."
       />
-      
+
+      {/* Success Modal */}
+      <Dialog open={successModal} onOpenChange={setSuccessModal}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Success!</DialogTitle>
+            <DialogDescription>
+              {successMessage}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex justify-center py-4">
+            <div className="flex h-20 w-20 items-center justify-center rounded-full bg-green-100">
+              <Check className="h-10 w-10 text-green-600" />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button 
+              onClick={() => setSuccessModal(false)}
+              className="bg-primary hover:bg-primary/90 transition-all duration-200 hover:shadow-md w-full"
+            >
+              Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Header 
+        title="Build Your Professional Profile"
+        subtitle="Generate and schedule engaging LinkedIn posts to enhance your presence."
+      />
+
       <Tabs defaultValue="create" className="w-full">
         <TabsList className="grid w-full max-w-md grid-cols-2">
           <TabsTrigger value="create" className="transition-all duration-200 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">Create Post</TabsTrigger>
@@ -749,38 +782,6 @@ const BuildProfile: React.FC = () => {
           </form>
         </DialogContent>
       </Dialog>
-
-      {/* Success Modal */}
-      <Dialog open={successModal} onOpenChange={setSuccessModal}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Success!</DialogTitle>
-            <DialogDescription>
-              {successMessage}
-            </DialogDescription>
-          </DialogHeader>
-          <div className="flex justify-center py-4">
-            <div className="flex h-20 w-20 items-center justify-center rounded-full bg-green-100">
-              <Check className="h-10 w-10 text-green-600" />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button 
-              onClick={() => setSuccessModal(false)}
-              className="bg-primary hover:bg-primary/90 transition-all duration-200 hover:shadow-md w-full"
-            >
-              Close
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* LinkedIn Prompt Modal */}
-      <LinkedInPromptModal
-        isOpen={showModal}
-        onConnect={handleLinkedInConnect}
-        onDismiss={handleLinkedInDismiss}
-      />
     </div>
   );
 };

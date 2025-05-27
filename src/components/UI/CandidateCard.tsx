@@ -1,8 +1,7 @@
-
 import React from 'react';
 import { Candidate } from '@/services/candidatesService';
 import { Mail, Phone, Edit, Trash2, MapPin, Star, Briefcase } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/components/UI/button';
 import { useEffect, useState } from 'react';
 import { submissionService } from '@/services/submissionService';
 import { jobsService } from '@/services/jobsService';

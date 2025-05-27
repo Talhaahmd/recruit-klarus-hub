@@ -3,12 +3,13 @@ import { useParams, Link } from 'react-router-dom';
 import { ArrowLeft, Upload, FileType, CheckCircle2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Alert, AlertDescription } from '@/components/UI/alert';
+import { Button } from '@/components/UI/button';
+import { Input } from '@/components/UI/input';
+import { Label } from '@/components/UI/label';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/UI/card';
 import { toast } from 'sonner';
+import { Textarea } from "@/components/UI/textarea";
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
 const ALLOWED_FILE_TYPES = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
@@ -193,49 +194,49 @@ const Apply: React.FC = () => {
 
   if (success) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <Card className="w-full max-w-md">
-          <CardContent className="pt-6">
-            <div className="text-center">
-              <CheckCircle2 className="w-16 h-16 text-green-500 mx-auto mb-4" />
-              <h2 className="text-xl font-semibold mb-2">Application Submitted!</h2>
-              <p className="text-gray-600 mb-4">
-                Thank you for applying to <strong>{job?.title}</strong>. 
-                We'll review your application and get back to you soon.
-              </p>
-              <Link to="/">
-                <Button>
-                  <ArrowLeft className="w-4 h-4 mr-2" />
-                  Back to Home
-                </Button>
-              </Link>
-            </div>
-          </CardContent>
-        </Card>
+      <div className="p-4 lg:p-8">
+        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+          <Card className="w-full max-w-md">
+            <CardContent className="pt-6">
+              <div className="text-center">
+                <CheckCircle2 className="w-16 h-16 text-green-500 mx-auto mb-4" />
+                <h2 className="text-xl font-semibold mb-2">Application Submitted!</h2>
+                <p className="text-gray-600 mb-4">
+                  Thank you for applying to <strong>{job?.title}</strong>. 
+                  We'll review your application and get back to you soon.
+                </p>
+                <Link to="/">
+                  <Button>
+                    <ArrowLeft className="w-4 h-4 mr-2" />
+                    Back to Home
+                  </Button>
+                </Link>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-2xl mx-auto">
-        <div className="mb-8">
-          <Link to="/" className="inline-flex items-center text-blue-600 hover:text-blue-500 mb-4">
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Jobs
-          </Link>
-          
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-2xl">{job?.title}</CardTitle>
-              <CardDescription>
-                Submit your application for this position
-              </CardDescription>
-            </CardHeader>
-          </Card>
-        </div>
-
+    <div className="p-4 lg:p-8">
+      <div className="container mx-auto py-8 px-4 max-w-3xl">
+        <Link to={`/jobs/${jobId}`} className="inline-flex items-center text-blue-600 hover:underline mb-6">
+          <ArrowLeft className="w-4 h-4 mr-2" />
+          Back to Job Details
+        </Link>
+        
         <Card>
+          <CardHeader>
+            <CardTitle className="text-2xl">{job?.title}</CardTitle>
+            <CardDescription>
+              Submit your application for this position
+            </CardDescription>
+          </CardHeader>
+        </Card>
+
+        <Card className="mt-8">
           <CardHeader>
             <CardTitle>Application Form</CardTitle>
             <CardDescription>

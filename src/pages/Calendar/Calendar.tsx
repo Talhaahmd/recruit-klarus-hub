@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -15,23 +14,23 @@ import {
   DialogHeader,
   DialogTitle,
   DialogFooter,
-} from "@/components/ui/dialog"
-import { Button } from "@/components/ui/button"
+} from "@/components/UI/dialog"
+import { Button } from "@/components/UI/button"
 import { format } from "date-fns"
-import { Calendar as CalendarUI } from "@/components/ui/calendar"
+import { Calendar as CalendarUI } from "@/components/UI/calendar"
 import { 
   ContextMenu,
   ContextMenuContent,
   ContextMenuItem,
   ContextMenuTrigger,
   ContextMenuSeparator
-} from "@/components/ui/context-menu"
+} from "@/components/UI/context-menu"
 import { 
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger
-} from "@/components/ui/tooltip"
+} from "@/components/UI/tooltip"
 import { Calendar as CalendarIcon, Briefcase, UserPlus, Linkedin, Plus, Info } from "lucide-react"
 import AddCandidateModal from '@/components/UI/AddCandidateModal';
 import AddJobModal from '@/components/UI/JobsComponents/AddJobModal';

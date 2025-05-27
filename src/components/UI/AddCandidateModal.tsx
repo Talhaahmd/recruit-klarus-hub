@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { 
   Dialog, 
@@ -6,8 +5,8 @@ import {
   DialogFooter, 
   DialogHeader, 
   DialogTitle,
-} from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
+} from '@/components/UI/dialog';
+import { Button } from '@/components/UI/button';
 import { Upload, File } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';

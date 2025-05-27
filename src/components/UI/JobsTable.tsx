@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Job } from '@/services/jobsService';
 import { 
@@ -8,8 +7,8 @@ import {
   TableHead,
   TableHeader,
   TableRow
-} from '@/components/ui/table';
-import { Button } from '@/components/ui/button';
+} from '@/components/UI/table';
+import { Button } from '@/components/UI/button';
 import { Eye, Pencil, Trash2 } from 'lucide-react';
 
 interface JobsTableProps {

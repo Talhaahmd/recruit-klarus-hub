@@ -1,7 +1,6 @@
-
 import React from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/UI/dialog';
+import { Button } from '@/components/UI/button';
 import { Linkedin, X } from 'lucide-react';
 
 interface LinkedInPromptModalProps {

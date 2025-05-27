@@ -2,9 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { Briefcase, ExternalLink } from 'lucide-react';
 import { jobsService } from '@/services/jobsService';
 import { submissionService } from '@/services/submissionService';
-import { Badge } from '@/components/ui/badge';
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/UI/badge';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/UI/button';
 
 interface JobApplicationInfoProps {
   resumeUrl?: string | null;

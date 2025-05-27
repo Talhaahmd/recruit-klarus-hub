@@ -1,16 +1,16 @@
-
 import React, { useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetFooter } from "@/components/ui/sheet";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Calendar } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/UI/dialog";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetFooter } from "@/components/UI/sheet";
+import { Button } from "@/components/UI/button";
+import { Input } from "@/components/UI/input";
+import { Calendar } from "@/components/UI/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/UI/popover";
 import { format } from "date-fns";
 import { Calendar as CalendarIcon, Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { interviewService } from '@/services/interviewService';
 import { toast } from 'sonner';
+import { Textarea } from "@/components/UI/textarea";
 
 type EmailActionsModalProps = {
   candidateId: string;

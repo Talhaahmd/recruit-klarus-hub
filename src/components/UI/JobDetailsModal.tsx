@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Job } from '@/services/jobsService';
 import {
@@ -6,7 +5,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
+} from '@/components/UI/dialog';
 import { 
   MapPin, 
   Clock, 
@@ -16,13 +15,14 @@ import {
   Tag, 
   Building
 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Button } from "@/components/UI/button";
 import {
   Tabs,
   TabsContent,
   TabsList,
   TabsTrigger,
-} from "@/components/ui/tabs";
+} from "@/components/UI/tabs";
+import { Badge } from "@/components/UI/badge";
 
 interface JobDetailsModalProps {
   job: Job;

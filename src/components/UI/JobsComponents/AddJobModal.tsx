@@ -18,9 +18,9 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from '@/components/ui/form';
+} from '@/components/UI/form';
 import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
+import { Button } from "@/components/UI/button";
 import { Textarea } from '@/components/ui/textarea';
 import {
   Select,
@@ -34,7 +34,8 @@ import {
   TabsContent,
   TabsList,
   TabsTrigger,
-} from "@/components/ui/tabs";
+} from "@/components/UI/tabs";
+import { toast } from "sonner";
 
 const JOB_TYPE_OPTIONS = ['Full-time', 'Part-time', 'Contract'];
 const WORKPLACE_TYPE_OPTIONS = ['Remote', 'Hybrid', 'On-site'];

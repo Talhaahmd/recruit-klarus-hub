@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -6,8 +5,8 @@ import { toast } from 'sonner';
 import { Loader2 } from 'lucide-react';
 import { FcGoogle } from 'react-icons/fc';
 import { FaLinkedin } from 'react-icons/fa';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { Button } from '@/components/UI/button';
+import { Input } from '@/components/UI/input';
 
 const testimonials = [
   {
@@ -17,7 +16,7 @@ const testimonials = [
     image: "https://res.cloudinary.com/dt3ufcdjs/image/upload/v1748195844/1699147626498_g6jp1l.jpg"
   },
   {
-    content: "Klarus HR has been quietly transforming how we hire. We don’t have a large HR team, but this tool gives us structure and scale we didn’t think was possible. The onboarding templates alone saved our team hours. It’s intuitive, insightful, and genuinely supports better decision-making — not just automation for the sake of it.",
+    content: "Klarus HR has been quietly transforming how we hire. We don't have a large HR team, but this tool gives us structure and scale we didn't think was possible. The onboarding templates alone saved our team hours. It's intuitive, insightful, and genuinely supports better decision-making — not just automation for the sake of it.",
     author: "David Sanders",
     role: "Senior Recruiter",
     image: "https://res.cloudinary.com/dt3ufcdjs/image/upload/v1748196046/1730632264830_ltrbgc.jpg"
@@ -41,31 +40,31 @@ const testimonials = [
     image: "https://res.cloudinary.com/dt3ufcdjs/image/upload/v1748195840/1664309591862_hace6l.jpg"
   },
   {
-    content: "Klarus HR’s automated candidate ranking is a game changer. No more guessing who to prioritize. Smart, scalable, and surprisingly human in its suggestions. #HRtech",
+    content: "Klarus HR's automated candidate ranking is a game changer. No more guessing who to prioritize. Smart, scalable, and surprisingly human in its suggestions. #HRtech",
     author: "Mahnoor",
     role: "Team Lead, Nestle",
     image: "https://res.cloudinary.com/dt3ufcdjs/image/upload/v1748195841/1694155351553_d1swmo.jpg"
   },
   {
-    content: "@KlarusHR just flagged a perfect candidate I totally missed. It literally understands what we’re looking for better than some recruiters I’ve worked with 👀",
+    content: "@KlarusHR just flagged a perfect candidate I totally missed. It literally understands what we're looking for better than some recruiters I've worked with 👀",
     author: "Shees",
     role: "HR, National University of Science & Technology",
     image: "https://res.cloudinary.com/dt3ufcdjs/image/upload/v1748195846/1741182386412_bwnjyv.jpg"
   },
   {
-    content: "Klarus HR doesn’t just schedule interviews—it curates them. For our backend role, the system generated scenario-based questions + live coding prompts, complete with a rubric my team could tweak on the fly. We walked out of debriefs with aligned scores and crystal-clear reasoning.",
+    content: "Klarus HR doesn't just schedule interviews—it curates them. For our backend role, the system generated scenario-based questions + live coding prompts, complete with a rubric my team could tweak on the fly. We walked out of debriefs with aligned scores and crystal-clear reasoning.",
     author: "Li Zheu",
     role: "Talent Acquisition Specialist",
     image: "https://res.cloudinary.com/dt3ufcdjs/image/upload/v1748195847/1744922976075_n1uu1j.jpg"
   },
   {
-    content: "Honestly @KlarusHR just helped us make one of our best hires ever. Faster process, better interviews, clearer feedback and we didn’t have to chase anyone down.",
+    content: "Honestly @KlarusHR just helped us make one of our best hires ever. Faster process, better interviews, clearer feedback and we didn't have to chase anyone down.",
     author: "Chen Hao",
     role: "HR & Talent Acquisition",
     image: "https://res.cloudinary.com/dt3ufcdjs/image/upload/v1748195840/1662464702255_vytnra.jpg"
   },
   {
-    content: "A candidate told me our process “felt more human than most.” Funny how AI helped us deliver that. Klarus HR handles the details so we can focus on connection.",
+    content: "A candidate told me our process \"felt more human than most.\" Funny how AI helped us deliver that. Klarus HR handles the details so we can focus on connection.",
     author: "Ibrahim Zardan",
     role: "CEO of @MarketingIT",
     image: "https://res.cloudinary.com/dt3ufcdjs/image/upload/v1748195845/1727505616238_ixlebb.jpg"

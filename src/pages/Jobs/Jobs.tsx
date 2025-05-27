@@ -1,8 +1,7 @@
-
 import React, { useState, useEffect } from 'react';
 import { Header } from '@/components/Layout/MainLayout';
 import { toast } from 'sonner';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/components/UI/button';
 import JobsTable from '@/components/UI/JobsTable';
 import AddJobModal, { NewJobData } from '@/components/UI/JobsComponents/AddJobModal';
 import JobDetailsModal from '@/components/UI/JobDetailsModal';
@@ -13,6 +12,7 @@ import { useLinkedInAutoPost } from '@/hooks/useLinkedInAutoPost';
 import { useLinkedInPrompt } from '@/hooks/useLinkedInPrompt';
 import LinkedInPromptModal from '@/components/UI/LinkedInPromptModal';
 import { jobsService } from '@/services/jobsService';
+import { useAuth } from '@/contexts/AuthContext';
 
 const Jobs = () => {
   const [isAddJobModalOpen, setIsAddJobModalOpen] = useState(false);

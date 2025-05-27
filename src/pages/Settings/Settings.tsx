@@ -1,11 +1,10 @@
-
 import React, { useState, useEffect } from 'react';
 import { Header } from '@/components/Layout/MainLayout';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { Save, Moon, Sun } from 'lucide-react';
 import { useTheme } from '@/contexts/ThemeContext';
-import { Switch } from '@/components/ui/switch';
+import { Switch } from '@/components/UI/switch';
 import { profilesService } from '@/services/profilesService';
 import { supabase } from '@/integrations/supabase/client'; // Added missing import
 
@@ -85,7 +84,7 @@ const Settings: React.FC = () => {
   };
 
   return (
-    <div className="transition-colors">
+    <div className="p-4 lg:p-8 transition-colors">
       <Header 
         title="Settings" 
         subtitle="Manage your account and preferences."

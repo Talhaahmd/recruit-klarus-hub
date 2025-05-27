@@ -1,8 +1,9 @@
 import { serve, createClient } from './deps.ts';
 
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Origin': '*', // For production, specify your app's domain
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Methods': 'POST, GET, OPTIONS', // Added common methods
 };
 
 serve(async (req: Request) => {
