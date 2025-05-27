@@ -46,9 +46,9 @@ const Sidebar: React.FC<SidebarProps> = ({
     {
       title: 'Content',
       items: [
-        { icon: Palette, name: 'Theme', path: '/content/theme' },
-        { icon: Newspaper, name: 'Posts', path: '/content/posts' },
-        { icon: Lightbulb, name: 'Ideas', path: '/content/ideas' },
+        { icon: Palette, name: 'Theme', path: '/themes' },
+        { icon: Newspaper, name: 'Posts', path: '/posts' },
+        { icon: Lightbulb, name: 'Ideas', path: '/ideas' },
       ]
     },
     {
