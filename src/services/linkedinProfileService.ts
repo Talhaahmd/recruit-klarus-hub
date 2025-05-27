@@ -2,7 +2,7 @@ import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 import { Database } from '@/types/supabase';
 
-export type LinkedInProfile = Database['public']['Tables']['linkedin_profiles']['Row'];
+export type LinkedInProfile = Database['public']['Tables']['profiles']['Row'];
 type ProfileInput = Omit<LinkedInProfile, 'id' | 'created_at' | 'last_updated'>;
 
 export const linkedinProfileService = {
@@ -16,7 +16,7 @@ export const linkedinProfileService = {
       }
 
       const { data, error } = await supabase
-        .from('linkedin_profiles')
+        .from('profiles')
         .select()
         .eq('user_id', user.id)
         .maybeSingle();
@@ -45,7 +45,7 @@ export const linkedinProfileService = {
       }
 
       const { data, error } = await supabase
-        .from('linkedin_profiles')
+        .from('profiles')
         .upsert({
           ...profile,
           user_id: user.id,

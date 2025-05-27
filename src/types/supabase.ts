@@ -1,7 +1,7 @@
 export type Database = {
   public: {
     Tables: {
-      linkedin_profiles: {
+      profiles: {
         Row: {
           id: string;
           user_id: string;
@@ -39,8 +39,8 @@ export type Database = {
           profile_strength_score: number | null;
           network_score: number | null;
         };
-        Insert: Omit<Database['public']['Tables']['linkedin_profiles']['Row'], 'id' | 'created_at' | 'last_updated'>;
-        Update: Partial<Database['public']['Tables']['linkedin_profiles']['Insert']>;
+        Insert: Omit<Database['public']['Tables']['profiles']['Row'], 'id' | 'created_at' | 'last_updated'>;
+        Update: Partial<Database['public']['Tables']['profiles']['Insert']>;
       };
       linkedin_organizations: {
         Row: {

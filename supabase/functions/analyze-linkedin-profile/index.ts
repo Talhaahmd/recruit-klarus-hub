@@ -54,7 +54,7 @@ serve(async (req) => {
 
     // Get the LinkedIn profile data
     const { data: profile, error: profileError } = await supabase
-      .from('linkedin_profiles')
+      .from('profiles')
       .select('*')
       .eq('user_id', user.id)
       .single();
@@ -158,7 +158,7 @@ Format your response as a JSON object with the following structure:
 
     // Update profile with analysis results
     const { error: updateError } = await supabase
-      .from('linkedin_profiles')
+      .from('profiles')
       .update({
         ai_summary: analysis.summary,
         ai_insights: analysis.insights,
