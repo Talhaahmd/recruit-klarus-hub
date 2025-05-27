@@ -1,7 +1,8 @@
+
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Star } from 'lucide-react';
-import { DraggableCard } from '@/components/UI/draggable-card';
+import { DraggableCardBody, DraggableCardContainer } from '@/components/UI/draggable-card';
 
 const reviews = [
   {
@@ -63,11 +64,11 @@ const ReviewsSection: React.FC = () => {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <DraggableCardContainer className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {shuffledReviews.map((review, index) => (
-            <DraggableCard key={review.id} id={review.id.toString()} index={index}>
+            <DraggableCardBody key={review.id} className="glass-card">
               <motion.div
-                className="glass-card p-6 hover:shadow-lg transition-all duration-300 h-full flex flex-col"
+                className="p-6 hover:shadow-lg transition-all duration-300 h-full flex flex-col"
                 whileHover={{ scale: 1.05 }}
                 transition={{ duration: 0.3 }}
               >
@@ -94,9 +95,9 @@ const ReviewsSection: React.FC = () => {
                 </div>
                 <p className="text-gray-300 flex-grow">{review.comment}</p>
               </motion.div>
-            </DraggableCard>
+            </DraggableCardBody>
           ))}
-        </div>
+        </DraggableCardContainer>
       </div>
     </section>
   );
