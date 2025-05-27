@@ -84,7 +84,7 @@ const Signup: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const from = '/payment'; // Always redirect to payment after signup
+  const from = new URLSearchParams(location.search).get('from') || '/dashboard';
   const isHandlingOAuth = sessionStorage.getItem('oauth_redirect_processed') === 'true';
 
   // Auto-scroll testimonials
@@ -124,8 +124,8 @@ const Signup: React.FC = () => {
 
     try {
       await signup(name, email, password);
-      toast.success('Account created! Redirecting to payment setup...');
-      navigate('/payment', { replace: true });
+      toast.success('Account created! Check your email to verify.');
+      navigate(`/login?from=${encodeURIComponent(from)}`, { replace: true });
     } catch (error) {
       console.error('❌ Signup failed');
     } finally {

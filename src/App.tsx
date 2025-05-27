@@ -29,10 +29,6 @@ import NewApply from "./pages/Apply/NewApply";
 import LinkedInTokenCallback from "./pages/LinkedInTokenCallback/LinkedInTokenCallback";
 import CVUpload from "./pages/CVUpload/CVUpload";
 
-// Payment Pages
-import Payment from "./pages/Payment/Payment";
-import PaymentSuccess from "./pages/Payment/PaymentSuccess";
-
 // Dashboard Pages
 import Dashboard from "./pages/Dashboard/Dashboard";
 import Jobs from "./pages/Jobs/Jobs";
@@ -54,17 +50,17 @@ const HashRedirectHandler = () => {
     const hash = window.location.hash;
     
     if (hash && hash.includes("access_token")) {
-      console.log("🔐 OAuth access_token detected in hash, redirecting to payment...");
+      console.log("🔐 OAuth access_token detected in hash, redirecting to dashboard...");
       sessionStorage.setItem("oauth_redirect_processed", "true");
       
       setTimeout(() => {
-        window.location.replace("/payment");
+        window.location.replace("/dashboard");
       }, 100);
       return;
     }
 
-    if (sessionStorage.getItem("oauth_redirect_processed") && location.pathname === "/payment") {
-      console.log("✅ OAuth redirect to payment successful");
+    if (sessionStorage.getItem("oauth_redirect_processed") && location.pathname === "/dashboard") {
+      console.log("✅ OAuth redirect to dashboard successful");
       sessionStorage.removeItem("oauth_redirect_processed");
     }
   }, [location, navigate, isAuthenticated]);
@@ -80,7 +76,7 @@ const ProtectedRouteHandler = ({ children }: { children: React.ReactNode }) => {
     return <div className="min-h-screen flex items-center justify-center bg-white text-gray-500">Loading session...</div>;
   }
   
-  if (sessionStorage.getItem("oauth_redirect_processed") && location.pathname === "/payment") {
+  if (sessionStorage.getItem("oauth_redirect_processed") && location.pathname === "/dashboard") {
     return <>{children}</>;
   }
 
@@ -114,24 +110,6 @@ const App = () => (
               <Route path="/cv-upload" element={<CVUpload />} />
               <Route path="/linkedin-token-callback" element={<LinkedInTokenCallback />} />
 
-              {/* Payment routes - protected */}
-              <Route
-                path="/payment"
-                element={
-                  <ProtectedRouteHandler>
-                    <Payment />
-                  </ProtectedRouteHandler>
-                }
-              />
-              <Route
-                path="/payment-success"
-                element={
-                  <ProtectedRouteHandler>
-                    <PaymentSuccess />
-                  </ProtectedRouteHandler>
-                }
-              />
-
               {/* Protected routes */}
               <Route
                 path="/dashboard"
@@ -160,7 +138,7 @@ const App = () => (
                 <Route path="settings" element={<Settings />} />
               </Route>
 
-              <Route path="/index" element={<Navigate to="/payment" />} />
+              <Route path="/index" element={<Navigate to="/dashboard" />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
