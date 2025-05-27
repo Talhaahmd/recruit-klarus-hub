@@ -54,17 +54,17 @@ const HashRedirectHandler = () => {
     const hash = window.location.hash;
     
     if (hash && hash.includes("access_token")) {
-      console.log("🔐 OAuth access_token detected in hash, redirecting to dashboard...");
+      console.log("🔐 OAuth access_token detected in hash, redirecting to payment...");
       sessionStorage.setItem("oauth_redirect_processed", "true");
       
       setTimeout(() => {
-        window.location.replace("/dashboard");
+        window.location.replace("/payment");
       }, 100);
       return;
     }
 
-    if (sessionStorage.getItem("oauth_redirect_processed") && location.pathname === "/dashboard") {
-      console.log("✅ OAuth redirect to dashboard successful");
+    if (sessionStorage.getItem("oauth_redirect_processed") && location.pathname === "/payment") {
+      console.log("✅ OAuth redirect to payment successful");
       sessionStorage.removeItem("oauth_redirect_processed");
     }
   }, [location, navigate, isAuthenticated]);
@@ -80,7 +80,7 @@ const ProtectedRouteHandler = ({ children }: { children: React.ReactNode }) => {
     return <div className="min-h-screen flex items-center justify-center bg-white text-gray-500">Loading session...</div>;
   }
   
-  if (sessionStorage.getItem("oauth_redirect_processed") && location.pathname === "/dashboard") {
+  if (sessionStorage.getItem("oauth_redirect_processed") && location.pathname === "/payment") {
     return <>{children}</>;
   }
 
@@ -114,6 +114,24 @@ const App = () => (
               <Route path="/cv-upload" element={<CVUpload />} />
               <Route path="/linkedin-token-callback" element={<LinkedInTokenCallback />} />
 
+              {/* Payment routes - protected */}
+              <Route
+                path="/payment"
+                element={
+                  <ProtectedRouteHandler>
+                    <Payment />
+                  </ProtectedRouteHandler>
+                }
+              />
+              <Route
+                path="/payment-success"
+                element={
+                  <ProtectedRouteHandler>
+                    <PaymentSuccess />
+                  </ProtectedRouteHandler>
+                }
+              />
+
               {/* Protected routes */}
               <Route
                 path="/dashboard"
@@ -142,7 +160,7 @@ const App = () => (
                 <Route path="settings" element={<Settings />} />
               </Route>
 
-              <Route path="/index" element={<Navigate to="/dashboard" />} />
+              <Route path="/index" element={<Navigate to="/payment" />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
