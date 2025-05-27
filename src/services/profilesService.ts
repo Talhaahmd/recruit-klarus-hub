@@ -43,7 +43,7 @@ export const profilesService = {
         return null;
       }
       
-      return data;
+      return data as Profile;
     } catch (err: any) {
       console.error('Error in getProfile:', err.message);
       toast.error('Failed to fetch profile');
@@ -109,7 +109,7 @@ export const profilesService = {
       });
       
       toast.success('Profile updated successfully');
-      return result.data;
+      return result.data as Profile;
     } catch (err: any) {
       console.error('Error in updateProfile:', err.message);
       toast.error('Failed to update profile');
@@ -139,7 +139,7 @@ export const profilesService = {
         throw error;
       }
       
-      return data;
+      return data as Profile;
     } catch (err: any) {
       console.error('Error in getProfileById:', err.message);
       toast.error('Failed to fetch profile');
