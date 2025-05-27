@@ -37,6 +37,7 @@ import CandidateProfile from "./pages/Candidates/CandidateProfile";
 import Calendar from "./pages/Calendar/Calendar";
 import BuildProfile from "./pages/BuildProfile/BuildProfile";
 import Theme from "./pages/Theme/Theme";
+import Posts from "./pages/Posts/Posts";
 import Settings from "./pages/Settings/Settings";
 import NotFound from "./pages/NotFound";
 
@@ -137,6 +138,7 @@ const App = () => (
                 <Route path="calendar" element={<Calendar />} />
                 <Route path="build-profile" element={<BuildProfile />} />
                 <Route path="theme" element={<Theme />} />
+                <Route path="posts" element={<Posts />} />
                 <Route path="settings" element={<Settings />} />
               </Route>
 
