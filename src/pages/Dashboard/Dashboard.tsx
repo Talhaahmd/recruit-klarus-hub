@@ -24,7 +24,7 @@ import { linkedinProfileService, LinkedInProfile } from '@/services/linkedinProf
 import { Job } from '@/services/jobsService';
 import { Candidate } from '@/services/candidatesService';
 import { Button } from '@/components/ui/button';
-import { Avatar, AvatarImage, AvatarFallback } from '@/components/UI/avatar';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/UI/avatar.tsx';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { linkedinEnhancedService } from '@/services/linkedinEnhancedService';
 import { linkedinAuthService } from '@/services/linkedinAuthService';
