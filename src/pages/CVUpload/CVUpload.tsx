@@ -6,7 +6,7 @@ import { Alert, AlertDescription } from '@/components/UI/alert';
 import { CheckCircle2, Upload, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/lib/supabase';
 
 const CVUpload: React.FC = () => {
   const [files, setFiles] = useState<File[]>([]);
