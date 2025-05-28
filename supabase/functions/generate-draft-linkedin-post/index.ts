@@ -86,7 +86,7 @@ Generate the new LinkedIn post draft now. Ensure it is ready for direct use on L
     ];
 
     // 3. Call OpenAI
-    const chatCompletion = await openai.createChatCompletion({
+    const chatCompletion = await openai.chat.completions.create({
       model: "gpt-3.5-turbo-0125", // Consider "gpt-4" or other models based on availability and preference
       messages: promptMessages,
       temperature: 0.7, 
