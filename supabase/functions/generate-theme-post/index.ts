@@ -178,8 +178,10 @@ serve(async (req: Request) => {
 
     // --- Second OpenAI Call: Generate Expected Results ---
     let resultsPrompt = `Analyze the following LinkedIn marketing theme and its generated sample post. Based on this information, estimate the potential business impact.
-Provide your answer ONLY as a JSON object with the following keys: "revenue" (e.g., "+5-10% quarterly increase", "Additional $5k MRR"), "cac" (e.g., "-15% reduction", "Improved from $50 to $40"), and "churn" (e.g., "-2% monthly", "Reduced by 10%").
-If you cannot reasonably estimate a metric, use "N/A" for its value.
+Provide your answer ONLY as a single, valid JSON object. The JSON object must have the following string keys: "revenue", "cac", and "churn".
+Example values for these keys are: "+5-10% quarterly increase", "Additional $5k MRR" for revenue; "-15% reduction", "Improved from $50 to $40" for cac; and "-2% monthly", "Reduced by 10%" for churn.
+If you cannot reasonably estimate a metric, use "N/A" as the string value for that key.
+Ensure the output is nothing but this single JSON object and nothing else before or after it.
 
 Theme Details:
 Title: ${newTheme.title}
@@ -194,12 +196,12 @@ Post Types: ${newTheme.post_types.join(', ')}
     if (newTheme.details?.purpose) resultsPrompt += `Purpose: ${newTheme.details.purpose}\n`;
     if (newTheme.details?.mainTopic) resultsPrompt += `Main Topic: ${newTheme.details.mainTopic}\n`;
 
-    resultsPrompt += `\nGenerated Sample Post Content:\n${generatedPostContent || "No post content was generated."}\n\nJSON Output for Results:`;
+    resultsPrompt += `\nGenerated Sample Post Content:\n${generatedPostContent || "No post content was generated."}\n\nStrictly return ONLY the JSON object. For example: {"revenue": "N/A", "cac": "-5%", "churn": "N/A"}\nYour JSON Output:`;
     
     const resultsChatCompletion = await openai.chat.completions.create({
         messages: [{ role: 'user', content: resultsPrompt }],
         model: 'gpt-4',
-        response_format: { type: "json_object" },
+        // response_format: { type: "json_object" }, // Removed as it's not supported by this gpt-4 model version
     });
 
     let generatedResults = { revenue: 'N/A', cac: 'N/A', churn: 'N/A' };
