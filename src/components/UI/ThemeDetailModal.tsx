@@ -152,7 +152,6 @@ const ThemeDetailModal: React.FC<ThemeDetailModalProps> = ({
   const [selectedTargetAudience, setSelectedTargetAudience] = useState<string[]>([]);
   const [selectedComplexity, setSelectedComplexity] = useState<string[]>([]);
   const [isAdding, setIsAdding] = useState(false);
-  const [currentPostIndex, setCurrentPostIndex] = useState(0);
 
   if (!theme) return null;
 
@@ -224,8 +223,7 @@ const ThemeDetailModal: React.FC<ThemeDetailModalProps> = ({
     }
   };
 
-  const samplePosts = theme.sample_posts || [];
-  const currentPost = samplePosts[currentPostIndex];
+  const currentPost = theme.sample_posts || '';
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -312,31 +310,14 @@ const ThemeDetailModal: React.FC<ThemeDetailModalProps> = ({
                       </div>
                     ) : (
                       <div className="min-h-[150px] p-3 border border-gray-300 rounded-md flex items-center justify-center text-gray-400">
-                        <p>Sample post content will appear here.</p>
+                        <p>No sample post available for this theme.</p>
                       </div>
                     )}
                   </div>
                 </div>
               </div>
 
-              {/* Pagination for multiple sample posts (if any) */}
-              {samplePosts.length > 1 && (
-                <div className="flex items-center justify-center gap-2 pt-2">
-                  <span className="text-sm text-gray-500">({currentPostIndex + 1}/{samplePosts.length})</span>
-                  <div className="flex gap-1">
-                    {samplePosts.map((_, index) => (
-                      <button
-                        key={index}
-                        onClick={() => setCurrentPostIndex(index)}
-                        className={`w-2.5 h-2.5 rounded-full transition-colors ${
-                          index === currentPostIndex ? 'bg-blue-600' : 'bg-gray-300 hover:bg-gray-400'
-                        }`}
-                        aria-label={`Go to sample post ${index + 1}`}
-                      />
-                    ))}
-                  </div>
-                </div>
-              )}
+              {/* Pagination for multiple sample posts (if any) - REMOVED */}
               
               {/* Action Buttons - Moved here */}
               <div className="flex flex-col sm:flex-row justify-end gap-3 pt-4">

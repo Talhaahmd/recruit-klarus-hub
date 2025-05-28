@@ -49,13 +49,13 @@ serve(async (req) => {
       });
     }
 
-    let samplePost = "No sample post available for this theme. Please ensure the theme has sample posts defined.";
-    if (themeData.sample_posts && Array.isArray(themeData.sample_posts) && themeData.sample_posts.length > 0 && typeof themeData.sample_posts[0] === 'string' && themeData.sample_posts[0].trim() !== '') {
-      samplePost = themeData.sample_posts[0];
+    let samplePostText = "No sample post available for this theme. Please ensure the theme has a sample post defined.";
+    if (themeData.sample_posts && typeof themeData.sample_posts === 'string' && themeData.sample_posts.trim() !== '') {
+      samplePostText = themeData.sample_posts;
     } else {
-      console.warn(`No valid sample_posts found for theme ID ${themeId}. Using a generic instruction for style guidance.`);
-      // Fallback if samplePost is not good, though the prompt might be less effective
-      samplePost = "A well-structured and engaging LinkedIn post."
+      console.warn(`No valid sample_post (text) found for theme ID ${themeId}. Using a generic instruction for style guidance.`);
+      // Fallback if samplePostText is not good
+      samplePostText = "A well-structured and engaging LinkedIn post."
     }
     
     // 2. Construct OpenAI Prompt
@@ -69,7 +69,7 @@ serve(async (req) => {
         content: `
 Sample LinkedIn Post (for style, format, spacing, and writing technique reference):
 ---
-${samplePost}
+${samplePostText}
 ---
 
 Tone to apply for the new post: ${tone}

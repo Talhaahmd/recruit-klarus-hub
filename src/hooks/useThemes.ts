@@ -17,7 +17,7 @@ export interface Theme {
   objectives?: string[];
   audience?: string;
   post_types?: string[];
-  sample_posts?: string[];
+  sample_posts?: string;
   purpose_explanation?: string;
   main_topic_explanation?: string;
   background_explanation?: string;
@@ -74,17 +74,7 @@ export const useThemes = () => {
 
       if (error) throw error;
 
-      // Ensure sample_posts is always an array
-      const processedThemes = data?.map(theme => ({
-        ...theme,
-        sample_posts: Array.isArray(theme.sample_posts) 
-          ? theme.sample_posts 
-          : typeof theme.sample_posts === 'string' 
-            ? [theme.sample_posts] 
-            : []
-      })) || [];
-
-      setThemes(processedThemes);
+      setThemes(data || []);
     } catch (error) {
       console.error('Error fetching themes:', error);
       toast.error('Failed to fetch themes');
@@ -107,20 +97,10 @@ export const useThemes = () => {
 
       if (error) throw error;
 
-      // Process the nested theme data to ensure sample_posts is an array
-      const processedUserThemes = data?.map(userTheme => ({
-        ...userTheme,
-        theme: {
-          ...userTheme.theme,
-          sample_posts: Array.isArray(userTheme.theme.sample_posts) 
-            ? userTheme.theme.sample_posts 
-            : typeof userTheme.theme.sample_posts === 'string' 
-              ? [userTheme.theme.sample_posts] 
-              : []
-        }
-      })) || [];
-
-      setUserThemes(processedUserThemes);
+      setUserThemes(data?.map(ut => ({
+        ...ut,
+        theme: ut.theme ? { ...ut.theme, sample_posts: ut.theme.sample_posts || '' } : null
+      })) || []);
     } catch (error) {
       console.error('Error fetching user themes:', error);
       toast.error('Failed to fetch your themes');
@@ -226,7 +206,7 @@ export const useThemes = () => {
 
   const createThemeWithGeneratedPost = async (
     themeDataFromForm: ThemeInputForEdgeFunction
-  ): Promise<{ themeId: string; samplePosts: string[] } | null> => {
+  ): Promise<{ themeId: string; samplePost: string } | null> => {
     try {
       const { data: { user }, error: userError } = await supabase.auth.getUser();
 
@@ -267,16 +247,16 @@ export const useThemes = () => {
         throw new Error(data.error);
       }
       
-      if (data.themeId && data.samplePosts) {
+      if (data.themeId && typeof data.samplePost === 'string') {
         toast.success(data.message || 'Theme and post generated successfully!');
         await fetchThemes(); // Refresh the main themes list
         await fetchUserThemes(); // Refresh user-specific themes if applicable
-        return { themeId: data.themeId, samplePosts: data.samplePosts };
+        return { themeId: data.themeId, samplePost: data.samplePost };
       } else if (data.theme && data.message) { 
         toast.info(data.message); 
         await fetchThemes();
         await fetchUserThemes();
-        return { themeId: data.theme.id, samplePosts: data.theme.sample_posts || [] };
+        return { themeId: data.theme.id, samplePost: data.theme.sample_posts || '' };
       } else {
         toast.error(data.message || 'Unknown response from theme generation function.');
         throw new Error(data.message || 'Unknown response from function');

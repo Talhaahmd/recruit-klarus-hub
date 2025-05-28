@@ -44,7 +44,7 @@ interface ThemeRecord {
   main_topic_explanation?: string;
   target_audience_explanation?: string;
   complexity_explanation?: string;
-  sample_posts?: string[];
+  sample_posts?: string;
   created_at: string;
   updated_at: string;
 }
@@ -110,7 +110,7 @@ serve(async (req: Request) => {
       main_topic_explanation: themeInput.main_topic_explanation || '',
       target_audience_explanation: themeInput.target_audience_explanation || '',
       complexity_explanation: themeInput.complexity_explanation || '',
-      sample_posts: [], // Initialize as empty, will be updated
+      sample_posts: '', // Initialize as empty string, will be updated
     };
 
     const { data: newThemeUntyped, error: insertError } = await supabaseAdmin
@@ -146,7 +146,7 @@ serve(async (req: Request) => {
     }
 
     // --- First OpenAI Call: Generate LinkedIn Post ---
-    let postGenerationPrompt = `Generate an engaging LinkedIn post of 500-700 words based on the following theme details. The post should be well-structured, informative, and tailored for a professional audience on LinkedIn.\n\nTheme Details:\n`;
+    let postGenerationPrompt = `Generate an engaging LinkedIn post of 600-800 words based on the following theme details. The post should be well-structured, informative, and tailored for a professional audience on LinkedIn.\n\nTheme Details:\n`;
     postGenerationPrompt += `Title: ${newTheme.title}\n`;
     postGenerationPrompt += `Description: ${newTheme.description}\n`;
     postGenerationPrompt += `Category: ${newTheme.category}\n`;
@@ -170,7 +170,7 @@ serve(async (req: Request) => {
     if (newTheme.target_audience_explanation) postGenerationPrompt += `Target Audience Explanation: ${newTheme.target_audience_explanation}\n`;
     if (newTheme.complexity_explanation) postGenerationPrompt += `Complexity Explanation: ${newTheme.complexity_explanation}\n`;
 
-    postGenerationPrompt += `\nPlease format the post with a blank line separating each paragraph. Ensure the post is between 500 and 700 words and suitable for LinkedIn.`;
+    postGenerationPrompt += `\nPlease format the post with a blank line separating each paragraph. Ensure the post is between 600 and 800 words and suitable for LinkedIn.`;
 
     const openai = new OpenAI({ apiKey: openAIApiKey });
     const postChatCompletion = await openai.chat.completions.create({
@@ -179,17 +179,16 @@ serve(async (req: Request) => {
     });
 
     const generatedPostContent = postChatCompletion.choices[0]?.message?.content;
-    let samplePostsArray: string[] = [];
+    let newSamplePost: string = '';
 
     if (!generatedPostContent) {
       console.warn(`Theme ${newTheme.id} created, but sample post generation failed.`);
-      // Even if post generation fails, we proceed to generate results if possible,
-      // but the sample_posts array will be empty.
+      // sample_posts will remain an empty string
     } else {
-      samplePostsArray = [generatedPostContent.trim()];
+      newSamplePost = generatedPostContent.trim();
       const { error: updateError } = await supabaseAdmin
         .from('themes')
-        .update({ sample_posts: samplePostsArray })
+        .update({ sample_posts: newSamplePost }) // Store as string
         .eq('id', newTheme.id);
 
       if (updateError) {
@@ -246,7 +245,7 @@ Post Types: ${newTheme.post_types.join(', ')}
 
     const { error: finalUpdateError } = await supabaseAdmin
       .from('themes')
-      .update({ results: generatedResults, sample_posts: samplePostsArray }) // Ensure sample_posts is also updated here
+      .update({ results: generatedResults, sample_posts: newSamplePost }) // Ensure sample_posts (string) is also updated here
       .eq('id', newTheme.id);
 
     if (finalUpdateError) {
@@ -255,7 +254,7 @@ Post Types: ${newTheme.post_types.join(', ')}
         JSON.stringify({
           message: 'Theme created, post and results generated, but failed to update theme with results.',
           themeId: newTheme.id,
-          samplePosts: samplePostsArray,
+          samplePost: newSamplePost,
           generatedResults,
           updateError: finalUpdateError.message,
         }),
@@ -267,7 +266,7 @@ Post Types: ${newTheme.post_types.join(', ')}
       JSON.stringify({
         message: 'Theme created, sample post and results generated and saved successfully!',
         themeId: newTheme.id,
-        samplePosts: samplePostsArray,
+        samplePost: newSamplePost,
         results: generatedResults,
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
