@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/lib/supabase';
@@ -59,27 +58,29 @@ export const useLinkedInPrompt = () => {
     }
   }, [user, isAuthenticated]);
 
-  const initiateLinkedInConnect = async (postData?: any) => {
+  const initiateLinkedInConnect = async (options?: { callbackSource?: string, postData?: any }) => {
     if (!user) {
       toast.error('Please log in first');
       return;
     }
 
+    const callbackSource = options?.callbackSource || 'unknown';
+    const postData = options?.postData;
+
     try {
-      console.log('Initiating fresh LinkedIn OAuth connection...');
+      console.log(`Initiating fresh LinkedIn OAuth connection (source: ${callbackSource})...`);
       setShowModal(true);
       
-      // Store post data with a timestamp to ensure uniqueness
       if (postData) {
         const dataWithTimestamp = {
-          ...postData,
+          payload: postData,
+          source: callbackSource,
           timestamp: Date.now()
         };
-        console.log('Storing post data for after OAuth:', dataWithTimestamp);
+        console.log('Storing data for after OAuth:', dataWithTimestamp);
         sessionStorage.setItem('pending_post_data', JSON.stringify(dataWithTimestamp));
       }
       
-      // Always clear existing LinkedIn tokens
       console.log('Clearing existing LinkedIn tokens for fresh authentication');
       try {
         const { error } = await supabase
@@ -96,17 +97,17 @@ export const useLinkedInPrompt = () => {
         console.warn('Error clearing existing tokens:', error);
       }
       
-      // Generate secure state value
       const state = crypto.randomUUID();
-      console.log('Generated OAuth state:', state);
+      const stateWithSource = `${state}___${callbackSource}`;
+      console.log('Generated OAuth state with source:', stateWithSource);
       
-      sessionStorage.setItem('linkedin_oauth_state', state);
-      localStorage.setItem('linkedin_oauth_state', state);
+      sessionStorage.setItem('linkedin_oauth_state', stateWithSource);
+      localStorage.setItem('linkedin_oauth_state', stateWithSource);
 
       const clientId = '771girpp9fv439';
       const redirectUri = encodeURIComponent('https://klarushr.com/linkedin-token-callback');
       const scope = encodeURIComponent('openid profile email w_member_social');
-      const authUrl = `https://www.linkedin.com/oauth/v2/authorization?response_type=code&client_id=${clientId}&redirect_uri=${redirectUri}&scope=${scope}&state=${state}`;
+      const authUrl = `https://www.linkedin.com/oauth/v2/authorization?response_type=code&client_id=${clientId}&redirect_uri=${redirectUri}&scope=${scope}&state=${stateWithSource}`;
 
       console.log('Redirecting to LinkedIn OAuth:', authUrl);
       window.location.href = authUrl;
@@ -122,63 +123,41 @@ export const useLinkedInPrompt = () => {
     setShowModal(false);
   };
 
-  // Handle LinkedIn connection callback and process pending data
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const linkedInConnected = urlParams.get('linkedin_connected');
     
     if (linkedInConnected === 'true') {
-      console.log('LinkedIn connected callback detected...');
+      console.log(`LinkedIn connected callback detected. Global handler in useLinkedInPrompt.`);
       
-      // Clean up URL
       window.history.replaceState({}, document.title, window.location.pathname);
-      
-      // Reset token state
       setHasLinkedInToken(null);
       
-      // Check for pending post data
-      const pendingPostData = sessionStorage.getItem('pending_post_data');
-      if (pendingPostData) {
-        console.log('Found pending post data after LinkedIn connection');
-        try {
-          const jobData = JSON.parse(pendingPostData);
-          sessionStorage.removeItem('pending_post_data');
-          
-          // Add delay to ensure token is processed
-          setTimeout(() => {
-            createJobWithLinkedInPosting(jobData);
-          }, 3000);
-        } catch (error) {
-          console.error('Error parsing pending post data:', error);
-          toast.error('Failed to process job data after LinkedIn connection');
-        }
-      } else {
-        console.log('No pending post data found');
-        toast.success('LinkedIn connected successfully!');
-        
-        // Recheck token after connection
-        setTimeout(() => {
-          checkLinkedInToken(true);
-        }, 2000);
-      }
+      toast.success('LinkedIn connected successfully!');
+
+      const recheckTimer = setTimeout(() => {
+        console.log('useLinkedInPrompt: Re-checking LinkedIn token after connection.');
+        checkLinkedInToken(true);
+      }, 1500);
+
+      return () => clearTimeout(recheckTimer);
     }
   }, [checkLinkedInToken]);
 
-  const createJobWithLinkedInPosting = async (data: any) => {
+  const createJobWithLinkedInPosting = async (jobPayload: any) => {
     try {
       console.log('Creating job with LinkedIn posting after OAuth...');
       
-      // Map to JobInput format
       const jobInput: JobInput = {
-        title: data.title,
-        description: data.description,
-        location: data.location,
-        type: data.type,
-        workplace_type: data.workplaceType,
-        technologies: data.technologies,
+        title: jobPayload.title,
+        description: jobPayload.description,
+        location: jobPayload.location,
+        type: jobPayload.type,
+        workplace_type: jobPayload.workplaceType,
+        technologies: jobPayload.technologies,
         status: 'Active',
         posted_date: new Date().toISOString().split('T')[0],
-        active_days: data.activeDays,
+        active_days: jobPayload.activeDays,
         applicants: 0
       };
 
@@ -189,7 +168,6 @@ export const useLinkedInPrompt = () => {
         console.log('Job created successfully:', createdJob.id);
         toast.success('Job created successfully!');
         
-        // Try to auto-post to LinkedIn with proper delay
         setTimeout(async () => {
           try {
             console.log('Attempting LinkedIn auto-post...');
@@ -212,7 +190,6 @@ export const useLinkedInPrompt = () => {
             toast.error('Job created but LinkedIn posting failed. Please try posting manually.');
           }
           
-          // Refresh the page to show the new job
           setTimeout(() => {
             window.location.href = '/jobs';
           }, 2000);
@@ -226,7 +203,6 @@ export const useLinkedInPrompt = () => {
     }
   };
 
-  // Reset LinkedIn token state when user changes
   useEffect(() => {
     if (user) {
       console.log('User changed, resetting LinkedIn token state for fresh check');

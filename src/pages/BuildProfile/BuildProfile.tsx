@@ -66,21 +66,23 @@ const BuildProfile: React.FC = () => {
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const linkedInConnected = urlParams.get('linkedin_connected');
+    const sourceFromUrl = urlParams.get('source'); // Check for source
     
-    if (linkedInConnected === 'true') {
+    if (linkedInConnected === 'true' && sourceFromUrl === 'buildProfile') { // <<< Ensure source is buildProfile
       window.history.replaceState({}, document.title, window.location.pathname);
-      const pendingPostData = sessionStorage.getItem('pending_post_data');
-      if (pendingPostData) {
+      const pendingPostDataString = sessionStorage.getItem('pending_post_data');
+      if (pendingPostDataString) {
         try {
-          const postData = JSON.parse(pendingPostData);
-          if (postData.source === 'BuildProfile_FinalPost') {
+          const pendingData = JSON.parse(pendingPostDataString);
+          // Ensure the pending data in session storage is also for buildProfile
+          if (pendingData.source === 'buildProfile') { 
             sessionStorage.removeItem('pending_post_data');
-            // Process the LinkedIn post with delay
             setTimeout(() => {
-              processFinalLinkedInPost(postData.payload);
+              processFinalLinkedInPost(pendingData.payload); // Use pendingData.payload
             }, 2000);
           } else {
-             toast.success('LinkedIn connected successfully!');
+            console.warn('BuildProfile: LinkedIn connected, but session data source mismatch.', pendingData.source);
+            toast.info('LinkedIn reconnected, but previous action data was not for this page.');
           }
         } catch (error) {
           console.error('Error parsing pending post data:', error);
@@ -120,18 +122,12 @@ const BuildProfile: React.FC = () => {
         if (data.error === 'LINKEDIN_TOKEN_REVOKED') {
           console.warn('LinkedIn token revoked. Message from function:', data.message);
           toast.error(data.message || 'LinkedIn token revoked or invalid. Please reconnect your LinkedIn account.');
-          setCurrentStage(PostStage.DraftReady); // Revert UI to draft stage
+          setCurrentStage(PostStage.DraftReady); 
 
-          // Store the pending post data again, as initiateLinkedInConnect will be called
-          const dataWithMetadata = {
-            payload: postData, // postData is the argument to processFinalLinkedInPost
-            source: 'BuildProfile_FinalPost',
-            timestamp: Date.now()
-          };
-          sessionStorage.setItem('pending_post_data', JSON.stringify(dataWithMetadata));
-          
-          // Directly trigger the LinkedIn connection flow
-          await initiateLinkedInConnect(); 
+          // No need to set sessionStorage here, initiateFinalLinkedInPost will do it.
+          // Directly call initiateFinalLinkedInPost which will then call initiateLinkedInConnect
+          // with the correct parameters including callbackSource.
+          initiateFinalLinkedInPost(postData); // postData is the original data for the post
         } else {
           // Handle other server-side errors from the function
           console.error('LinkedIn post generation failed with server error:', data.error, data.message);
@@ -173,13 +169,13 @@ const BuildProfile: React.FC = () => {
     
     setCurrentStage(PostStage.PostingToLinkedIn); // Indicate trying to post
     try {
-      const dataWithMetadata = {
-        payload: finalPostData,
-        source: 'BuildProfile_FinalPost', // Differentiate this from initial connection
-        timestamp: Date.now()
-      };
-      sessionStorage.setItem('pending_post_data', JSON.stringify(dataWithMetadata));
-      await initiateLinkedInConnect();
+      // dataWithMetadata is now structured inside initiateLinkedInConnect
+      // We just need to pass the actual post data and the source to initiateLinkedInConnect
+      // The initiateLinkedInConnect in useLinkedInPrompt now expects an options object.
+      await initiateLinkedInConnect({ 
+        postData: finalPostData, 
+        callbackSource: 'buildProfile' 
+      });
     } catch (error) {
       console.error('Error initiating final LinkedIn post:', error);
       toast.error('Failed to start LinkedIn posting process. Please try again.');

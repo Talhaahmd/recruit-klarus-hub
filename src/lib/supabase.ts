@@ -18,7 +18,14 @@ console.log('Initializing Supabase client with mobile-optimized auth configurati
 
 export const supabase = createClient<Database>(
   SUPABASE_URL,
-  SUPABASE_ANON_KEY
+  SUPABASE_ANON_KEY,
+  {
+    auth: {
+      detectSessionInUrl: true,
+      autoRefreshToken: true,
+      persistSession: true,
+    }
+  }
 );
 
 // Add debugging for auth state changes
