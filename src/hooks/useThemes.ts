@@ -29,6 +29,8 @@ export interface Theme {
   created_at: string;
   updated_at: string;
   sample_posts?: string[];
+  posts_to_expect_1?: string;
+  posts_to_expect_2?: string;
 }
 
 export interface UserTheme {
@@ -60,7 +62,9 @@ export const useThemes = () => {
         complexity: theme.complexity as 'Beginner' | 'Intermediate' | 'Advanced',
         results: theme.results as { revenue: string; cac: string; churn: string; },
         details: theme.details as { background: string; purpose: string; mainTopic: string; targetAudience: string; complexityLevel: string; },
-        sample_posts: theme.sample_posts || []
+        sample_posts: theme.sample_posts || [],
+        posts_to_expect_1: theme.posts_to_expect_1 || '',
+        posts_to_expect_2: theme.posts_to_expect_2 || ''
       }));
       
       setThemes(typedData);
@@ -98,7 +102,9 @@ export const useThemes = () => {
           complexity: userTheme.theme.complexity as 'Beginner' | 'Intermediate' | 'Advanced',
           results: userTheme.theme.results as { revenue: string; cac: string; churn: string; },
           details: userTheme.theme.details as { background: string; purpose: string; mainTopic: string; targetAudience: string; complexityLevel: string; },
-          sample_posts: userTheme.theme.sample_posts || []
+          sample_posts: userTheme.theme.sample_posts || [],
+          posts_to_expect_1: userTheme.theme.posts_to_expect_1 || '',
+          posts_to_expect_2: userTheme.theme.posts_to_expect_2 || ''
         }
       }));
       
@@ -250,83 +256,6 @@ export const useThemes = () => {
       toast({
         title: "Error",
         description: "Failed to create custom theme",
-        variant: "destructive",
-      });
-      return false;
-    }
-  };
-
-  const addThemeToCollection = async (themeId: string, customization?: any) => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        toast({
-          title: "Authentication required",
-          description: "Please log in to add themes to your collection",
-          variant: "destructive",
-        });
-        return false;
-      }
-
-      const { error } = await supabase
-        .from('user_themes')
-        .insert({
-          user_id: user.id,
-          theme_id: themeId,
-          customization: customization || null,
-        });
-
-      if (error) {
-        if (error.code === '23505') {
-          toast({
-            title: "Theme already added",
-            description: "This theme is already in your collection",
-            variant: "destructive",
-          });
-          return false;
-        }
-        throw error;
-      }
-
-      toast({
-        title: "Success",
-        description: "Theme added to your collection",
-      });
-
-      await fetchUserThemes();
-      return true;
-    } catch (error) {
-      console.error('Error adding theme:', error);
-      toast({
-        title: "Error",
-        description: "Failed to add theme to collection",
-        variant: "destructive",
-      });
-      return false;
-    }
-  };
-
-  const removeThemeFromCollection = async (userThemeId: string) => {
-    try {
-      const { error } = await supabase
-        .from('user_themes')
-        .delete()
-        .eq('id', userThemeId);
-
-      if (error) throw error;
-
-      toast({
-        title: "Success",
-        description: "Theme removed from your collection",
-      });
-
-      await fetchUserThemes();
-      return true;
-    } catch (error) {
-      console.error('Error removing theme:', error);
-      toast({
-        title: "Error",
-        description: "Failed to remove theme",
         variant: "destructive",
       });
       return false;
