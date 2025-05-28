@@ -1,24 +1,16 @@
+
 import { createClient } from '@supabase/supabase-js';
 import { Database } from '@/types/supabase';
 
-// Check for environment variables
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
+// Use environment variables first, then fallback to hardcoded values
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://bzddkmmjqwgylckimwiq.supabase.co';
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ6ZGRrbW1qcXdneWxja2ltd2lxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc3MDUyNTIsImV4cCI6MjA2MzI4MTI1Mn0.TJ-WarxEHdsEbsychuwRHaKDtWQcWK3Yl5-zqAO4Ow0';
 
-// Provide default values for development
-const SUPABASE_URL = supabaseUrl || 'https://bzddkmmjqwgylckimwiq.supabase.co';
-const SUPABASE_ANON_KEY = supabaseAnonKey || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ6ZGRrbW1qcXdneWxja2ltd2lxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc3MDUyNTIsImV4cCI6MjA2MzI4MTI1Mn0.TJ-WarxEHdsEbsychuwRHaKDtWQcWK3Yl5-zqAO4Ow0';
-
-// Log warning if environment variables are not set
-if (!supabaseUrl || !supabaseAnonKey) {
-  console.warn('⚠️ Missing Supabase environment variables. Using fallback values. Set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY for proper functionality.');
-}
-
-console.log('Initializing Supabase client with mobile-optimized auth configuration');
+console.log('Initializing Supabase client with URL:', supabaseUrl);
 
 export const supabase = createClient<Database>(
-  SUPABASE_URL,
-  SUPABASE_ANON_KEY,
+  supabaseUrl,
+  supabaseAnonKey,
   {
     auth: {
       detectSessionInUrl: true,
@@ -36,16 +28,6 @@ supabase.auth.onAuthStateChange((event, session) => {
   if (event === 'SIGNED_OUT') {
     localStorage.removeItem('sb-auth-token');
     sessionStorage.clear();
-  }
-  
-  // Verify session in localStorage for debugging
-  if (session) {
-    try {
-      const localStorageData = localStorage.getItem('sb-auth-token');
-      console.log('🔑 Local storage auth data exists:', !!localStorageData);
-    } catch (e) {
-      console.error('Error checking localStorage:', e);
-    }
   }
 });
 

@@ -80,7 +80,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             console.log('✅ Found existing session');
             setSession(initialSession);
             setUser(initialSession.user);
-            await fetchProfile(initialSession.user.id);
+            // Don't await this to prevent blocking
+            fetchProfile(initialSession.user.id);
           } else {
             console.log('❌ No existing session');
           }
@@ -98,28 +99,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     // Set up auth state change listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, currentSession) => {
+      (event, currentSession) => {
         if (!mounted) return;
         
         console.log('🔐 Auth state changed:', event, !!currentSession);
         
-        if (currentSession?.user) {
-          setSession(currentSession);
-          setUser(currentSession.user);
-          
-          if (event === 'SIGNED_IN') {
-            console.log('✅ User signed in, redirecting to dashboard');
-            await fetchProfile(currentSession.user.id);
-            navigate('/dashboard', { replace: true });
-          }
-        } else {
-          setSession(null);
-          setUser(null);
+        setSession(currentSession);
+        setUser(currentSession?.user ?? null);
+        
+        if (currentSession?.user && event === 'SIGNED_IN') {
+          console.log('✅ User signed in');
+          // Don't await this to prevent blocking
+          fetchProfile(currentSession.user.id);
+        } else if (!currentSession) {
           setProfile(null);
-          
           if (event === 'SIGNED_OUT') {
             console.log('👋 User signed out');
-            navigate('/login', { replace: true });
           }
         }
         
@@ -145,8 +140,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                          location.pathname === '/signup' ||
                          location.pathname.startsWith('/apply/');
 
-    if (user && isPublicRoute) {
-      console.log('Authenticated user on public route, redirecting to dashboard');
+    if (user && isPublicRoute && location.pathname !== '/') {
+      console.log('Authenticated user on auth page, redirecting to dashboard');
       navigate('/dashboard', { replace: true });
     } else if (!user && !isPublicRoute) {
       console.log('Unauthenticated user on protected route, redirecting to login');
