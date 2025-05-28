@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -27,7 +28,7 @@ export interface Theme {
   created_by?: string;
   created_at: string;
   updated_at: string;
-  sample_posts?: string[]; // Add sample posts for custom themes
+  sample_posts?: string[];
 }
 
 export interface UserTheme {
@@ -58,7 +59,8 @@ export const useThemes = () => {
         ...theme,
         complexity: theme.complexity as 'Beginner' | 'Intermediate' | 'Advanced',
         results: theme.results as { revenue: string; cac: string; churn: string; },
-        details: theme.details as { background: string; purpose: string; mainTopic: string; targetAudience: string; complexityLevel: string; }
+        details: theme.details as { background: string; purpose: string; mainTopic: string; targetAudience: string; complexityLevel: string; },
+        sample_posts: theme.sample_posts || []
       }));
       
       setThemes(typedData);
@@ -95,7 +97,8 @@ export const useThemes = () => {
           ...userTheme.theme,
           complexity: userTheme.theme.complexity as 'Beginner' | 'Intermediate' | 'Advanced',
           results: userTheme.theme.results as { revenue: string; cac: string; churn: string; },
-          details: userTheme.theme.details as { background: string; purpose: string; mainTopic: string; targetAudience: string; complexityLevel: string; }
+          details: userTheme.theme.details as { background: string; purpose: string; mainTopic: string; targetAudience: string; complexityLevel: string; },
+          sample_posts: userTheme.theme.sample_posts || []
         }
       }));
       
@@ -247,6 +250,83 @@ export const useThemes = () => {
       toast({
         title: "Error",
         description: "Failed to create custom theme",
+        variant: "destructive",
+      });
+      return false;
+    }
+  };
+
+  const addThemeToCollection = async (themeId: string, customization?: any) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast({
+          title: "Authentication required",
+          description: "Please log in to add themes to your collection",
+          variant: "destructive",
+        });
+        return false;
+      }
+
+      const { error } = await supabase
+        .from('user_themes')
+        .insert({
+          user_id: user.id,
+          theme_id: themeId,
+          customization: customization || null,
+        });
+
+      if (error) {
+        if (error.code === '23505') {
+          toast({
+            title: "Theme already added",
+            description: "This theme is already in your collection",
+            variant: "destructive",
+          });
+          return false;
+        }
+        throw error;
+      }
+
+      toast({
+        title: "Success",
+        description: "Theme added to your collection",
+      });
+
+      await fetchUserThemes();
+      return true;
+    } catch (error) {
+      console.error('Error adding theme:', error);
+      toast({
+        title: "Error",
+        description: "Failed to add theme to collection",
+        variant: "destructive",
+      });
+      return false;
+    }
+  };
+
+  const removeThemeFromCollection = async (userThemeId: string) => {
+    try {
+      const { error } = await supabase
+        .from('user_themes')
+        .delete()
+        .eq('id', userThemeId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Theme removed from your collection",
+      });
+
+      await fetchUserThemes();
+      return true;
+    } catch (error) {
+      console.error('Error removing theme:', error);
+      toast({
+        title: "Error",
+        description: "Failed to remove theme",
         variant: "destructive",
       });
       return false;

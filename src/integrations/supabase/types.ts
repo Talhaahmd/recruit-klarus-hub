@@ -619,6 +619,42 @@ export type Database = {
           },
         ]
       }
+      post_ideas_enhanced: {
+        Row: {
+          content_type: string | null
+          created_at: string | null
+          generated_post: string | null
+          id: string
+          theme_id: string
+          title: string
+          tone: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          content_type?: string | null
+          created_at?: string | null
+          generated_post?: string | null
+          id?: string
+          theme_id: string
+          title: string
+          tone?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          content_type?: string | null
+          created_at?: string | null
+          generated_post?: string | null
+          id?: string
+          theme_id?: string
+          title?: string
+          tone?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           ai_insights: Json | null
@@ -752,7 +788,10 @@ export type Database = {
           is_custom: boolean | null
           objectives: string[] | null
           post_types: string[] | null
+          posts_to_expect_1: string | null
+          posts_to_expect_2: string | null
           results: Json | null
+          sample_posts: string[] | null
           title: string
           updated_at: string | null
         }
@@ -768,7 +807,10 @@ export type Database = {
           is_custom?: boolean | null
           objectives?: string[] | null
           post_types?: string[] | null
+          posts_to_expect_1?: string | null
+          posts_to_expect_2?: string | null
           results?: Json | null
+          sample_posts?: string[] | null
           title: string
           updated_at?: string | null
         }
@@ -784,7 +826,10 @@ export type Database = {
           is_custom?: boolean | null
           objectives?: string[] | null
           post_types?: string[] | null
+          posts_to_expect_1?: string | null
+          posts_to_expect_2?: string | null
           results?: Json | null
+          sample_posts?: string[] | null
           title?: string
           updated_at?: string | null
         }

@@ -1,5 +1,6 @@
+
 import React, { useState } from 'react';
-import { X, Check, FileText, ChevronRight } from 'lucide-react';
+import { X, Check, FileText, ChevronRight, ChevronDown } from 'lucide-react';
 import { Button } from '@/components/UI/button';
 import {
   Dialog,
@@ -8,11 +9,13 @@ import {
   DialogTitle,
 } from '@/components/UI/dialog';
 import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from '@/components/UI/accordion';
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+} from '@/components/UI/dropdown-menu';
 import { Theme } from '@/hooks/useThemes';
 
 interface ThemeDetailModalProps {
@@ -66,42 +69,57 @@ const complexityOptions = [
   'Advanced/Expert-Level'
 ];
 
-interface OptionsSectionProps {
+interface AspectDropdownProps {
   title: string;
-  description: string;
   options: string[];
   selectedOptions: string[];
   onToggleOption: (option: string) => void;
+  disabled?: boolean;
 }
 
-const OptionsSection: React.FC<OptionsSectionProps> = ({
+const AspectDropdown: React.FC<AspectDropdownProps> = ({
   title,
-  description,
   options,
   selectedOptions,
-  onToggleOption
+  onToggleOption,
+  disabled = false
 }) => {
   return (
-    <div className="space-y-3">
-      <div>
-        <h4 className="font-semibold text-gray-900">{title}</h4>
-        <p className="text-sm text-gray-600">{description}</p>
-      </div>
-      <div className="flex flex-wrap gap-2">
-        {options.map((option) => (
-          <button
-            key={option}
-            onClick={() => onToggleOption(option)}
-            className={`px-3 py-2 rounded-lg border text-sm font-medium transition-all duration-200 ${
-              selectedOptions.includes(option)
-                ? 'bg-blue-600 text-white border-blue-600 shadow-md'
-                : 'bg-white text-gray-700 border-gray-200 hover:border-blue-300 hover:bg-blue-50'
-            }`}
+    <div className="space-y-2">
+      <label className="text-sm font-medium text-gray-700">{title}</label>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button 
+            variant="outline" 
+            className="w-full justify-between"
+            disabled={disabled}
           >
-            {option}
-          </button>
-        ))}
-      </div>
+            <span className="truncate">
+              {selectedOptions.length > 0 
+                ? `${selectedOptions.length} selected` 
+                : `Select ${title.toLowerCase()}`
+              }
+            </span>
+            <ChevronDown className="h-4 w-4" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent className="w-80">
+          <DropdownMenuLabel>{title}</DropdownMenuLabel>
+          <DropdownMenuSeparator />
+          {options.map((option) => (
+            <DropdownMenuItem
+              key={option}
+              onClick={() => onToggleOption(option)}
+              className="flex items-center justify-between cursor-pointer"
+            >
+              <span>{option}</span>
+              {selectedOptions.includes(option) && (
+                <Check className="h-4 w-4 text-blue-600" />
+              )}
+            </DropdownMenuItem>
+          ))}
+        </DropdownMenuContent>
+      </DropdownMenu>
     </div>
   );
 };
@@ -205,7 +223,7 @@ const ThemeDetailModal: React.FC<ThemeDetailModalProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-7xl max-h-[90vh] overflow-y-auto">
         <DialogHeader className="flex flex-row items-center justify-between border-b pb-6">
           <div className="flex items-center gap-4">
             <div className="space-y-2">
@@ -224,7 +242,7 @@ const ThemeDetailModal: React.FC<ThemeDetailModalProps> = ({
         <div className="py-6">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Left Column - Theme Qualities */}
-            <div className="lg:col-span-2 space-y-6">
+            <div className="space-y-6">
               <div>
                 <h3 className="text-xl font-semibold text-gray-900 mb-6">Theme Qualities</h3>
                 
@@ -261,6 +279,66 @@ const ThemeDetailModal: React.FC<ThemeDetailModalProps> = ({
               </div>
             </div>
 
+            {/* Middle Column - Aspects Dropdown */}
+            <div className="space-y-6">
+              <h3 className="text-xl font-semibold text-gray-900">Customize Aspects</h3>
+              
+              <div className="space-y-4">
+                <AspectDropdown
+                  title="Background & Offering"
+                  options={backgroundOptions}
+                  selectedOptions={selectedBackground}
+                  onToggleOption={(option) => handleToggleOption('background', option)}
+                  disabled={!theme.is_custom}
+                />
+
+                <AspectDropdown
+                  title="Purpose"
+                  options={purposeOptions}
+                  selectedOptions={selectedPurpose}
+                  onToggleOption={(option) => handleToggleOption('purpose', option)}
+                  disabled={!theme.is_custom}
+                />
+
+                <AspectDropdown
+                  title="Main Topic"
+                  options={mainTopicOptions}
+                  selectedOptions={selectedMainTopic}
+                  onToggleOption={(option) => handleToggleOption('mainTopic', option)}
+                  disabled={!theme.is_custom}
+                />
+
+                <AspectDropdown
+                  title="Target Audience"
+                  options={targetAudienceOptions}
+                  selectedOptions={selectedTargetAudience}
+                  onToggleOption={(option) => handleToggleOption('targetAudience', option)}
+                  disabled={!theme.is_custom}
+                />
+
+                <AspectDropdown
+                  title="Complexity Level"
+                  options={complexityOptions}
+                  selectedOptions={selectedComplexity}
+                  onToggleOption={(option) => handleToggleOption('complexity', option)}
+                  disabled={!theme.is_custom}
+                />
+              </div>
+
+              <div className="flex flex-col gap-3 pt-4">
+                <Button variant="outline" onClick={onClose} className="w-full">
+                  Not right for me
+                </Button>
+                <Button 
+                  onClick={handleAddTheme}
+                  disabled={isAdding}
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium"
+                >
+                  {isAdding ? 'Adding...' : '+ Add to My Themes'}
+                </Button>
+              </div>
+            </div>
+
             {/* Right Column - Post Preview */}
             <div className="space-y-6">
               <div className="flex items-center justify-between">
@@ -269,14 +347,19 @@ const ThemeDetailModal: React.FC<ThemeDetailModalProps> = ({
                   What type of posts to expect
                 </h3>
                 {samplePosts.length > 1 && (
-                  <div className="flex items-center gap-1 text-sm text-gray-500">
-                    <span>({currentPostIndex + 1}/{samplePosts.length})</span>
-                    <button 
-                      onClick={() => setCurrentPostIndex((prev) => (prev + 1) % samplePosts.length)}
-                      className="ml-2 text-blue-600 hover:text-blue-700"
-                    >
-                      <ChevronRight className="h-4 w-4" />
-                    </button>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-gray-500">({currentPostIndex + 1}/{samplePosts.length})</span>
+                    <div className="flex gap-1">
+                      {samplePosts.map((_, index) => (
+                        <button
+                          key={index}
+                          onClick={() => setCurrentPostIndex(index)}
+                          className={`w-2 h-2 rounded-full transition-colors ${
+                            index === currentPostIndex ? 'bg-blue-600' : 'bg-gray-300'
+                          }`}
+                        />
+                      ))}
+                    </div>
                   </div>
                 )}
               </div>
@@ -295,18 +378,28 @@ const ThemeDetailModal: React.FC<ThemeDetailModalProps> = ({
                 </div>
               )}
 
-              <div className="flex flex-col gap-3">
-                <Button variant="outline" onClick={onClose} className="w-full">
-                  Not right for me
-                </Button>
-                <Button 
-                  onClick={handleAddTheme}
-                  disabled={isAdding}
-                  className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium"
-                >
-                  {isAdding ? 'Adding...' : '+ Add to My Themes'}
-                </Button>
-              </div>
+              {samplePosts.length > 1 && (
+                <div className="flex justify-center gap-2">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setCurrentPostIndex(Math.max(0, currentPostIndex - 1))}
+                    disabled={currentPostIndex === 0}
+                  >
+                    <ChevronRight className="h-4 w-4 rotate-180" />
+                    Previous
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setCurrentPostIndex(Math.min(samplePosts.length - 1, currentPostIndex + 1))}
+                    disabled={currentPostIndex === samplePosts.length - 1}
+                  >
+                    Next
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
+                </div>
+              )}
             </div>
           </div>
         </div>
