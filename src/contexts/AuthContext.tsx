@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { Session, User } from '@supabase/supabase-js';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -20,7 +21,7 @@ type AuthContextType = {
   session: Session | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  authReady: boolean; // Added this property
+  authReady: boolean;
   login: (email: string, password: string) => Promise<void>;
   signup: (name: string, email: string, password: string) => Promise<void>;
   loginWithGoogle: () => Promise<void>;
@@ -36,10 +37,8 @@ export const useAuth = () => {
   return context;
 };
 
-const REDIRECT_TO =
-  import.meta.env.MODE === 'development'
-    ? 'http://localhost:5173/dashboard' // Redirect to dashboard in development
-    : window.location.origin + '/dashboard'; // Redirect to dashboard in production
+// Fixed redirect URL - always redirect to dashboard after auth
+const REDIRECT_TO = `${window.location.protocol}//${window.location.host}/dashboard`;
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
@@ -52,8 +51,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // Check if we're in an OAuth redirect scenario
   const isOAuthRedirect = () => {
-    // Check for access token in the URL hash or if we were processing OAuth
     return window.location.hash.includes('access_token') || 
+           window.location.search.includes('code=') ||
            sessionStorage.getItem('processing_oauth_login') === 'true';
   };
 
@@ -103,6 +102,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 console.log('🔄 Processing OAuth redirect...');
                 sessionStorage.removeItem('processing_oauth_login');
               }
+              
+              // Redirect to dashboard after successful login
+              setTimeout(() => {
+                console.log('🚀 Redirecting to dashboard after login');
+                navigate('/dashboard', { replace: true });
+              }, 100);
             }
             await fetchProfile(currentSession.user.id);
           }
@@ -111,7 +116,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           setSession(null);
           setUser(null);
           setProfile(null);
-          if (location.pathname !== '/login' && location.pathname !== '/signup') {
+          if (location.pathname !== '/login' && location.pathname !== '/signup' && location.pathname !== '/') {
             navigate('/login');
           }
         }
@@ -150,13 +155,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (!isLoading && initialSessionChecked) {
       if (user && profile) {
         console.log('AuthContext: User authenticated and profile loaded, current path:', location.pathname);
-        if (!location.pathname.startsWith('/dashboard') && 
-            location.pathname !== '/settings' && !location.pathname.startsWith('/settings/') &&
-            !location.pathname.startsWith('/build-profile') &&
-            !location.pathname.startsWith('/linkedin-callback') &&
-            !location.pathname.startsWith('/linkedin-token-callback') 
-           ) {
-          console.log('AuthContext: Navigating to /dashboard');
+        // Only redirect if we're on auth pages or root
+        if (location.pathname === '/login' || 
+            location.pathname === '/signup' || 
+            location.pathname === '/' ||
+            location.pathname === '/index') {
+          console.log('AuthContext: Navigating to /dashboard from auth page');
           navigate('/dashboard', { replace: true });
         }
       } else if (!user && 
@@ -165,11 +169,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                  !location.pathname.startsWith('/login') && 
                  !location.pathname.startsWith('/signup') && 
                  location.pathname !== '/' && 
-                 !isOAuthRedirect() && // Don't redirect if we are in the middle of OAuth hash processing
-                 !location.pathname.startsWith('/linkedin-callback') && // also exclude specific public/handler paths
+                 !isOAuthRedirect() && 
+                 !location.pathname.startsWith('/linkedin-callback') && 
                  !location.pathname.startsWith('/linkedin-token-callback') &&
-                 !location.pathname.startsWith('/apply/') // Add other known public paths here
-                ) {
+                 !location.pathname.startsWith('/apply/')) {
         console.log('AuthContext: User not authenticated, not on a public page or OAuth callback, navigating to /login. Current path:', location.pathname);
         navigate('/login', { replace: true });
       }
@@ -205,7 +208,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const { error } = await supabase.auth.signUp({
         email,
         password,
-        options: { data: { name } },
+        options: { 
+          data: { name },
+          emailRedirectTo: REDIRECT_TO
+        },
       });
       
       if (error) {
@@ -231,7 +237,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
-        options: { redirectTo: REDIRECT_TO },
+        options: { 
+          redirectTo: REDIRECT_TO,
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent',
+          }
+        },
       });
       
       if (error) {
@@ -254,7 +266,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'linkedin_oidc',
-        options: { redirectTo: REDIRECT_TO },
+        options: { 
+          redirectTo: REDIRECT_TO,
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent',
+          }
+        },
       });
       
       if (error) {
@@ -285,6 +303,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setSession(null);
       console.log('Logout successful');
       toast.success('Logged out');
+      navigate('/login', { replace: true });
     } catch (error: any) {
       console.error('Logout failed:', error.message);
       toast.error(error.message || 'Logout failed');

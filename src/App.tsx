@@ -1,3 +1,4 @@
+
 import React, { useEffect } from "react";
 import { Toaster } from "@/components/UI/toaster.tsx";
 import { Toaster as Sonner } from "@/components/UI/sonner.tsx";
@@ -43,33 +44,6 @@ import Leads from "./pages/Leads/Leads";
 
 const queryClient = new QueryClient();
 
-const HashRedirectHandler = () => {
-  const navigate = useNavigate();
-  const location = useLocation();
-  const { isAuthenticated } = useAuth();
-
-  useEffect(() => {
-    const hash = window.location.hash;
-    
-    if (hash && hash.includes("access_token")) {
-      console.log("🔐 OAuth access_token detected in hash, redirecting to dashboard...");
-      sessionStorage.setItem("oauth_redirect_processed", "true");
-      
-      setTimeout(() => {
-        window.location.replace("/dashboard");
-      }, 100);
-      return;
-    }
-
-    if (sessionStorage.getItem("oauth_redirect_processed") && location.pathname === "/dashboard") {
-      console.log("✅ OAuth redirect to dashboard successful");
-      sessionStorage.removeItem("oauth_redirect_processed");
-    }
-  }, [location, navigate, isAuthenticated]);
-
-  return null;
-};
-
 const ProtectedRouteHandler = ({ children }: { children: React.ReactNode }) => {
   const { isAuthenticated, isLoading, authReady } = useAuth();
   const location = useLocation();
@@ -78,10 +52,6 @@ const ProtectedRouteHandler = ({ children }: { children: React.ReactNode }) => {
     return <div className="min-h-screen flex items-center justify-center bg-white text-gray-500">Loading session...</div>;
   }
   
-  if (sessionStorage.getItem("oauth_redirect_processed") && location.pathname === "/dashboard") {
-    return <>{children}</>;
-  }
-
   if (!isLoading && !isAuthenticated) {
     return (
       <Navigate
@@ -102,7 +72,6 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <AuthProvider>
-            <HashRedirectHandler />
             <Routes>
               {/* Public routes */}
               <Route path="/" element={<Home />} />

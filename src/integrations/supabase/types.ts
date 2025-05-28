@@ -884,8 +884,6 @@ export type Database = {
           main_topic_explanation: string | null
           objectives: string[] | null
           post_types: string[] | null
-          posts_to_expect_1: string | null
-          posts_to_expect_2: string | null
           purpose_explanation: string | null
           results: Json | null
           sample_posts: string | null
@@ -908,8 +906,6 @@ export type Database = {
           main_topic_explanation?: string | null
           objectives?: string[] | null
           post_types?: string[] | null
-          posts_to_expect_1?: string | null
-          posts_to_expect_2?: string | null
           purpose_explanation?: string | null
           results?: Json | null
           sample_posts?: string | null
@@ -932,8 +928,6 @@ export type Database = {
           main_topic_explanation?: string | null
           objectives?: string[] | null
           post_types?: string[] | null
-          posts_to_expect_1?: string | null
-          posts_to_expect_2?: string | null
           purpose_explanation?: string | null
           results?: Json | null
           sample_posts?: string | null
