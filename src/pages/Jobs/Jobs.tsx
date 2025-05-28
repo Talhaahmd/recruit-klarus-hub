@@ -1,4 +1,5 @@
 
+
 import React, { useState, useEffect } from 'react';
 import { Plus } from 'lucide-react';
 import { Button } from '@/components/UI/button';
@@ -122,10 +123,11 @@ const Jobs: React.FC = () => {
       <AddJobModal 
         isOpen={showAddModal} 
         onClose={() => setShowAddModal(false)} 
-        onSubmit={handleAddJob} 
+        onSave={handleAddJob} 
       />
     </div>
   );
 };
 
 export default Jobs;
+
