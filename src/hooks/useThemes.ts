@@ -148,14 +148,31 @@ export const useThemes = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
 
+      // Convert sample_posts array to proper format for database
+      const processedThemeData = {
+        title: themeData.title,
+        description: themeData.description,
+        category: themeData.category,
+        complexity: themeData.complexity,
+        audience: themeData.audience,
+        purpose_explanation: themeData.purpose_explanation,
+        main_topic_explanation: themeData.main_topic_explanation,
+        background_explanation: themeData.background_explanation,
+        target_audience_explanation: themeData.target_audience_explanation,
+        complexity_explanation: themeData.complexity_explanation,
+        posts_to_expect_1: themeData.posts_to_expect_1,
+        posts_to_expect_2: themeData.posts_to_expect_2,
+        details: themeData.details,
+        results: themeData.results,
+        objectives: themeData.objectives,
+        post_types: themeData.post_types,
+        is_custom: true,
+        created_by: user.id
+      };
+
       const { data, error } = await supabase
         .from('themes')
-        .insert({
-          ...themeData,
-          is_custom: true,
-          created_by: user.id,
-          sample_posts: Array.isArray(themeData.sample_posts) ? themeData.sample_posts : []
-        })
+        .insert(processedThemeData)
         .select()
         .single();
 
