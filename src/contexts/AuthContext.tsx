@@ -38,8 +38,8 @@ export const useAuth = () => {
 
 const REDIRECT_TO =
   import.meta.env.MODE === 'development'
-    ? 'http://localhost:3000/dashboard'
-    : `${window.location.origin}/dashboard`;
+    ? 'http://localhost:5173' // Assuming Vite's default dev port, adjust if different
+    : window.location.origin; // Redirect to root for prod, to let Supabase process hash
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
