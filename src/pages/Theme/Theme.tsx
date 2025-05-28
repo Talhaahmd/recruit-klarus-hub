@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Header } from '@/components/Layout/MainLayout';
 import { Eye, Plus, Target, Users, Zap, TrendingUp, Sparkles, ArrowRight } from 'lucide-react';
@@ -27,7 +26,7 @@ const ThemePage: React.FC = () => {
     themes, 
     userThemes, 
     loading, 
-    addThemeToCollection, 
+    addThemeToUser, 
     createCustomTheme 
   } = useThemes();
 
@@ -187,8 +186,8 @@ const ThemePage: React.FC = () => {
                     <CardTitle className="text-xl font-bold text-gray-900 group-hover:text-blue-600 transition-colors">
                       {theme.title}
                     </CardTitle>
-                    <Badge className={`border ${getComplexityColor(theme.complexity)}`}>
-                      {theme.complexity}
+                    <Badge className={`border ${getComplexityColor(theme.complexity || 'Beginner')}`}>
+                      {theme.complexity || 'Beginner'}
                     </Badge>
                   </div>
                   
@@ -207,11 +206,13 @@ const ThemePage: React.FC = () => {
                       <span className="ml-1">{theme.audience}</span>
                     </div>
                     
-                    <div className="flex items-center text-sm text-gray-600">
-                      <Users className="h-4 w-4 mr-2 text-green-500" />
-                      <span className="font-medium">Objective:</span>
-                      <span className="ml-1">{theme.objectives[0]}</span>
-                    </div>
+                    {theme.objectives && theme.objectives.length > 0 && (
+                      <div className="flex items-center text-sm text-gray-600">
+                        <Users className="h-4 w-4 mr-2 text-green-500" />
+                        <span className="font-medium">Objective:</span>
+                        <span className="ml-1">{theme.objectives[0]}</span>
+                      </div>
+                    )}
                   </div>
 
                   {theme.results && (
@@ -267,7 +268,7 @@ const ThemePage: React.FC = () => {
           isOpen={isDetailModalOpen}
           onClose={() => setIsDetailModalOpen(false)}
           theme={selectedTheme}
-          onAddTheme={addThemeToCollection}
+          onAddTheme={addThemeToUser}
         />
 
         <CreateThemeModal
