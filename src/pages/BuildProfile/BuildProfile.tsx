@@ -98,27 +98,46 @@ const BuildProfile: React.FC = () => {
       console.log('Processing FINAL LinkedIn post with data:', postData);
       setCurrentStage(PostStage.PostingToLinkedIn);
       
-      const { data, error } = await supabase.functions.invoke('generate-linkedin-post', { // This is your existing function
+      const { data, error } = await supabase.functions.invoke('generate-linkedin-post', {
         body: {
           niche: postData.niche,
           tone: postData.tone,
-          contentPrompt: postData.content, // This is the (edited) draft
+          contentPrompt: postData.content, 
           scheduleDate: null,
           scheduleTime: null
         }
       });
 
       if (error) {
-        console.error('LinkedIn post generation error:', error);
+        console.error('LinkedIn post function invocation error:', error);
         toast.error(`Failed to generate LinkedIn post: ${error.message}`);
-        setCurrentStage(PostStage.DraftReady); // Go back to editing if failed
+        setCurrentStage(PostStage.DraftReady);
         return;
       }
 
+      // Check for errors returned in the data payload from the function
       if (data?.error) {
-        console.error('LinkedIn post generation failed:', data.error);
-        toast.error(`Failed to generate LinkedIn post: ${data.error}`);
-        setCurrentStage(PostStage.DraftReady); // Go back to editing if failed
+        if (data.error === 'LINKEDIN_TOKEN_REVOKED') {
+          console.warn('LinkedIn token revoked. Message from function:', data.message);
+          toast.error(data.message || 'LinkedIn token revoked or invalid. Please reconnect your LinkedIn account.');
+          setCurrentStage(PostStage.DraftReady); // Revert UI to draft stage
+
+          // Store the pending post data again, as initiateLinkedInConnect will be called
+          const dataWithMetadata = {
+            payload: postData, // postData is the argument to processFinalLinkedInPost
+            source: 'BuildProfile_FinalPost',
+            timestamp: Date.now()
+          };
+          sessionStorage.setItem('pending_post_data', JSON.stringify(dataWithMetadata));
+          
+          // Directly trigger the LinkedIn connection flow
+          await initiateLinkedInConnect(); 
+        } else {
+          // Handle other server-side errors from the function
+          console.error('LinkedIn post generation failed with server error:', data.error, data.message);
+          toast.error(`Failed to generate LinkedIn post: ${data.message || data.error}`);
+          setCurrentStage(PostStage.DraftReady);
+        }
         return;
       }
 
