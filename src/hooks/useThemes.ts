@@ -27,6 +27,31 @@ export interface Theme {
   posts_to_expect_2?: string;
 }
 
+// This interface matches the expected input for the Edge Function's themeData
+export interface ThemeInputForEdgeFunction {
+  title: string;
+  description: string;
+  category: string;
+  audience: string;
+  complexity: 'Beginner' | 'Intermediate' | 'Advanced';
+  objectives?: string[];
+  post_types?: string[];
+  results?: { revenue?: string; cac?: string; churn?: string };
+  details?: {
+    background?: string;
+    purpose?: string;
+    mainTopic?: string;
+    targetAudience?: string;
+    complexityLevel?: string;
+  };
+  background_explanation?: string;
+  purpose_explanation?: string;
+  main_topic_explanation?: string;
+  target_audience_explanation?: string;
+  complexity_explanation?: string;
+  // user_id will be added by the calling function
+}
+
 export interface UserTheme {
   id: string;
   user_id: string;
@@ -148,7 +173,12 @@ export const useThemes = () => {
   const createCustomTheme = async (themeData: Omit<Theme, 'id' | 'created_at' | 'updated_at' | 'created_by'>) => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('Not authenticated');
+      if (!user) {
+        console.error('CreateCustomTheme Error: User not authenticated before insert.');
+        throw new Error('Not authenticated');
+      }
+
+      console.log('CreateCustomTheme: User ID for created_by:', user.id);
 
       // Convert sample_posts array to proper format for database
       const processedThemeData = {
@@ -190,6 +220,59 @@ export const useThemes = () => {
     }
   };
 
+  const createThemeWithGeneratedPost = async (
+    themeDataFromForm: ThemeInputForEdgeFunction
+  ): Promise<{ themeId: string; samplePosts: string[] } | null> => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      toast.error('User not authenticated');
+      throw new Error('User not authenticated');
+    }
+
+    const themePayload = {
+      ...themeDataFromForm,
+      user_id: user.id,
+    };
+
+    try {
+      const { data, error } = await supabase.functions.invoke('generate-theme-post', {
+        body: { themeData: themePayload },
+      });
+
+      if (error) {
+        console.error('Error invoking generate-theme-post function:', error);
+        toast.error(`Function invocation error: ${error.message}`);
+        throw error;
+      }
+
+      if (data.error) {
+        console.error('Error from generate-theme-post function:', data.error);
+        toast.error(`Theme generation error: ${data.error}`);
+        throw new Error(data.error);
+      }
+      
+      if (data.themeId && data.samplePosts) {
+        toast.success(data.message || 'Theme and post generated successfully!');
+        await fetchThemes(); // Refresh the main themes list
+        await fetchUserThemes(); // Refresh user-specific themes if applicable
+        return { themeId: data.themeId, samplePosts: data.samplePosts };
+      } else if (data.theme && data.message) { 
+        toast.info(data.message); 
+        await fetchThemes();
+        await fetchUserThemes();
+        return { themeId: data.theme.id, samplePosts: data.theme.sample_posts || [] };
+      } else {
+        toast.error(data.message || 'Unknown response from theme generation function.');
+        throw new Error(data.message || 'Unknown response from function');
+      }
+    } catch (error: any) {
+      console.error('Error in createThemeWithGeneratedPost:', error);
+      // Toasting is likely handled by the specific errors above
+      // but we ensure an error is thrown to be caught by the calling component.
+      throw error;
+    }
+  };
+
   useEffect(() => {
     const loadData = async () => {
       setLoading(true);
@@ -208,6 +291,7 @@ export const useThemes = () => {
     fetchUserThemes,
     addThemeToUser,
     removeThemeFromUser,
-    createCustomTheme
+    createCustomTheme,
+    createThemeWithGeneratedPost
   };
 };

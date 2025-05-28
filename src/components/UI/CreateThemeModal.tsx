@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { X } from 'lucide-react';
 import { Button } from '@/components/UI/button';
@@ -12,11 +11,12 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/UI/dialog';
+import { useThemes, type ThemeInputForEdgeFunction } from '@/hooks/useThemes';
+import { toast } from 'sonner';
 
 interface CreateThemeModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onCreateTheme: (themeData: any) => void;
 }
 
 const backgroundOptions = [
@@ -66,8 +66,9 @@ const complexityOptions = [
 const CreateThemeModal: React.FC<CreateThemeModalProps> = ({
   isOpen,
   onClose,
-  onCreateTheme
 }) => {
+  const { createThemeWithGeneratedPost } = useThemes();
+
   const [formData, setFormData] = useState({
     title: '',
     category: '',
@@ -93,14 +94,14 @@ const CreateThemeModal: React.FC<CreateThemeModalProps> = ({
     e.preventDefault();
     setLoading(true);
 
-    const themeData = {
+    const themePayload: ThemeInputForEdgeFunction = {
       title: formData.title,
-      category: formData.category,
       description: formData.description,
+      category: formData.category,
       audience: formData.audience,
+      complexity: formData.complexity,
       objectives: formData.objectives.filter(obj => obj.trim() !== ''),
       post_types: formData.objectives.filter(obj => obj.trim() !== ''),
-      complexity: formData.complexity,
       results: {
         revenue: '+0%',
         cac: '0%',
@@ -120,29 +121,32 @@ const CreateThemeModal: React.FC<CreateThemeModalProps> = ({
       complexity_explanation: formData.complexityExplanation,
     };
 
-    await onCreateTheme(themeData);
-    setLoading(false);
-    onClose();
-    
-    // Reset form
-    setFormData({
-      title: '',
-      category: '',
-      description: '',
-      audience: '',
-      objectives: [''],
-      complexity: 'Intermediate',
-      background: [],
-      purpose: [],
-      mainTopic: [],
-      targetAudience: [],
-      complexityLevel: [],
-      backgroundExplanation: '',
-      purposeExplanation: '',
-      mainTopicExplanation: '',
-      targetAudienceExplanation: '',
-      complexityExplanation: '',
-    });
+    try {
+      await createThemeWithGeneratedPost(themePayload);
+      onClose();
+      setFormData({
+        title: '',
+        category: '',
+        description: '',
+        audience: '',
+        objectives: [''],
+        complexity: 'Intermediate',
+        background: [],
+        purpose: [],
+        mainTopic: [],
+        targetAudience: [],
+        complexityLevel: [],
+        backgroundExplanation: '',
+        purposeExplanation: '',
+        mainTopicExplanation: '',
+        targetAudienceExplanation: '',
+        complexityExplanation: '',
+      });
+    } catch (error) {
+      console.error('Failed to create theme with post:', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const toggleOption = (field: string, option: string) => {

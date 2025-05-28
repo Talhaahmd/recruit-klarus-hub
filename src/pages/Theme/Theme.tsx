@@ -27,7 +27,6 @@ const ThemePage: React.FC = () => {
     userThemes, 
     loading, 
     addThemeToUser, 
-    createCustomTheme 
   } = useThemes();
 
   const getFilteredThemes = () => {
@@ -51,10 +50,6 @@ const ThemePage: React.FC = () => {
   const handlePreview = (theme: ThemeType) => {
     setSelectedTheme(theme);
     setIsDetailModalOpen(true);
-  };
-
-  const handleCreateTheme = async (themeData: any) => {
-    await createCustomTheme(themeData);
   };
 
   const getCategoryGradient = (category: string) => {
@@ -274,7 +269,6 @@ const ThemePage: React.FC = () => {
         <CreateThemeModal
           isOpen={isCreateModalOpen}
           onClose={() => setIsCreateModalOpen(false)}
-          onCreateTheme={handleCreateTheme}
         />
       </div>
     </div>
