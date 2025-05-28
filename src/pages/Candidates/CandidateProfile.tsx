@@ -17,7 +17,7 @@ import {
 } from "@/components/UI/hover-card";
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/UI/card';
 import { Skeleton } from '@/components/UI/skeleton';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/contexts/AuthContext';
 
 // Simplified candidate type that matches our database
