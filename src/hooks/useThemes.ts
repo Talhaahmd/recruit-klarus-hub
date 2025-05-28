@@ -134,11 +134,16 @@ export const useThemes = () => {
 
       const { error } = await supabase
         .from('user_themes')
-        .insert({
-          user_id: user.id,
-          theme_id: themeId,
-          customization: customization
-        });
+        .upsert(
+          {
+            user_id: user.id,
+            theme_id: themeId,
+            customization: customization
+          },
+          {
+            onConflict: 'user_id,theme_id'
+          }
+        );
 
       if (error) throw error;
 
