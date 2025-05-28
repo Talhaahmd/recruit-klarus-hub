@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -104,7 +103,7 @@ export const useThemes = () => {
     }
   };
 
-  const addThemeToUser = async (themeId: string) => {
+  const addThemeToUser = async (themeId: string, customization?: any): Promise<boolean> => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
@@ -113,16 +112,19 @@ export const useThemes = () => {
         .from('user_themes')
         .insert({
           user_id: user.id,
-          theme_id: themeId
+          theme_id: themeId,
+          customization: customization
         });
 
       if (error) throw error;
 
       await fetchUserThemes();
       toast.success('Theme added successfully');
+      return true;
     } catch (error: any) {
       console.error('Error adding theme:', error);
       toast.error(error.message || 'Failed to add theme');
+      return false;
     }
   };
 
