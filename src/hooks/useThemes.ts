@@ -24,6 +24,11 @@ export interface Theme {
     targetAudience: string;
     complexityLevel: string;
   };
+  background_explanation?: string;
+  purpose_explanation?: string;
+  main_topic_explanation?: string;
+  target_audience_explanation?: string;
+  complexity_explanation?: string;
   is_custom: boolean;
   created_by?: string;
   created_at: string;

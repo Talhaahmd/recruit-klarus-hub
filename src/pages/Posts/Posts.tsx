@@ -274,11 +274,11 @@ const Posts: React.FC = () => {
                 <DropdownMenuTrigger asChild>
                   <Button variant="outline" className="bg-blue-600 text-white hover:bg-blue-700">
                     <Filter className="h-4 w-4 mr-2" />
-                    Filter Ideas ({selectedThemes.length + selectedCategories.length})
+                    Filter by Theme ({selectedThemes.length + selectedCategories.length})
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent className="w-80 bg-white border shadow-lg">
-                  <DropdownMenuLabel>Theme</DropdownMenuLabel>
+                  <DropdownMenuLabel>Filter by Theme</DropdownMenuLabel>
                   <DropdownMenuSeparator />
                   <DropdownMenuCheckboxItem
                     checked={selectedThemes.length === 0}
@@ -296,24 +296,22 @@ const Posts: React.FC = () => {
                     </DropdownMenuCheckboxItem>
                   ))}
                   
-                  <DropdownMenuSeparator />
-                  <DropdownMenuLabel>Category</DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuCheckboxItem
-                    checked={selectedCategories.length === 0}
-                    onCheckedChange={() => clearAllFilters()}
-                  >
-                    All Categories
-                  </DropdownMenuCheckboxItem>
-                  {availableCategories.map((category) => (
-                    <DropdownMenuCheckboxItem
-                      key={category}
-                      checked={selectedCategories.includes(category)}
-                      onCheckedChange={(checked) => handleCategoryFilter(category, checked)}
-                    >
-                      {category}
-                    </DropdownMenuCheckboxItem>
-                  ))}
+                  {availableCategories.length > 0 && (
+                    <>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuLabel>Filter by Category</DropdownMenuLabel>
+                      <DropdownMenuSeparator />
+                      {availableCategories.map((category) => (
+                        <DropdownMenuCheckboxItem
+                          key={category}
+                          checked={selectedCategories.includes(category)}
+                          onCheckedChange={(checked) => handleCategoryFilter(category, checked)}
+                        >
+                          {category}
+                        </DropdownMenuCheckboxItem>
+                      ))}
+                    </>
+                  )}
                 </DropdownMenuContent>
               </DropdownMenu>
 
@@ -354,9 +352,10 @@ const Posts: React.FC = () => {
                         variant="ghost" 
                         size="sm"
                         onClick={handleCopyTitle}
+                        className="text-blue-600 hover:text-blue-700"
                       >
                         <Copy className="h-4 w-4" />
-                        Copy Title
+                        Copy
                       </Button>
                     </div>
                   </div>
@@ -376,9 +375,16 @@ const Posts: React.FC = () => {
                       </Button>
                     </div>
                   ) : (
-                    <h2 className="text-xl font-semibold text-gray-900 leading-tight">
-                      {editedTitle}
-                    </h2>
+                    <div className="relative group">
+                      <h2 className="text-xl font-semibold text-gray-900 leading-tight cursor-pointer select-all" onClick={handleCopyTitle}>
+                        {editedTitle}
+                      </h2>
+                      <div className="absolute -top-2 -right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <Button variant="ghost" size="sm" onClick={handleCopyTitle} className="h-6 w-6 p-0">
+                          <Copy className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    </div>
                   )}
                   
                   <div className="space-y-2">
@@ -407,7 +413,7 @@ const Posts: React.FC = () => {
                       onClick={handleDismissIdea}
                     >
                       <X className="h-4 w-4 mr-2" />
-                      Dismiss Idea
+                      Dismiss
                     </Button>
                     <Button 
                       className="bg-blue-600 hover:bg-blue-700 text-white"

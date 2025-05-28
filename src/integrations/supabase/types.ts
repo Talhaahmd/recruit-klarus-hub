@@ -778,58 +778,73 @@ export type Database = {
       themes: {
         Row: {
           audience: string | null
+          background_explanation: string | null
           category: string
           complexity: string | null
+          complexity_explanation: string | null
           created_at: string | null
           created_by: string | null
           description: string | null
           details: Json | null
           id: string
           is_custom: boolean | null
+          main_topic_explanation: string | null
           objectives: string[] | null
           post_types: string[] | null
           posts_to_expect_1: string | null
           posts_to_expect_2: string | null
+          purpose_explanation: string | null
           results: Json | null
           sample_posts: string[] | null
+          target_audience_explanation: string | null
           title: string
           updated_at: string | null
         }
         Insert: {
           audience?: string | null
+          background_explanation?: string | null
           category: string
           complexity?: string | null
+          complexity_explanation?: string | null
           created_at?: string | null
           created_by?: string | null
           description?: string | null
           details?: Json | null
           id?: string
           is_custom?: boolean | null
+          main_topic_explanation?: string | null
           objectives?: string[] | null
           post_types?: string[] | null
           posts_to_expect_1?: string | null
           posts_to_expect_2?: string | null
+          purpose_explanation?: string | null
           results?: Json | null
           sample_posts?: string[] | null
+          target_audience_explanation?: string | null
           title: string
           updated_at?: string | null
         }
         Update: {
           audience?: string | null
+          background_explanation?: string | null
           category?: string
           complexity?: string | null
+          complexity_explanation?: string | null
           created_at?: string | null
           created_by?: string | null
           description?: string | null
           details?: Json | null
           id?: string
           is_custom?: boolean | null
+          main_topic_explanation?: string | null
           objectives?: string[] | null
           post_types?: string[] | null
           posts_to_expect_1?: string | null
           posts_to_expect_2?: string | null
+          purpose_explanation?: string | null
           results?: Json | null
           sample_posts?: string[] | null
+          target_audience_explanation?: string | null
           title?: string
           updated_at?: string | null
         }

@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { X, Check, FileText, ChevronRight, ChevronDown } from 'lucide-react';
+import { X, Check, FileText, ChevronRight, ChevronDown, ChevronUp } from 'lucide-react';
 import { Button } from '@/components/UI/button';
 import {
   Dialog,
@@ -69,57 +69,74 @@ const complexityOptions = [
   'Advanced/Expert-Level'
 ];
 
-interface AspectDropdownProps {
+interface AspectSectionProps {
   title: string;
+  explanation: string;
   options: string[];
   selectedOptions: string[];
   onToggleOption: (option: string) => void;
   disabled?: boolean;
 }
 
-const AspectDropdown: React.FC<AspectDropdownProps> = ({
+const AspectSection: React.FC<AspectSectionProps> = ({
   title,
+  explanation,
   options,
   selectedOptions,
   onToggleOption,
   disabled = false
 }) => {
+  const [isExpanded, setIsExpanded] = useState(false);
+
   return (
-    <div className="space-y-2">
-      <label className="text-sm font-medium text-gray-700">{title}</label>
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button 
-            variant="outline" 
-            className="w-full justify-between"
-            disabled={disabled}
-          >
-            <span className="truncate">
-              {selectedOptions.length > 0 
-                ? `${selectedOptions.length} selected` 
-                : `Select ${title.toLowerCase()}`
-              }
-            </span>
-            <ChevronDown className="h-4 w-4" />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent className="w-80">
-          <DropdownMenuLabel>{title}</DropdownMenuLabel>
-          <DropdownMenuSeparator />
-          {options.map((option) => (
-            <DropdownMenuItem
-              key={option}
-              onClick={() => onToggleOption(option)}
-              className="flex items-center justify-between cursor-pointer"
-            >
-              <span>{option}</span>
-              {selectedOptions.includes(option) && (
-                <Check className="h-4 w-4 text-blue-600" />
-              )}
-            </DropdownMenuItem>
-          ))}
-        </DropdownMenuContent>
-      </DropdownMenu>
+    <div className="space-y-3 border border-gray-200 rounded-lg p-4">
+      <div className="flex items-center justify-between">
+        <h4 className="text-sm font-semibold text-gray-900">{title}</h4>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => setIsExpanded(!isExpanded)}
+          className="h-6 w-6 p-0"
+        >
+          {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+        </Button>
+      </div>
+      
+      <p className="text-sm text-gray-600 leading-relaxed">{explanation}</p>
+      
+      {isExpanded && !disabled && (
+        <div className="pt-2 border-t border-gray-100">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" className="w-full justify-between" size="sm">
+                <span className="truncate">
+                  {selectedOptions.length > 0 
+                    ? `${selectedOptions.length} selected` 
+                    : `Customize ${title.toLowerCase()}`
+                  }
+                </span>
+                <ChevronDown className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="w-80">
+              <DropdownMenuLabel>Select {title}</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              {options.map((option) => (
+                <DropdownMenuItem
+                  key={option}
+                  onClick={() => onToggleOption(option)}
+                  className="flex items-center justify-between cursor-pointer"
+                >
+                  <span>{option}</span>
+                  {selectedOptions.includes(option) && (
+                    <Check className="h-4 w-4 text-blue-600" />
+                  )}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      )}
     </div>
   );
 };
@@ -141,7 +158,6 @@ const ThemeDetailModal: React.FC<ThemeDetailModalProps> = ({
   if (!theme) return null;
 
   const handleToggleOption = (category: string, option: string) => {
-    // Only allow customization for custom themes that haven't been added yet
     if (!theme.is_custom) return;
 
     const setters = {
@@ -209,15 +225,6 @@ const ThemeDetailModal: React.FC<ThemeDetailModalProps> = ({
     }
   };
 
-  // Parse theme details for display
-  const themeQualities = theme.details ? [
-    theme.details.background,
-    theme.details.purpose,
-    theme.details.mainTopic,
-    theme.details.targetAudience,
-    theme.details.complexityLevel
-  ].filter(Boolean) : [];
-
   const samplePosts = theme.sample_posts || [];
   const currentPost = samplePosts[currentPostIndex];
 
@@ -241,33 +248,20 @@ const ThemeDetailModal: React.FC<ThemeDetailModalProps> = ({
 
         <div className="py-6">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Left Column - Theme Qualities */}
+            {/* Left Column - Theme Overview */}
             <div className="space-y-6">
               <div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-6">Theme Qualities</h3>
-                
-                <div className="space-y-4">
-                  {themeQualities.map((quality, index) => (
-                    <div key={index} className="border border-gray-200 rounded-lg p-4">
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                          <span className="text-blue-600 text-sm font-medium">{index + 1}</span>
-                        </div>
-                        <div className="text-gray-900 font-medium">{quality}</div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                <h3 className="text-xl font-semibold text-gray-900 mb-6">Theme Overview</h3>
 
                 {theme.description && (
-                  <div className="mt-6 p-4 bg-blue-50 rounded-lg">
+                  <div className="mb-6 p-4 bg-blue-50 rounded-lg">
                     <h4 className="font-semibold text-blue-900 mb-2">Description</h4>
                     <p className="text-blue-700">{theme.description}</p>
                   </div>
                 )}
 
                 {theme.objectives && theme.objectives.length > 0 && (
-                  <div className="mt-6 p-4 bg-green-50 rounded-lg">
+                  <div className="p-4 bg-green-50 rounded-lg">
                     <h4 className="font-semibold text-green-900 mb-2">Objectives</h4>
                     <ul className="list-disc list-inside text-green-700 space-y-1">
                       {theme.objectives.map((objective, index) => (
@@ -279,45 +273,50 @@ const ThemeDetailModal: React.FC<ThemeDetailModalProps> = ({
               </div>
             </div>
 
-            {/* Middle Column - Aspects Dropdown */}
+            {/* Middle Column - Theme Aspects */}
             <div className="space-y-6">
-              <h3 className="text-xl font-semibold text-gray-900">Customize Aspects</h3>
+              <h3 className="text-xl font-semibold text-gray-900">Theme Aspects</h3>
               
               <div className="space-y-4">
-                <AspectDropdown
+                <AspectSection
                   title="Background & Offering"
+                  explanation={theme.background_explanation || 'Background and offering information for this theme'}
                   options={backgroundOptions}
                   selectedOptions={selectedBackground}
                   onToggleOption={(option) => handleToggleOption('background', option)}
                   disabled={!theme.is_custom}
                 />
 
-                <AspectDropdown
+                <AspectSection
                   title="Purpose"
+                  explanation={theme.purpose_explanation || 'Purpose and goals of this content theme'}
                   options={purposeOptions}
                   selectedOptions={selectedPurpose}
                   onToggleOption={(option) => handleToggleOption('purpose', option)}
                   disabled={!theme.is_custom}
                 />
 
-                <AspectDropdown
+                <AspectSection
                   title="Main Topic"
+                  explanation={theme.main_topic_explanation || 'Main topic focus for content creation'}
                   options={mainTopicOptions}
                   selectedOptions={selectedMainTopic}
                   onToggleOption={(option) => handleToggleOption('mainTopic', option)}
                   disabled={!theme.is_custom}
                 />
 
-                <AspectDropdown
+                <AspectSection
                   title="Target Audience"
+                  explanation={theme.target_audience_explanation || 'Target audience for this theme'}
                   options={targetAudienceOptions}
                   selectedOptions={selectedTargetAudience}
                   onToggleOption={(option) => handleToggleOption('targetAudience', option)}
                   disabled={!theme.is_custom}
                 />
 
-                <AspectDropdown
+                <AspectSection
                   title="Complexity Level"
+                  explanation={theme.complexity_explanation || 'Complexity level and technical depth'}
                   options={complexityOptions}
                   selectedOptions={selectedComplexity}
                   onToggleOption={(option) => handleToggleOption('complexity', option)}

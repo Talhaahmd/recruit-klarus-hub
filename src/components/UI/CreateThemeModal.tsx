@@ -80,6 +80,11 @@ const CreateThemeModal: React.FC<CreateThemeModalProps> = ({
     mainTopic: [] as string[],
     targetAudience: [] as string[],
     complexityLevel: [] as string[],
+    backgroundExplanation: '',
+    purposeExplanation: '',
+    mainTopicExplanation: '',
+    targetAudienceExplanation: '',
+    complexityExplanation: '',
   });
 
   const [loading, setLoading] = useState(false);
@@ -107,7 +112,12 @@ const CreateThemeModal: React.FC<CreateThemeModalProps> = ({
         mainTopic: formData.mainTopic.join(', '),
         targetAudience: formData.targetAudience.join(', '),
         complexityLevel: formData.complexityLevel.join(', ')
-      }
+      },
+      background_explanation: formData.backgroundExplanation,
+      purpose_explanation: formData.purposeExplanation,
+      main_topic_explanation: formData.mainTopicExplanation,
+      target_audience_explanation: formData.targetAudienceExplanation,
+      complexity_explanation: formData.complexityExplanation,
     };
 
     await onCreateTheme(themeData);
@@ -127,6 +137,11 @@ const CreateThemeModal: React.FC<CreateThemeModalProps> = ({
       mainTopic: [],
       targetAudience: [],
       complexityLevel: [],
+      backgroundExplanation: '',
+      purposeExplanation: '',
+      mainTopicExplanation: '',
+      targetAudienceExplanation: '',
+      complexityExplanation: '',
     });
   };
 
@@ -139,9 +154,18 @@ const CreateThemeModal: React.FC<CreateThemeModalProps> = ({
     }));
   };
 
-  const renderOptionsSection = (title: string, field: string, options: string[]) => (
+  const renderOptionsSection = (title: string, field: string, options: string[], explanationField?: string) => (
     <div className="space-y-3">
       <Label className="text-sm font-medium">{title}</Label>
+      {explanationField && (
+        <Textarea
+          placeholder={`Explain what ${title.toLowerCase()} means for this theme...`}
+          value={formData[explanationField as keyof typeof formData] as string}
+          onChange={(e) => setFormData(prev => ({ ...prev, [explanationField]: e.target.value }))}
+          rows={2}
+          className="text-sm"
+        />
+      )}
       <div className="flex flex-wrap gap-2">
         {options.map((option) => (
           <button
@@ -163,7 +187,7 @@ const CreateThemeModal: React.FC<CreateThemeModalProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold">Create Custom Theme</DialogTitle>
         </DialogHeader>
@@ -230,11 +254,11 @@ const CreateThemeModal: React.FC<CreateThemeModalProps> = ({
             </div>
 
             <div className="space-y-6">
-              {renderOptionsSection('Background & Offering', 'background', backgroundOptions)}
-              {renderOptionsSection('Purpose', 'purpose', purposeOptions)}
-              {renderOptionsSection('Main Topic', 'mainTopic', mainTopicOptions)}
-              {renderOptionsSection('Target Audience', 'targetAudience', targetAudienceOptions)}
-              {renderOptionsSection('Complexity Level', 'complexityLevel', complexityOptions)}
+              {renderOptionsSection('Background & Offering', 'background', backgroundOptions, 'backgroundExplanation')}
+              {renderOptionsSection('Purpose', 'purpose', purposeOptions, 'purposeExplanation')}
+              {renderOptionsSection('Main Topic', 'mainTopic', mainTopicOptions, 'mainTopicExplanation')}
+              {renderOptionsSection('Target Audience', 'targetAudience', targetAudienceOptions, 'targetAudienceExplanation')}
+              {renderOptionsSection('Complexity Level', 'complexityLevel', complexityOptions, 'complexityExplanation')}
             </div>
           </div>
 
