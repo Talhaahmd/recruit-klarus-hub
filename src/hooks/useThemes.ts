@@ -36,7 +36,6 @@ export interface ThemeInputForEdgeFunction {
   complexity: 'Beginner' | 'Intermediate' | 'Advanced';
   objectives?: string[];
   post_types?: string[];
-  results?: { revenue?: string; cac?: string; churn?: string };
   details?: {
     background?: string;
     purpose?: string;

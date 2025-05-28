@@ -10,7 +10,6 @@ interface ThemeInputDataFromClient {
   complexity: 'Beginner' | 'Intermediate' | 'Advanced';
   objectives?: string[];
   post_types?: string[];
-  results?: { revenue?: string; cac?: string; churn?: string };
   details?: {
     background?: string;
     purpose?: string;
@@ -97,7 +96,6 @@ serve(async (req: Request) => {
       complexity: themeInput.complexity || 'Intermediate',
       objectives: themeInput.objectives || [],
       post_types: themeInput.post_types || themeInput.objectives || [], // Default post_types to objectives if not provided
-      results: themeInput.results || { revenue: 'N/A', cac: 'N/A', churn: 'N/A' },
       details: themeInput.details || {},
       is_custom: true,
       created_by: themeInput.user_id,
@@ -125,79 +123,128 @@ serve(async (req: Request) => {
     
     const newTheme = newThemeUntyped as ThemeRecord;
 
-    let prompt = `Generate an engaging LinkedIn post of 500-700 words based on the following theme details. The post should be well-structured, informative, and tailored for a professional audience on LinkedIn.\n\nTheme Details:\n`;
-    prompt += `Title: ${newTheme.title}\n`;
-    prompt += `Description: ${newTheme.description}\n`;
-    prompt += `Category: ${newTheme.category}\n`;
-    prompt += `Target Audience: ${newTheme.audience}\n`;
-    if (newTheme.complexity) prompt += `Overall Complexity: ${newTheme.complexity}\n`;
-    if (newTheme.details?.complexityLevel) prompt += `Specific Complexity Aspects: ${newTheme.details.complexityLevel}\n`;
-    if (newTheme.objectives && newTheme.objectives.length > 0) prompt += `Objectives: ${newTheme.objectives.join(', ')}\n`;
-    if (newTheme.post_types && newTheme.post_types.length > 0) prompt += `Suggested Post Types: ${newTheme.post_types.join(', ')}\n`;
+    // --- First OpenAI Call: Generate LinkedIn Post ---
+    let postGenerationPrompt = `Generate an engaging LinkedIn post of 500-700 words based on the following theme details. The post should be well-structured, informative, and tailored for a professional audience on LinkedIn.\n\nTheme Details:\n`;
+    postGenerationPrompt += `Title: ${newTheme.title}\n`;
+    postGenerationPrompt += `Description: ${newTheme.description}\n`;
+    postGenerationPrompt += `Category: ${newTheme.category}\n`;
+    postGenerationPrompt += `Target Audience: ${newTheme.audience}\n`;
+    if (newTheme.complexity) postGenerationPrompt += `Overall Complexity: ${newTheme.complexity}\n`;
+    if (newTheme.details?.complexityLevel) postGenerationPrompt += `Specific Complexity Aspects: ${newTheme.details.complexityLevel}\n`;
+    if (newTheme.objectives && newTheme.objectives.length > 0) postGenerationPrompt += `Objectives: ${newTheme.objectives.join(', ')}\n`;
+    if (newTheme.post_types && newTheme.post_types.length > 0) postGenerationPrompt += `Suggested Post Types: ${newTheme.post_types.join(', ')}\n`;
 
     if (newTheme.details) {
-      prompt += `\nFurther Details:\n`;
-      if (newTheme.details.background) prompt += `- Background/Offering: ${newTheme.details.background}\n`;
-      if (newTheme.details.purpose) prompt += `- Purpose: ${newTheme.details.purpose}\n`;
-      if (newTheme.details.mainTopic) prompt += `- Main Topic: ${newTheme.details.mainTopic}\n`;
-      if (newTheme.details.targetAudience) prompt += `- Specific Target Audience Aspects: ${newTheme.details.targetAudience}\n`;
+      postGenerationPrompt += `\nFurther Details:\n`;
+      if (newTheme.details.background) postGenerationPrompt += `- Background/Offering: ${newTheme.details.background}\n`;
+      if (newTheme.details.purpose) postGenerationPrompt += `- Purpose: ${newTheme.details.purpose}\n`;
+      if (newTheme.details.mainTopic) postGenerationPrompt += `- Main Topic: ${newTheme.details.mainTopic}\n`;
+      if (newTheme.details.targetAudience) postGenerationPrompt += `- Specific Target Audience Aspects: ${newTheme.details.targetAudience}\n`;
     }
-    if (newTheme.results) {
-        prompt += `Expected Results: Revenue ${newTheme.results.revenue || 'N/A'}, CAC ${newTheme.results.cac || 'N/A'}, Churn ${newTheme.results.churn || 'N/A'}\n`;
-    }
-    if (newTheme.background_explanation) prompt += `Background Explanation: ${newTheme.background_explanation}\n`;
-    if (newTheme.purpose_explanation) prompt += `Purpose Explanation: ${newTheme.purpose_explanation}\n`;
-    if (newTheme.main_topic_explanation) prompt += `Main Topic Explanation: ${newTheme.main_topic_explanation}\n`;
-    if (newTheme.target_audience_explanation) prompt += `Target Audience Explanation: ${newTheme.target_audience_explanation}\n`;
-    if (newTheme.complexity_explanation) prompt += `Complexity Explanation: ${newTheme.complexity_explanation}\n`;
+    // Results are not included here as they are yet to be generated
+    if (newTheme.background_explanation) postGenerationPrompt += `Background Explanation: ${newTheme.background_explanation}\n`;
+    if (newTheme.purpose_explanation) postGenerationPrompt += `Purpose Explanation: ${newTheme.purpose_explanation}\n`;
+    if (newTheme.main_topic_explanation) postGenerationPrompt += `Main Topic Explanation: ${newTheme.main_topic_explanation}\n`;
+    if (newTheme.target_audience_explanation) postGenerationPrompt += `Target Audience Explanation: ${newTheme.target_audience_explanation}\n`;
+    if (newTheme.complexity_explanation) postGenerationPrompt += `Complexity Explanation: ${newTheme.complexity_explanation}\n`;
 
-    prompt += `\nPlease ensure the post is between 500 and 700 words and suitable for LinkedIn.`;
+    postGenerationPrompt += `\nPlease format the post with a blank line separating each paragraph. Ensure the post is between 500 and 700 words and suitable for LinkedIn.`;
 
     const openai = new OpenAI({ apiKey: openAIApiKey });
-    const chatCompletion = await openai.chat.completions.create({
-      messages: [{ role: 'user', content: prompt }],
-      model: 'gpt-3.5-turbo-0125', // Using a specific version for potentially better consistency
+    const postChatCompletion = await openai.chat.completions.create({
+      messages: [{ role: 'user', content: postGenerationPrompt }],
+      model: 'gpt-3.5-turbo-0125',
     });
 
-    const generatedPostContent = chatCompletion.choices[0]?.message?.content;
+    const generatedPostContent = postChatCompletion.choices[0]?.message?.content;
+    let samplePostsArray: string[] = [];
 
     if (!generatedPostContent) {
-      // Theme was created, but post generation failed.
       console.warn(`Theme ${newTheme.id} created, but sample post generation failed.`);
-      return new Response(
-        JSON.stringify({
-          message: 'Theme created, but sample post generation failed.',
-          theme: newTheme,
-        }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 207 } // Multi-Status
-      );
-    }
-    
-    const samplePostsArray = [generatedPostContent.trim()];
+      // Even if post generation fails, we proceed to generate results if possible,
+      // but the sample_posts array will be empty.
+    } else {
+      samplePostsArray = [generatedPostContent.trim()];
+      const { error: updateError } = await supabaseAdmin
+        .from('themes')
+        .update({ sample_posts: samplePostsArray })
+        .eq('id', newTheme.id);
 
-    const { error: updateError } = await supabaseAdmin
+      if (updateError) {
+        console.error(`Error updating theme ${newTheme.id} with sample post:`, updateError);
+        // Log the error but continue to attempt generating results
+      }
+    }
+
+    // --- Second OpenAI Call: Generate Expected Results ---
+    let resultsPrompt = `Analyze the following LinkedIn marketing theme and its generated sample post. Based on this information, estimate the potential business impact.
+Provide your answer ONLY as a JSON object with the following keys: "revenue" (e.g., "+5-10% quarterly increase", "Additional $5k MRR"), "cac" (e.g., "-15% reduction", "Improved from $50 to $40"), and "churn" (e.g., "-2% monthly", "Reduced by 10%").
+If you cannot reasonably estimate a metric, use "N/A" for its value.
+
+Theme Details:
+Title: ${newTheme.title}
+Description: ${newTheme.description}
+Category: ${newTheme.category}
+Target Audience: ${newTheme.audience}
+Complexity: ${newTheme.complexity}
+Objectives: ${newTheme.objectives.join(', ')}
+Post Types: ${newTheme.post_types.join(', ')}
+`;
+    if (newTheme.details?.background) resultsPrompt += `Background/Offering: ${newTheme.details.background}\n`;
+    if (newTheme.details?.purpose) resultsPrompt += `Purpose: ${newTheme.details.purpose}\n`;
+    if (newTheme.details?.mainTopic) resultsPrompt += `Main Topic: ${newTheme.details.mainTopic}\n`;
+
+    resultsPrompt += `\nGenerated Sample Post Content:\n${generatedPostContent || "No post content was generated."}\n\nJSON Output for Results:`;
+    
+    const resultsChatCompletion = await openai.chat.completions.create({
+        messages: [{ role: 'user', content: resultsPrompt }],
+        model: 'gpt-3.5-turbo-0125',
+        response_format: { type: "json_object" },
+    });
+
+    let generatedResults = { revenue: 'N/A', cac: 'N/A', churn: 'N/A' };
+    try {
+      const resultsContent = resultsChatCompletion.choices[0]?.message?.content;
+      if (resultsContent) {
+        const parsedResults = JSON.parse(resultsContent);
+        generatedResults = {
+            revenue: parsedResults.revenue || 'N/A',
+            cac: parsedResults.cac || 'N/A',
+            churn: parsedResults.churn || 'N/A'
+        };
+      } else {
+        console.warn(`Could not generate results for theme ${newTheme.id}. OpenAI response was empty.`);
+      }
+    } catch (e) {
+      console.error(`Error parsing results JSON for theme ${newTheme.id}:`, e);
+      // Keep default N/A values if parsing fails
+    }
+
+    const { error: finalUpdateError } = await supabaseAdmin
       .from('themes')
-      .update({ sample_posts: samplePostsArray })
+      .update({ results: generatedResults, sample_posts: samplePostsArray }) // Ensure sample_posts is also updated here
       .eq('id', newTheme.id);
 
-    if (updateError) {
-      console.error(`Error updating theme ${newTheme.id} with sample post:`, updateError);
+    if (finalUpdateError) {
+      console.error(`Error updating theme ${newTheme.id} with generated results:`, finalUpdateError);
       return new Response(
         JSON.stringify({
-          message: 'Theme created and post generated, but failed to update theme with sample post.',
-          theme: newTheme,
-          generatedPost: samplePostsArray,
-          updateError: updateError.message,
+          message: 'Theme created, post and results generated, but failed to update theme with results.',
+          themeId: newTheme.id,
+          samplePosts: samplePostsArray,
+          generatedResults,
+          updateError: finalUpdateError.message,
         }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 207 } // Multi-Status
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 207 }
       );
     }
 
     return new Response(
       JSON.stringify({
-        message: 'Theme created and sample post generated and saved successfully!',
+        message: 'Theme created, sample post and results generated and saved successfully!',
         themeId: newTheme.id,
         samplePosts: samplePostsArray,
+        results: generatedResults,
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
     );

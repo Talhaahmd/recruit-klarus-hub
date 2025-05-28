@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 
 export interface Lead {
@@ -32,7 +31,7 @@ export const leadsService = {
       .from('leads')
       .select(`
         *,
-        lead_labels!inner(
+        lead_labels(
           labels(*)
         )
       `)

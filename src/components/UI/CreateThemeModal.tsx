@@ -102,11 +102,6 @@ const CreateThemeModal: React.FC<CreateThemeModalProps> = ({
       complexity: formData.complexity,
       objectives: formData.objectives.filter(obj => obj.trim() !== ''),
       post_types: formData.objectives.filter(obj => obj.trim() !== ''),
-      results: {
-        revenue: '+0%',
-        cac: '0%',
-        churn: '0%'
-      },
       details: {
         background: formData.background.join(', '),
         purpose: formData.purpose.join(', '),
