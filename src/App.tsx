@@ -36,7 +36,6 @@ import CandidateProfile from "./pages/Candidates/CandidateProfile";
 import Calendar from "./pages/Calendar/Calendar";
 import BuildProfile from "./pages/BuildProfile/BuildProfile";
 import Theme from "./pages/Theme/Theme";
-import Posts from "./pages/Posts/Posts";
 import Settings from "./pages/Settings/Settings";
 import NotFound from "./pages/NotFound";
 import Leads from "./pages/Leads/Leads";
@@ -126,7 +125,6 @@ const App = () => (
                 <Route path="candidates" element={<Candidates />} />
                 <Route path="candidates/:id" element={<CandidateProfile />} />
                 <Route path="calendar" element={<Calendar />} />
-                <Route path="posts" element={<Posts />} />
                 <Route path="themes" element={<Theme />} />
                 <Route path="ideas" element={<BuildProfile />} />
                 <Route path="leads" element={<Leads />} />
