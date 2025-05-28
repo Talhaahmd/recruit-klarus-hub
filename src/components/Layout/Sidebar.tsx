@@ -14,7 +14,8 @@ import {
   Lightbulb,
   CreditCard,
   Pin,
-  PinOff
+  PinOff,
+  UserPlus
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -57,6 +58,7 @@ const Sidebar: React.FC<SidebarProps> = ({
       items: [
         { icon: Users, name: 'Candidates', path: '/candidates' },
         { icon: Briefcase, name: 'Active Jobs', path: '/jobs' },
+        { icon: UserPlus, name: 'Leads', path: '/leads' },
       ]
     },
     {

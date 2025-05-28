@@ -512,6 +512,99 @@ export type Database = {
         }
         Relationships: []
       }
+      labels: {
+        Row: {
+          color: string | null
+          created_at: string | null
+          id: string
+          name: string
+          user_id: string
+        }
+        Insert: {
+          color?: string | null
+          created_at?: string | null
+          id?: string
+          name: string
+          user_id: string
+        }
+        Update: {
+          color?: string | null
+          created_at?: string | null
+          id?: string
+          name?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      lead_labels: {
+        Row: {
+          id: string
+          label_id: string
+          lead_id: string
+        }
+        Insert: {
+          id?: string
+          label_id: string
+          lead_id: string
+        }
+        Update: {
+          id?: string
+          label_id?: string
+          lead_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lead_labels_label_id_fkey"
+            columns: ["label_id"]
+            isOneToOne: false
+            referencedRelation: "labels"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lead_labels_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      leads: {
+        Row: {
+          created_at: string | null
+          email: string | null
+          full_name: string
+          id: string
+          linkedin_url: string | null
+          notes: string | null
+          prospect_status: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          email?: string | null
+          full_name: string
+          id?: string
+          linkedin_url?: string | null
+          notes?: string | null
+          prospect_status: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          email?: string | null
+          full_name?: string
+          id?: string
+          linkedin_url?: string | null
+          notes?: string | null
+          prospect_status?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       linkedin_posts: {
         Row: {
           content: string
@@ -795,7 +888,7 @@ export type Database = {
           posts_to_expect_2: string | null
           purpose_explanation: string | null
           results: Json | null
-          sample_posts: string[] | null
+          sample_posts: string | null
           target_audience_explanation: string | null
           title: string
           updated_at: string | null
@@ -819,7 +912,7 @@ export type Database = {
           posts_to_expect_2?: string | null
           purpose_explanation?: string | null
           results?: Json | null
-          sample_posts?: string[] | null
+          sample_posts?: string | null
           target_audience_explanation?: string | null
           title: string
           updated_at?: string | null
@@ -843,7 +936,7 @@ export type Database = {
           posts_to_expect_2?: string | null
           purpose_explanation?: string | null
           results?: Json | null
-          sample_posts?: string[] | null
+          sample_posts?: string | null
           target_audience_explanation?: string | null
           title?: string
           updated_at?: string | null

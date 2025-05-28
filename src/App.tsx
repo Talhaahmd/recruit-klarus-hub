@@ -39,6 +39,7 @@ import Theme from "./pages/Theme/Theme";
 import Posts from "./pages/Posts/Posts";
 import Settings from "./pages/Settings/Settings";
 import NotFound from "./pages/NotFound";
+import Leads from "./pages/Leads/Leads";
 
 const queryClient = new QueryClient();
 
@@ -128,6 +129,7 @@ const App = () => (
                 <Route path="posts" element={<Posts />} />
                 <Route path="themes" element={<Theme />} />
                 <Route path="ideas" element={<BuildProfile />} />
+                <Route path="leads" element={<Leads />} />
                 <Route path="settings" element={<Settings />} />
               </Route>
 
