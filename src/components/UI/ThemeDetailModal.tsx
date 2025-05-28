@@ -250,32 +250,32 @@ const ThemeDetailModal: React.FC<ThemeDetailModalProps> = ({
             {/* Theme Overview Column */}
             <div className="space-y-6">
               <div>
-                <h3 className="text-lg font-semibold text-gray-800 mb-2">Theme Overview</h3>
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 space-y-3">
+                <h3 className="text-lg font-semibold text-gray-800 mb-3">Theme Overview</h3>
+                <div className="bg-slate-50 border border-slate-200 rounded-lg p-5 space-y-4 shadow-sm">
                   <div>
-                    <h4 className="text-sm font-medium text-gray-700">Description</h4>
-                    <p className="text-sm text-gray-600">{theme.description}</p>
+                    <h4 className="text-sm font-semibold text-slate-700 mb-1">Description</h4>
+                    <p className="text-sm text-slate-600 leading-relaxed">{theme.description}</p>
                   </div>
                   {theme.objectives && theme.objectives.length > 0 && (
                     <div>
-                      <h4 className="text-sm font-medium text-gray-700">Objectives</h4>
-                      <ul className="list-disc list-inside space-y-1 pl-1">
+                      <h4 className="text-sm font-semibold text-slate-700 mb-1">Objectives</h4>
+                      <ul className="list-disc list-inside space-y-1 pl-2">
                         {theme.objectives.map((obj, index) => (
-                          <li key={index} className="text-sm text-gray-600">{obj}</li>
+                          <li key={index} className="text-sm text-slate-600 leading-relaxed">{obj}</li>
                         ))}
                       </ul>
                     </div>
                   )}
                   {theme.audience && (
                     <div>
-                      <h4 className="text-sm font-medium text-gray-700">Target Audience</h4>
-                      <p className="text-sm text-gray-600">{theme.audience}</p>
+                      <h4 className="text-sm font-semibold text-slate-700 mb-1">Target Audience</h4>
+                      <p className="text-sm text-slate-600 leading-relaxed">{theme.audience}</p>
                     </div>
                   )}
                   {theme.complexity && (
                     <div>
-                      <h4 className="text-sm font-medium text-gray-700">Complexity Level</h4>
-                      <p className="text-sm text-gray-600">{theme.complexity}</p>
+                      <h4 className="text-sm font-semibold text-slate-700 mb-1">Complexity Level</h4>
+                      <p className="text-sm text-slate-600 leading-relaxed">{theme.complexity}</p>
                     </div>
                   )}
                 </div>
@@ -286,7 +286,7 @@ const ThemeDetailModal: React.FC<ThemeDetailModalProps> = ({
 
             {/* What type of posts to expect / Sample Posts Column */}
             <div className="space-y-6">
-              <h3 className="text-lg font-semibold flex items-center gap-2 text-gray-800">
+              <h3 className="text-lg font-semibold flex items-center gap-2 text-gray-800 mb-3">
                 <FileText className="h-5 w-5 text-blue-600" />
                 What type of posts to expect
               </h3>
@@ -294,13 +294,20 @@ const ThemeDetailModal: React.FC<ThemeDetailModalProps> = ({
               {/* LinkedIn-style post preview */}
               <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
                 <div className="flex items-start space-x-3">
-                  {/* Circular image placeholder */}
-                  <div className="w-10 h-10 bg-gray-300 rounded-full flex-shrink-0"></div>
+                  {/* Circular image */}
+                  <img 
+                    src="https://images.pexels.com/photos/709188/pexels-photo-709188.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1" 
+                    alt="User profile" 
+                    className="w-10 h-10 rounded-full flex-shrink-0 object-cover"
+                  />
                   
-                  {/* Post content area */}
+                  {/* Post content area - Styled to look like a LinkedIn post view */}
                   <div className="flex-1">
                     {currentPost ? (
-                      <div className="prose prose-sm max-w-none text-gray-700 min-h-[150px] p-3 border border-gray-300 rounded-md focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-blue-500 overflow-y-auto max-h-80" style={{ whiteSpace: 'pre-line' }}>
+                      <div 
+                        className="text-sm text-gray-800 min-h-[150px] p-3 focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-blue-500 overflow-y-auto max-h-80 bg-gray-50 rounded-md border border-gray-300 leading-relaxed"
+                        style={{ whiteSpace: 'pre-line' }}
+                      >
                         {currentPost} 
                       </div>
                     ) : (
