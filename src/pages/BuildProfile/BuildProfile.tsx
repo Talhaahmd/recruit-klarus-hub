@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Header } from '@/components/Layout/MainLayout';
-import { Send, Loader2, Check, Mic } from 'lucide-react';
+import { Send, Loader2, Check, Edit3, Linkedin } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/UI/button';
 import { Textarea } from '@/components/UI/textarea';
@@ -24,19 +24,30 @@ import LinkedInPromptModal from '@/components/UI/LinkedInPromptModal';
 import { supabase } from '@/lib/supabase';
 import { useThemes, type Theme } from '@/hooks/useThemes';
 
+// Enum to manage stages
+enum PostStage {
+  Idle, // Initial state, ready to generate draft
+  GeneratingDraft,
+  DraftReady, // Draft generated, ready for editing
+  PostingToLinkedIn,
+  PostSuccessful
+}
+
 const BuildProfile: React.FC = () => {
   const [posts, setPosts] = useState<LinkedInPost[]>([]);
-  const [postContent, setPostContent] = useState('');
+  const [postContent, setPostContent] = useState(''); // Will hold user input OR generated draft
   const [selectedThemeId, setSelectedThemeId] = useState<string>('');
   const [selectedTone, setSelectedTone] = useState<string>('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  // Removed isSubmitting, replaced by currentStage
   const [successModal, setSuccessModal] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
-  const [isGenerating, setIsGenerating] = useState(false);
-  const [generatedPost, setGeneratedPost] = useState('');
+  // Removed isGenerating, replaced by currentStage
+  const [generatedPostForModal, setGeneratedPostForModal] = useState(''); // For success modal display
+
+  const [currentStage, setCurrentStage] = useState<PostStage>(PostStage.Idle);
   
   const { showModal, initiateLinkedInConnect, dismissModal, hasLinkedInToken } = useLinkedInPrompt();
-  const { themes, loading: themesLoading } = useThemes();
+  const { userThemes, loading: themesLoading } = useThemes();
 
   useEffect(() => {
     const fetchPosts = async () => {
@@ -51,59 +62,47 @@ const BuildProfile: React.FC = () => {
     fetchPosts();
   }, []);
 
-  // Handle LinkedIn connection callback specifically for BuildProfile
+  // Handle LinkedIn connection callback
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const linkedInConnected = urlParams.get('linkedin_connected');
     
     if (linkedInConnected === 'true') {
-      console.log('LinkedIn connected callback detected in BuildProfile...');
-      
-      // Clean up URL
       window.history.replaceState({}, document.title, window.location.pathname);
-      
-      // Check for pending post data specific to BuildProfile
       const pendingPostData = sessionStorage.getItem('pending_post_data');
       if (pendingPostData) {
-        console.log('Found pending post data for BuildProfile');
         try {
           const postData = JSON.parse(pendingPostData);
-          
-          // Check if this is BuildProfile data
-          if (postData.source === 'BuildProfile') {
-            console.log('Processing LinkedIn post generation for BuildProfile...', postData);
+          if (postData.source === 'BuildProfile_FinalPost') {
             sessionStorage.removeItem('pending_post_data');
-            
-            // Process the LinkedIn post with delay to ensure token is ready
+            // Process the LinkedIn post with delay
             setTimeout(() => {
-              processLinkedInPost(postData);
+              processFinalLinkedInPost(postData.payload);
             }, 2000);
           } else {
-            console.log('Post data is not for BuildProfile - ignoring');
-            toast.success('LinkedIn connected successfully!');
+             toast.success('LinkedIn connected successfully!');
           }
         } catch (error) {
           console.error('Error parsing pending post data:', error);
           toast.error('Failed to process post data after LinkedIn connection');
         }
       } else {
-        console.log('No pending post data found');
         toast.success('LinkedIn connected successfully!');
       }
     }
   }, []);
 
-  const processLinkedInPost = async (postData: any) => {
+  // Renamed from processLinkedInPost to processFinalLinkedInPost
+  const processFinalLinkedInPost = async (postData: any) => {
     try {
-      console.log('Processing LinkedIn post generation with data:', postData);
-      setIsGenerating(true);
-      setIsSubmitting(true);
+      console.log('Processing FINAL LinkedIn post with data:', postData);
+      setCurrentStage(PostStage.PostingToLinkedIn);
       
-      const { data, error } = await supabase.functions.invoke('generate-linkedin-post', {
+      const { data, error } = await supabase.functions.invoke('generate-linkedin-post', { // This is your existing function
         body: {
           niche: postData.niche,
           tone: postData.tone,
-          contentPrompt: postData.content,
+          contentPrompt: postData.content, // This is the (edited) draft
           scheduleDate: null,
           scheduleTime: null
         }
@@ -112,155 +111,184 @@ const BuildProfile: React.FC = () => {
       if (error) {
         console.error('LinkedIn post generation error:', error);
         toast.error(`Failed to generate LinkedIn post: ${error.message}`);
+        setCurrentStage(PostStage.DraftReady); // Go back to editing if failed
         return;
       }
 
       if (data?.error) {
         console.error('LinkedIn post generation failed:', data.error);
         toast.error(`Failed to generate LinkedIn post: ${data.error}`);
+        setCurrentStage(PostStage.DraftReady); // Go back to editing if failed
         return;
       }
 
       console.log('LinkedIn post generation successful:', data);
+      setGeneratedPostForModal(data.content || 'Your LinkedIn post has been published successfully!');
       
-      // Set the generated post content
-      setGeneratedPost(data.content || 'Your LinkedIn post has been generated successfully!');
-      
-      // Refresh posts list
       const updatedPosts = await linkedinService.getPosts();
       setPosts(updatedPosts);
       
-      // Reset form
-      setPostContent('');
-      setSelectedThemeId('');
-      setSelectedTone('');
-      
-      // Show success modal
-      setSuccessMessage('Your LinkedIn post has been generated successfully!');
+      // Reset form for next use
+      setPostContent(''); 
+      // setSelectedThemeId(''); // Keep theme selected for potential re-use
+      // setSelectedTone(''); // Keep tone selected
+      setCurrentStage(PostStage.PostSuccessful);
+      setSuccessMessage('Your LinkedIn post has been published successfully!');
       setSuccessModal(true);
       
     } catch (error) {
-      console.error('Error processing LinkedIn post:', error);
-      toast.error('Failed to process LinkedIn post');
-    } finally {
-      setIsGenerating(false);
-      setIsSubmitting(false);
+      console.error('Error processing final LinkedIn post:', error);
+      toast.error('Failed to publish LinkedIn post');
+      setCurrentStage(PostStage.DraftReady); // Go back to editing if failed
     }
   };
 
-  const generateLinkedInPost = async (postData: any) => {
-    console.log('Starting LinkedIn post generation process...', postData);
+  // Renamed from generateLinkedInPost to initiateFinalLinkedInPost
+  const initiateFinalLinkedInPost = async (finalPostData: any) => {
+    console.log('Starting FINAL LinkedIn post process...', finalPostData);
     
-    // Check if we already have a valid LinkedIn token
     if (hasLinkedInToken === true) {
-      console.log('LinkedIn token available, generating post directly...');
-      await processLinkedInPost({ ...postData, source: 'BuildProfile' });
+      await processFinalLinkedInPost(finalPostData);
       return;
     }
     
-    console.log('No LinkedIn token, initiating authentication...');
-    setIsGenerating(true);
-    
+    setCurrentStage(PostStage.PostingToLinkedIn); // Indicate trying to post
     try {
-      // Store the data with source metadata for BuildProfile
       const dataWithMetadata = {
-        ...postData,
-        source: 'BuildProfile',
+        payload: finalPostData,
+        source: 'BuildProfile_FinalPost', // Differentiate this from initial connection
         timestamp: Date.now()
       };
-      
-      console.log('Storing pending post data for BuildProfile:', dataWithMetadata);
       sessionStorage.setItem('pending_post_data', JSON.stringify(dataWithMetadata));
-      
-      // Initiate LinkedIn connect which will redirect and come back
       await initiateLinkedInConnect();
-      
     } catch (error) {
-      console.error('Unexpected error generating LinkedIn post:', error);
-      toast.error('Failed to generate LinkedIn post. Please try again.');
-      setIsGenerating(false);
-      setIsSubmitting(false);
+      console.error('Error initiating final LinkedIn post:', error);
+      toast.error('Failed to start LinkedIn posting process. Please try again.');
+      setCurrentStage(PostStage.DraftReady); // Go back to editing
     }
   };
   
   const tones = [
-    'Professional',
-    'Inspirational',
-    'Conversational',
-    'Thoughtful',
-    'Celebratory',
-    'Educational',
-    'Motivational'
+    'Professional', 'Inspirational', 'Conversational', 'Thoughtful',
+    'Celebratory', 'Educational', 'Motivational'
   ];
   
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsSubmitting(true);
-    
-    try {
+
+    if (!selectedThemeId) {
+      toast.error('Please select a Theme');
+      return;
+    }
+    if (!selectedTone) {
+      toast.error('Please select a Tone');
+      return;
+    }
+
+    const selectedThemeObj = userThemes.find(userTheme => userTheme.theme.id === selectedThemeId);
+    if (!selectedThemeObj) {
+        toast.error('Selected theme not found. Please try again.');
+        return;
+    }
+
+    // STAGE 1: Generate Draft or STAGE 2: Post to LinkedIn
+    if (currentStage === PostStage.Idle || currentStage === PostStage.PostSuccessful) {
+      // Generate Draft Logic
+      if (postContent.trim().length > 2000) { // Optional: Limit user input if it's too long for a prompt
+        toast.error('Initial content ideas should be less than 2000 characters.');
+        return;
+      }
+      setCurrentStage(PostStage.GeneratingDraft);
+      try {
+        const { data, error } = await supabase.functions.invoke('generate-draft-linkedin-post', {
+          body: {
+            themeId: selectedThemeId,
+            tone: selectedTone,
+            userInput: postContent, // User's initial ideas from the textarea
+          }
+        });
+
+        if (error) throw error;
+        if (data.error) throw new Error(data.error);
+
+        setPostContent(data.draftContent); // Populate textarea with AI draft
+        toast.success('Draft generated! You can now edit it below.');
+        setCurrentStage(PostStage.DraftReady);
+
+      } catch (err: any) {
+        console.error('Error generating draft:', err);
+        toast.error(`Failed to generate draft: ${err.message || 'Unknown error'}`);
+        setCurrentStage(PostStage.Idle); // Reset to idle if draft generation fails
+      }
+
+    } else if (currentStage === PostStage.DraftReady) {
+      // Post to LinkedIn Logic
       if (postContent.trim().length < 10) {
-        toast.error('Content should be at least 10 characters long');
-        setIsSubmitting(false);
+        toast.error('Post content is too short.');
         return;
       }
-
-      if (!selectedThemeId) {
-        toast.error('Please select a Theme');
-        setIsSubmitting(false);
-        return;
-      }
-
-      if (!selectedTone) {
-        toast.error('Please select a tone');
-        setIsSubmitting(false);
-        return;
-      }
-      
-      const selectedThemeObj = themes.find(theme => theme.id === selectedThemeId);
-      if (!selectedThemeObj) {
-          toast.error('Selected theme not found. Please try again.');
-          setIsSubmitting(false);
-          return;
-      }
-
-      const postData = {
-        content: postContent,
-        niche: selectedThemeObj.title,
-        tone: selectedTone
+      const finalPostData = {
+        content: postContent, // The (potentially edited) draft from textarea
+        niche: selectedThemeObj.theme.title,
+        tone: selectedTone // Tone is still relevant for the generate-linkedin-post function
       };
-
-      await generateLinkedInPost(postData);
-      
-    } catch (error) {
-      console.error('Error creating post:', error);
-      toast.error('Failed to create LinkedIn post');
-      setIsSubmitting(false);
+      await initiateFinalLinkedInPost(finalPostData);
     }
   };
 
   const handleLinkedInConnect = async () => {
+    // This is called when the modal's "Connect" is clicked.
+    // The useEffect for 'linkedin_connected' handles the post-redirect logic.
+    // No specific action needed here other than what useLinkedInPrompt does.
     console.log('User confirmed LinkedIn connection from BuildProfile');
-    // The authentication flow is already handled by the hook
   };
 
   const handleLinkedInDismiss = () => {
-    console.log('User dismissed LinkedIn connection from BuildProfile');
     dismissModal();
-    setIsSubmitting(false);
-    setIsGenerating(false);
+    // If user dismisses during posting stage, revert to draft ready
+    if (currentStage === PostStage.PostingToLinkedIn) {
+      setCurrentStage(PostStage.DraftReady);
+    } else if (currentStage === PostStage.GeneratingDraft) {
+      setCurrentStage(PostStage.Idle);
+    }
   };
+
+  const getButtonTextAndIcon = () => {
+    switch (currentStage) {
+      case PostStage.Idle:
+      case PostStage.PostSuccessful: // After successful post, ready for new draft
+        return { text: 'Generate Draft Post', icon: <Edit3 className="h-5 w-5" /> };
+      case PostStage.GeneratingDraft:
+        return { text: 'Generating Draft...', icon: <Loader2 className="h-5 w-5 animate-spin" /> };
+      case PostStage.DraftReady:
+        return { text: 'Post to LinkedIn', icon: <Linkedin className="h-5 w-5" /> };
+      case PostStage.PostingToLinkedIn:
+        return { text: 'Posting to LinkedIn...', icon: <Loader2 className="h-5 w-5 animate-spin" /> };
+      default:
+        return { text: 'Generate Draft Post', icon: <Edit3 className="h-5 w-5" /> };
+    }
+  };
+
+  const buttonState = getButtonTextAndIcon();
   
   return (
     <div className="p-4 lg:p-8 min-h-screen bg-gray-50">
-      {/* LinkedIn Prompt Modal */}
       <LinkedInPromptModal
         isOpen={showModal}
         onConnect={handleLinkedInConnect} 
         onDismiss={handleLinkedInDismiss}
       />
 
-      {/* Success Modal */}
-      <Dialog open={successModal} onOpenChange={setSuccessModal}>
+      <Dialog open={successModal} onOpenChange={(isOpen) => {
+        setSuccessModal(isOpen);
+        if (!isOpen) {
+            setCurrentStage(PostStage.Idle); // Reset stage when success modal is closed
+            setPostContent(''); // Clear content for new draft generation
+            // Optionally clear theme and tone if desired, or keep for quick re-drafting
+            // setSelectedThemeId('');
+            // setSelectedTone('');
+        }
+      }}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Success!</DialogTitle>
@@ -273,9 +301,9 @@ const BuildProfile: React.FC = () => {
               <Check className="h-10 w-10 text-green-600" />
             </div>
           </div>
-          {generatedPost && (
+          {generatedPostForModal && ( // Use generatedPostForModal here
             <div className="mt-4 p-4 bg-gray-50 rounded-lg">
-              <p className="text-sm text-gray-700 whitespace-pre-line">{generatedPost}</p>
+              <p className="text-sm text-gray-700 whitespace-pre-line">{generatedPostForModal}</p>
             </div>
           )}
           <div className="flex justify-center pt-4">
@@ -295,108 +323,99 @@ const BuildProfile: React.FC = () => {
           <span className="font-semibold text-blue-600">2 / 2</span>
         </div>
 
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <div className="flex items-center justify-between mb-6">
-            <h1 className="text-xl font-semibold flex items-center gap-2">
-              <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-sm font-medium">1</span>
-              Convert your content into LinkedIn posts
+        <div className="bg-white rounded-lg shadow-xl border border-gray-200 p-6 sm:p-8">
+          <div className="flex items-center justify-between mb-6 pb-4 border-b border-gray-200">
+            <h1 className="text-2xl font-semibold text-gray-800 flex items-center gap-3">
+               <span className="bg-gradient-to-r from-blue-500 to-indigo-600 text-white p-2 rounded-full flex items-center justify-center h-10 w-10 text-lg font-bold shadow">
+                {currentStage === PostStage.Idle || currentStage === PostStage.GeneratingDraft || currentStage === PostStage.PostSuccessful ? '1' : '2'}
+              </span>
+              {currentStage === PostStage.Idle || currentStage === PostStage.GeneratingDraft || currentStage === PostStage.PostSuccessful ? 'Generate LinkedIn Post Draft' : 'Review & Publish Post'}
             </h1>
-            <div className="flex gap-2">
-              <Button variant="ghost" size="sm">
-                <span className="sr-only">Copy</span>
-                📋
-              </Button>
-              <Button variant="ghost" size="sm">
-                <span className="sr-only">Chat</span>
-                💬
-              </Button>
-              <Button variant="ghost" size="sm">
-                <span className="sr-only">Refresh</span>
-                🔄
-              </Button>
-            </div>
+            {/* Removed utility icons for now, can be added back if needed */}
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
-              <label className="block text-sm font-medium mb-2">
-                Theme
+              <label htmlFor="theme-select" className="block text-sm font-medium text-gray-700 mb-1">
+                Target Theme <span className="text-red-500">*</span>
               </label>
-              <Select value={selectedThemeId} onValueChange={setSelectedThemeId} disabled={themesLoading}>
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Select a Theme" />
+              <Select 
+                value={selectedThemeId} 
+                onValueChange={setSelectedThemeId} 
+                disabled={themesLoading || currentStage === PostStage.GeneratingDraft || currentStage === PostStage.PostingToLinkedIn}
+              >
+                <SelectTrigger id="theme-select" className="w-full py-2.5 px-3 border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                  <SelectValue placeholder="Select an Owned Theme" />
                 </SelectTrigger>
                 <SelectContent className="bg-white">
                   {themesLoading ? (
-                    <SelectItem value="loading" disabled>Loading themes...</SelectItem>
-                  ) : (
-                    themes.map((theme: Theme) => (
-                      <SelectItem key={theme.id} value={theme.id}>
-                        {theme.title}
+                    <SelectItem value="loading" disabled>Loading your themes...</SelectItem>
+                  ) : userThemes.length > 0 ? (
+                    userThemes.map((userTheme) => (
+                      <SelectItem key={userTheme.theme.id} value={userTheme.theme.id}>
+                        {userTheme.theme.title}
                       </SelectItem>
                     ))
+                  ) : (
+                    <SelectItem value="no-themes" disabled>No themes. Add some from the Themes page.</SelectItem>
                   )}
                 </SelectContent>
               </Select>
-              <div className="flex items-center mt-2">
-                <Button variant="ghost" size="sm" type="button">
-                  <Mic className="h-4 w-4" />
-                </Button>
-              </div>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <div>
-                <Textarea
-                  placeholder="Paste your newsletter here"
-                  className="min-h-[300px] resize-none border-gray-200 focus:border-blue-500 focus:ring-blue-500"
-                  value={postContent}
-                  onChange={(e) => setPostContent(e.target.value)}
-                />
-              </div>
-
-              <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 min-h-[300px] flex items-center justify-center">
-                <p className="text-gray-500 text-center">
-                  LinkedIn post will appear here after you generate it
-                </p>
-              </div>
+            <div>
+              <label htmlFor="tone-select" className="block text-sm font-medium text-gray-700 mb-1">
+                Desired Tone <span className="text-red-500">*</span>
+              </label>
+              <Select 
+                value={selectedTone} 
+                onValueChange={setSelectedTone}
+                disabled={currentStage === PostStage.GeneratingDraft || currentStage === PostStage.PostingToLinkedIn}
+              >
+                <SelectTrigger id="tone-select" className="w-full py-2.5 px-3 border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                  <SelectValue placeholder="Select a tone for your post" />
+                </SelectTrigger>
+                <SelectContent className="bg-white">
+                  {tones.map((tone) => (
+                    <SelectItem key={tone} value={tone}>
+                      {tone}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <div>
-                <label className="block text-sm font-medium mb-2">
-                  Tone
-                </label>
-                <Select value={selectedTone} onValueChange={setSelectedTone}>
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Select tone" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-white">
-                    {tones.map((tone) => (
-                      <SelectItem key={tone} value={tone}>
-                        {tone}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div></div>
+            <div>
+              <label htmlFor="content-input" className="block text-sm font-medium text-gray-700 mb-1">
+                {currentStage === PostStage.Idle || currentStage === PostStage.GeneratingDraft || currentStage === PostStage.PostSuccessful ? 'Initial Ideas / Content (Optional)' : 'Generated Draft (Editable)'}
+              </label>
+              <Textarea
+                id="content-input"
+                placeholder={
+                  currentStage === PostStage.Idle || currentStage === PostStage.GeneratingDraft || currentStage === PostStage.PostSuccessful 
+                  ? "Optionally, provide some initial ideas, key points, or a snippet of your article. The AI will use this along with the selected theme's style to generate a draft."
+                  : "Review and edit the generated draft below. When you're satisfied, click 'Post to LinkedIn'."
+                }
+                className="min-h-[300px] sm:min-h-[350px] resize-none w-full p-3 border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-base leading-relaxed focus:ring-2 focus:ring-indigo-500"
+                value={postContent}
+                onChange={(e) => setPostContent(e.target.value)}
+                disabled={currentStage === PostStage.GeneratingDraft || currentStage === PostStage.PostingToLinkedIn}
+              />
+              <p className="mt-2 text-xs text-gray-500">
+                {currentStage === PostStage.Idle || currentStage === PostStage.GeneratingDraft || currentStage === PostStage.PostSuccessful 
+                ? "If left blank, a post will be generated based solely on the theme's sample content and selected tone."
+                : "Make any necessary adjustments to the text, formatting, and hashtags before publishing."}
+              </p>
             </div>
 
-            <div className="flex justify-center pt-4">
+            <div className="flex justify-center pt-6">
               <Button 
                 type="submit" 
-                disabled={isSubmitting || isGenerating}
-                className="bg-blue-500 hover:bg-blue-600 text-white px-8 py-3 rounded-lg font-medium transition-all duration-200"
+                disabled={currentStage === PostStage.GeneratingDraft || currentStage === PostStage.PostingToLinkedIn || (!selectedThemeId && currentStage !== PostStage.DraftReady) || (!selectedTone && currentStage !== PostStage.DraftReady)}
+                className="bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800 text-white px-8 sm:px-10 py-3 rounded-lg font-semibold text-base shadow-md hover:shadow-lg transition-all duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 flex items-center gap-2"
               >
-                {isSubmitting || isGenerating ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Generating LinkedIn Posts...
-                  </>
-                ) : (
-                  'Generate LinkedIn Posts'
-                )}
+                {buttonState.icon}
+                {buttonState.text}
               </Button>
             </div>
           </form>
