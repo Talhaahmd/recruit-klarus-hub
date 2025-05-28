@@ -123,6 +123,22 @@ serve(async (req: Request) => {
     
     const newTheme = newThemeUntyped as ThemeRecord;
 
+    // --- Add to user_themes table ---
+    const { error: userThemeInsertError } = await supabaseAdmin
+      .from('user_themes')
+      .insert({ 
+        user_id: newTheme.created_by, // This comes from themeInput.user_id initially
+        theme_id: newTheme.id 
+      });
+
+    if (userThemeInsertError) {
+      // Log the error, but don't let it block the rest of the process if the main theme was created.
+      // The user might just not see it immediately in "My Themes" but it exists.
+      // Alternatively, you could choose to throw an error here if this link is critical.
+      console.error(`Error inserting into user_themes for theme ${newTheme.id} and user ${newTheme.created_by}:`, userThemeInsertError);
+      // Potentially return a specific status or message indicating partial success
+    }
+
     // --- First OpenAI Call: Generate LinkedIn Post ---
     let postGenerationPrompt = `Generate an engaging LinkedIn post of 500-700 words based on the following theme details. The post should be well-structured, informative, and tailored for a professional audience on LinkedIn.\n\nTheme Details:\n`;
     postGenerationPrompt += `Title: ${newTheme.title}\n`;
