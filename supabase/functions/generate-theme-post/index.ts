@@ -153,7 +153,7 @@ serve(async (req: Request) => {
     const openai = new OpenAI({ apiKey: openAIApiKey });
     const postChatCompletion = await openai.chat.completions.create({
       messages: [{ role: 'user', content: postGenerationPrompt }],
-      model: 'gpt-3.5-turbo-0125',
+      model: 'gpt-4',
     });
 
     const generatedPostContent = postChatCompletion.choices[0]?.message?.content;
@@ -198,7 +198,7 @@ Post Types: ${newTheme.post_types.join(', ')}
     
     const resultsChatCompletion = await openai.chat.completions.create({
         messages: [{ role: 'user', content: resultsPrompt }],
-        model: 'gpt-3.5-turbo-0125',
+        model: 'gpt-4',
         response_format: { type: "json_object" },
     });
 
