@@ -10,8 +10,6 @@ import { Label } from '@/components/UI/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/UI/card';
 import { toast } from 'sonner';
 import { Textarea } from "@/components/UI/textarea";
-import { Header } from '@/components/Layout/PublicLayout';
-import { Footer } from '@/components/Layout/PublicLayout';
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
 const ALLOWED_FILE_TYPES = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];

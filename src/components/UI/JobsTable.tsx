@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Job } from '@/services/jobsService';
 import { 
@@ -13,9 +14,9 @@ import { Eye, Pencil, Trash2 } from 'lucide-react';
 
 interface JobsTableProps {
   jobs: Job[];
-  onEdit: (id: string) => void;
+  onEdit?: (id: string) => void;
   onDelete: (id: string) => void;
-  onView: (job: Job) => void;
+  onView?: (job: Job) => void;
 }
 
 const JobsTable: React.FC<JobsTableProps> = ({ jobs, onEdit, onDelete, onView }) => {
@@ -35,7 +36,7 @@ const JobsTable: React.FC<JobsTableProps> = ({ jobs, onEdit, onDelete, onView })
         <TableBody>
           {jobs.length > 0 ? (
             jobs.map((job) => (
-              <TableRow key={job.id} className="cursor-pointer" onClick={() => onView(job)}>
+              <TableRow key={job.id} className="cursor-pointer" onClick={() => onView?.(job)}>
                 <TableCell className="font-medium">{job.title}</TableCell>
                 <TableCell>{job.location}</TableCell>
                 <TableCell>{job.type}</TableCell>
@@ -43,26 +44,30 @@ const JobsTable: React.FC<JobsTableProps> = ({ jobs, onEdit, onDelete, onView })
                 <TableCell>{job.applicants}</TableCell>
                 <TableCell className="text-right">
                   <div className="flex justify-end gap-2">
-                    <Button 
-                      variant="ghost" 
-                      size="icon" 
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onView(job);
-                      }}
-                    >
-                      <Eye size={16} />
-                    </Button>
-                    <Button 
-                      variant="ghost" 
-                      size="icon"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onEdit(job.id);
-                      }}
-                    >
-                      <Pencil size={16} />
-                    </Button>
+                    {onView && (
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onView(job);
+                        }}
+                      >
+                        <Eye size={16} />
+                      </Button>
+                    )}
+                    {onEdit && (
+                      <Button 
+                        variant="ghost" 
+                        size="icon"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onEdit(job.id);
+                        }}
+                      >
+                        <Pencil size={16} />
+                      </Button>
+                    )}
                     <Button 
                       variant="ghost" 
                       size="icon"

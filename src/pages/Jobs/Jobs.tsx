@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Plus } from 'lucide-react';
 import { Button } from '@/components/UI/button';
@@ -41,6 +42,18 @@ const Jobs: React.FC = () => {
       console.error('Error deleting job:', error);
       toast.error('Failed to delete job');
     }
+  };
+
+  const handleEditJob = (jobId: string) => {
+    // TODO: Implement edit functionality
+    console.log('Edit job:', jobId);
+    toast.info('Edit functionality coming soon');
+  };
+
+  const handleViewJob = (job: Job) => {
+    // TODO: Implement view functionality
+    console.log('View job:', job);
+    toast.info('View functionality coming soon');
   };
 
   const handleAddJob = async (newJobData: any) => {
@@ -99,9 +112,18 @@ const Jobs: React.FC = () => {
       {isLoading ? (
         <p>Loading jobs...</p>
       ) : (
-        <JobsTable jobs={jobs} onDelete={handleDeleteJob} />
+        <JobsTable 
+          jobs={jobs} 
+          onDelete={handleDeleteJob} 
+          onEdit={handleEditJob}
+          onView={handleViewJob}
+        />
       )}
-      <AddJobModal isOpen={showAddModal} onClose={() => setShowAddModal(false)} onAdd={handleAddJob} />
+      <AddJobModal 
+        isOpen={showAddModal} 
+        onClose={() => setShowAddModal(false)} 
+        onSubmit={handleAddJob} 
+      />
     </div>
   );
 };
