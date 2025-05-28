@@ -159,7 +159,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           console.log('AuthContext: Navigating to /dashboard');
           navigate('/dashboard', { replace: true });
         }
-      } else if (!user && !location.pathname.startsWith('/login') && !location.pathname.startsWith('/signup') && location.pathname !== '/') {
+      } else if (!user && 
+                 !isLoading && 
+                 initialSessionChecked && 
+                 !location.pathname.startsWith('/login') && 
+                 !location.pathname.startsWith('/signup') && 
+                 location.pathname !== '/' && 
+                 !isOAuthRedirect() && // Don't redirect if we are in the middle of OAuth hash processing
+                 !location.pathname.startsWith('/linkedin-callback') && // also exclude specific public/handler paths
+                 !location.pathname.startsWith('/linkedin-token-callback') &&
+                 !location.pathname.startsWith('/apply/') // Add other known public paths here
+                ) {
+        console.log('AuthContext: User not authenticated, not on a public page or OAuth callback, navigating to /login. Current path:', location.pathname);
+        navigate('/login', { replace: true });
       }
     }
   }, [user, profile, isLoading, initialSessionChecked, navigate, location]);
