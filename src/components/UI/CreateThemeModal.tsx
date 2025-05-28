@@ -172,7 +172,7 @@ const CreateThemeModal: React.FC<CreateThemeModalProps> = ({
             key={option}
             type="button"
             onClick={() => toggleOption(field, option)}
-            className={`px-3 py-2 rounded-lg border text-sm font-medium transition-all duration-200 ${
+            className={`px-3 py-2 rounded-lg border text-xs sm:text-sm font-medium transition-all duration-200 ${
               (formData[field as keyof typeof formData] as string[]).includes(option)
                 ? 'bg-blue-600 text-white border-blue-600 shadow-md'
                 : 'bg-white text-gray-700 border-gray-200 hover:border-blue-300 hover:bg-blue-50'
@@ -187,13 +187,13 @@ const CreateThemeModal: React.FC<CreateThemeModalProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="w-full max-w-6xl max-h-[90vh] overflow-y-auto mx-4">
         <DialogHeader>
-          <DialogTitle className="text-2xl font-bold">Create Custom Theme</DialogTitle>
+          <DialogTitle className="text-xl sm:text-2xl font-bold">Create Custom Theme</DialogTitle>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
             <div className="space-y-4">
               <div>
                 <Label htmlFor="title">Theme Title *</Label>
@@ -203,6 +203,7 @@ const CreateThemeModal: React.FC<CreateThemeModalProps> = ({
                   onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
                   placeholder="Enter theme title"
                   required
+                  className="mt-1"
                 />
               </div>
 
@@ -214,6 +215,7 @@ const CreateThemeModal: React.FC<CreateThemeModalProps> = ({
                   onChange={(e) => setFormData(prev => ({ ...prev, category: e.target.value }))}
                   placeholder="e.g., Software Engineers, Marketing"
                   required
+                  className="mt-1"
                 />
               </div>
 
@@ -225,6 +227,7 @@ const CreateThemeModal: React.FC<CreateThemeModalProps> = ({
                   onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
                   placeholder="Brief description of the theme"
                   rows={3}
+                  className="mt-1"
                 />
               </div>
 
@@ -235,13 +238,14 @@ const CreateThemeModal: React.FC<CreateThemeModalProps> = ({
                   value={formData.audience}
                   onChange={(e) => setFormData(prev => ({ ...prev, audience: e.target.value }))}
                   placeholder="Who is this theme for?"
+                  className="mt-1"
                 />
               </div>
 
               <div>
                 <Label htmlFor="complexity">Complexity Level</Label>
                 <Select value={formData.complexity} onValueChange={(value: any) => setFormData(prev => ({ ...prev, complexity: value }))}>
-                  <SelectTrigger>
+                  <SelectTrigger className="mt-1">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -253,7 +257,7 @@ const CreateThemeModal: React.FC<CreateThemeModalProps> = ({
               </div>
             </div>
 
-            <div className="space-y-6">
+            <div className="space-y-4 sm:space-y-6">
               {renderOptionsSection('Background & Offering', 'background', backgroundOptions, 'backgroundExplanation')}
               {renderOptionsSection('Purpose', 'purpose', purposeOptions, 'purposeExplanation')}
               {renderOptionsSection('Main Topic', 'mainTopic', mainTopicOptions, 'mainTopicExplanation')}
@@ -262,11 +266,11 @@ const CreateThemeModal: React.FC<CreateThemeModalProps> = ({
             </div>
           </div>
 
-          <div className="flex justify-end gap-3 pt-6 border-t">
-            <Button type="button" variant="outline" onClick={onClose}>
+          <div className="flex flex-col sm:flex-row justify-end gap-3 pt-4 sm:pt-6 border-t">
+            <Button type="button" variant="outline" onClick={onClose} className="w-full sm:w-auto">
               Cancel
             </Button>
-            <Button type="submit" disabled={loading} className="bg-blue-600 hover:bg-blue-700">
+            <Button type="submit" disabled={loading} className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700">
               {loading ? 'Creating...' : 'Create Theme'}
             </Button>
           </div>
