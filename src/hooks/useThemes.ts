@@ -227,20 +227,32 @@ export const useThemes = () => {
   const createThemeWithGeneratedPost = async (
     themeDataFromForm: ThemeInputForEdgeFunction
   ): Promise<{ themeId: string; samplePosts: string[] } | null> => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
-      toast.error('User not authenticated');
-      throw new Error('User not authenticated');
-    }
-
-    const themePayload = {
-      ...themeDataFromForm,
-      user_id: user.id,
-    };
-
     try {
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+
+      console.log('[useThemes] User fetched for theme creation:', user);
+      console.log('[useThemes] User fetch error (if any): ', userError);
+
+      if (userError || !user) {
+        console.error('Error fetching user or user not authenticated:', userError);
+        toast.error('You must be logged in to create a theme.');
+        return null;
+      }
+      if (!user.id) { // Explicit check for user.id
+        console.error('User object fetched, but user.id is missing or undefined.');
+        toast.error('Authentication error: User ID is missing.');
+        return null;
+      }
+
+      const themeDataForFunction = {
+        ...themeDataFromForm,
+        user_id: user.id,
+      };
+
+      console.log('[useThemes] Payload for generate-theme-post Edge Function:', { themeData: themeDataForFunction });
+
       const { data, error } = await supabase.functions.invoke('generate-theme-post', {
-        body: { themeData: themePayload },
+        body: { themeData: themeDataForFunction },
       });
 
       if (error) {

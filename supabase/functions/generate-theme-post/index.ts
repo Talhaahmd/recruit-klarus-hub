@@ -62,11 +62,17 @@ serve(async (req: Request) => {
     return new Response('ok', { headers: corsHeaders });
   }
 
+  console.log('[generate-theme-post] Received request, method:', req.method);
+
   try {
     const requestBody = await req.json();
+    console.log('[generate-theme-post] Full request body:', JSON.stringify(requestBody, null, 2));
+    
     const themeInput: ThemeInputDataFromClient = requestBody.themeData;
+    console.log('[generate-theme-post] Parsed themeInput (themeData from client):', JSON.stringify(themeInput, null, 2));
 
     if (!themeInput || !themeInput.user_id || !themeInput.title) {
+      console.error('[generate-theme-post] Validation Error: Missing themeData, user_id, or title. Received themeInput.user_id:', themeInput?.user_id, 'title:', themeInput?.title);
       return new Response(JSON.stringify({ error: 'Missing themeData, user_id, or title in request body' }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 400,
