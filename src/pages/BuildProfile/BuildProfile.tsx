@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Header } from '@/components/Layout/MainLayout';
 import { Send, Loader2, Check, Mic } from 'lucide-react';
@@ -23,11 +22,12 @@ import { linkedinService, LinkedInPost } from '@/services/linkedinService';
 import { useLinkedInPrompt } from '@/hooks/useLinkedInPrompt';
 import LinkedInPromptModal from '@/components/UI/LinkedInPromptModal';
 import { supabase } from '@/lib/supabase';
+import { useThemes, type Theme } from '@/hooks/useThemes';
 
 const BuildProfile: React.FC = () => {
   const [posts, setPosts] = useState<LinkedInPost[]>([]);
   const [postContent, setPostContent] = useState('');
-  const [selectedNiche, setSelectedNiche] = useState<string>('');
+  const [selectedThemeId, setSelectedThemeId] = useState<string>('');
   const [selectedTone, setSelectedTone] = useState<string>('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [successModal, setSuccessModal] = useState(false);
@@ -36,6 +36,7 @@ const BuildProfile: React.FC = () => {
   const [generatedPost, setGeneratedPost] = useState('');
   
   const { showModal, initiateLinkedInConnect, dismissModal, hasLinkedInToken } = useLinkedInPrompt();
+  const { themes, loading: themesLoading } = useThemes();
 
   useEffect(() => {
     const fetchPosts = async () => {
@@ -131,7 +132,7 @@ const BuildProfile: React.FC = () => {
       
       // Reset form
       setPostContent('');
-      setSelectedNiche('');
+      setSelectedThemeId('');
       setSelectedTone('');
       
       // Show success modal
@@ -147,27 +148,6 @@ const BuildProfile: React.FC = () => {
     }
   };
 
-  const contentTypes = [
-    'Newsletter',
-    'Blog Post',
-    'Case Study',
-    'Tutorial',
-    'Industry News',
-    'Personal Story',
-    'Company Update',
-    'Event Summary'
-  ];
-
-  const tones = [
-    'Professional',
-    'Inspirational',
-    'Conversational',
-    'Thoughtful',
-    'Celebratory',
-    'Educational',
-    'Motivational'
-  ];
-  
   const generateLinkedInPost = async (postData: any) => {
     console.log('Starting LinkedIn post generation process...', postData);
     
@@ -203,6 +183,16 @@ const BuildProfile: React.FC = () => {
     }
   };
   
+  const tones = [
+    'Professional',
+    'Inspirational',
+    'Conversational',
+    'Thoughtful',
+    'Celebratory',
+    'Educational',
+    'Motivational'
+  ];
+  
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
@@ -214,8 +204,8 @@ const BuildProfile: React.FC = () => {
         return;
       }
 
-      if (!selectedNiche) {
-        toast.error('Please select a content type');
+      if (!selectedThemeId) {
+        toast.error('Please select a Theme');
         setIsSubmitting(false);
         return;
       }
@@ -226,9 +216,16 @@ const BuildProfile: React.FC = () => {
         return;
       }
       
+      const selectedThemeObj = themes.find(theme => theme.id === selectedThemeId);
+      if (!selectedThemeObj) {
+          toast.error('Selected theme not found. Please try again.');
+          setIsSubmitting(false);
+          return;
+      }
+
       const postData = {
         content: postContent,
-        niche: selectedNiche,
+        niche: selectedThemeObj.title,
         tone: selectedTone
       };
 
@@ -295,7 +292,7 @@ const BuildProfile: React.FC = () => {
       <div className="max-w-4xl mx-auto">
         <div className="text-right mb-4">
           <span className="text-sm text-gray-600">Remaining Rewrites: </span>
-          <span className="font-semibold text-blue-600">3 / 3</span>
+          <span className="font-semibold text-blue-600">2 / 2</span>
         </div>
 
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
@@ -323,18 +320,22 @@ const BuildProfile: React.FC = () => {
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
               <label className="block text-sm font-medium mb-2">
-                Content Type
+                Theme
               </label>
-              <Select value={selectedNiche} onValueChange={setSelectedNiche}>
+              <Select value={selectedThemeId} onValueChange={setSelectedThemeId} disabled={themesLoading}>
                 <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Newsletter" />
+                  <SelectValue placeholder="Select a Theme" />
                 </SelectTrigger>
                 <SelectContent className="bg-white">
-                  {contentTypes.map((type) => (
-                    <SelectItem key={type} value={type}>
-                      {type}
-                    </SelectItem>
-                  ))}
+                  {themesLoading ? (
+                    <SelectItem value="loading" disabled>Loading themes...</SelectItem>
+                  ) : (
+                    themes.map((theme: Theme) => (
+                      <SelectItem key={theme.id} value={theme.id}>
+                        {theme.title}
+                      </SelectItem>
+                    ))
+                  )}
                 </SelectContent>
               </Select>
               <div className="flex items-center mt-2">

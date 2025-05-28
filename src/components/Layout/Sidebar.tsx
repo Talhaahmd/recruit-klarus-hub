@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { 
@@ -49,7 +48,6 @@ const Sidebar: React.FC<SidebarProps> = ({
       title: 'Content',
       items: [
         { icon: Palette, name: 'Theme', path: '/themes' },
-        { icon: Newspaper, name: 'Posts', path: '/posts' },
         { icon: Lightbulb, name: 'Ideas', path: '/ideas' },
       ]
     },
