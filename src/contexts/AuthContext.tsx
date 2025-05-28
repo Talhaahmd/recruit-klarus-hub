@@ -6,15 +6,6 @@ import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 import { profilesService, type Profile as ProfileType } from '@/services/profilesService';
 
-// Rename the local Profile type to AuthProfile to avoid conflict
-type AuthProfile = {
-  id: string;
-  full_name: string | null;
-  company: string | null;
-  avatar_url: string | null;
-};
-
-// Context type
 type AuthContextType = {
   user: User | null;
   profile: ProfileType | null;
@@ -37,7 +28,6 @@ export const useAuth = () => {
   return context;
 };
 
-// Fixed redirect URL - always redirect to dashboard after auth
 const REDIRECT_TO = `${window.location.protocol}//${window.location.host}/dashboard`;
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -45,16 +35,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [profile, setProfile] = useState<ProfileType | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [initialSessionChecked, setInitialSessionChecked] = useState<boolean>(false);
+  const [authReady, setAuthReady] = useState<boolean>(false);
   const navigate = useNavigate();
   const location = useLocation();
-
-  // Check if we're in an OAuth redirect scenario
-  const isOAuthRedirect = () => {
-    return window.location.hash.includes('access_token') || 
-           window.location.search.includes('code=') ||
-           sessionStorage.getItem('processing_oauth_login') === 'true';
-  };
 
   const fetchProfile = async (userId: string) => {
     try {
@@ -63,7 +46,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (profileData) {
         setProfile(profileData);
       } else {
-        // If no profile exists, create one with basic info from auth
         const userMeta = session?.user?.user_metadata || {};
         const newProfileData = {
           full_name: userMeta.full_name ?? userMeta.name ?? '',
@@ -84,116 +66,101 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   useEffect(() => {
-    console.log('🔄 AuthProvider initializing auth state...');
+    let mounted = true;
     
+    const initializeAuth = async () => {
+      try {
+        console.log('🔄 Initializing auth...');
+        
+        // Get initial session
+        const { data: { session: initialSession } } = await supabase.auth.getSession();
+        
+        if (mounted) {
+          if (initialSession?.user) {
+            console.log('✅ Found existing session');
+            setSession(initialSession);
+            setUser(initialSession.user);
+            await fetchProfile(initialSession.user.id);
+          } else {
+            console.log('❌ No existing session');
+          }
+          setAuthReady(true);
+          setIsLoading(false);
+        }
+      } catch (error) {
+        console.error('Auth initialization error:', error);
+        if (mounted) {
+          setAuthReady(true);
+          setIsLoading(false);
+        }
+      }
+    };
+
+    // Set up auth state change listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, currentSession) => {
-        console.log('🔐 Auth state changed:', event, !!currentSession);
-        setIsLoading(true);
+        if (!mounted) return;
         
-        if (currentSession) {
-          setSession(currentSession);
-          setUser(currentSession.user);
-
-          if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED') {
-            if (event === 'SIGNED_IN') {
-              console.log('✅ User signed in:', currentSession.user.email);
-              if (sessionStorage.getItem('processing_oauth_login')) {
-                console.log('🔄 Processing OAuth redirect...');
-                sessionStorage.removeItem('processing_oauth_login');
-              }
-              
-              // Redirect to dashboard after successful login
-              setTimeout(() => {
-                console.log('🚀 Redirecting to dashboard after login');
-                navigate('/dashboard', { replace: true });
-              }, 100);
-            }
-            await fetchProfile(currentSession.user.id);
-          }
-        } else if (event === 'SIGNED_OUT') {
-          console.log('👋 User signed out');
-          setSession(null);
-          setUser(null);
-          setProfile(null);
-          if (location.pathname !== '/login' && location.pathname !== '/signup' && location.pathname !== '/') {
-            navigate('/login');
-          }
-        }
-        setInitialSessionChecked(true);
-        setIsLoading(false);
-      }
-    );
-
-    const initializeAuth = async () => {
-      setIsLoading(true);
-      try {
-        const { data: { session: currentSession } } = await supabase.auth.getSession();
-        console.log('📝 Initial session check:', !!currentSession);
+        console.log('🔐 Auth state changed:', event, !!currentSession);
         
         if (currentSession?.user) {
           setSession(currentSession);
           setUser(currentSession.user);
-          if (!isOAuthRedirect()) {
+          
+          if (event === 'SIGNED_IN') {
+            console.log('✅ User signed in, redirecting to dashboard');
             await fetchProfile(currentSession.user.id);
+            navigate('/dashboard', { replace: true });
+          }
+        } else {
+          setSession(null);
+          setUser(null);
+          setProfile(null);
+          
+          if (event === 'SIGNED_OUT') {
+            console.log('👋 User signed out');
+            navigate('/login', { replace: true });
           }
         }
-      } catch (error) {
-        console.error('Error checking session:', error);
-      } finally {
-        setInitialSessionChecked(true);
+        
+        setAuthReady(true);
         setIsLoading(false);
       }
-    };
+    );
 
     initializeAuth();
 
-    return () => subscription.unsubscribe();
-  }, [navigate, location]);
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
+  }, []);
 
+  // Handle redirects based on auth state
   useEffect(() => {
-    if (!isLoading && initialSessionChecked) {
-      if (user && profile) {
-        console.log('AuthContext: User authenticated and profile loaded, current path:', location.pathname);
-        // Only redirect if we're on auth pages or root
-        if (location.pathname === '/login' || 
-            location.pathname === '/signup' || 
-            location.pathname === '/' ||
-            location.pathname === '/index') {
-          console.log('AuthContext: Navigating to /dashboard from auth page');
-          navigate('/dashboard', { replace: true });
-        }
-      } else if (!user && 
-                 !isLoading && 
-                 initialSessionChecked && 
-                 !location.pathname.startsWith('/login') && 
-                 !location.pathname.startsWith('/signup') && 
-                 location.pathname !== '/' && 
-                 !isOAuthRedirect() && 
-                 !location.pathname.startsWith('/linkedin-callback') && 
-                 !location.pathname.startsWith('/linkedin-token-callback') &&
-                 !location.pathname.startsWith('/apply/')) {
-        console.log('AuthContext: User not authenticated, not on a public page or OAuth callback, navigating to /login. Current path:', location.pathname);
-        navigate('/login', { replace: true });
-      }
+    if (!authReady || isLoading) return;
+
+    const isPublicRoute = location.pathname === '/' || 
+                         location.pathname === '/login' || 
+                         location.pathname === '/signup' ||
+                         location.pathname.startsWith('/apply/');
+
+    if (user && isPublicRoute) {
+      console.log('Authenticated user on public route, redirecting to dashboard');
+      navigate('/dashboard', { replace: true });
+    } else if (!user && !isPublicRoute) {
+      console.log('Unauthenticated user on protected route, redirecting to login');
+      navigate('/login', { replace: true });
     }
-  }, [user, profile, isLoading, initialSessionChecked, navigate, location]);
+  }, [user, authReady, isLoading, location.pathname, navigate]);
 
   const login = async (email: string, password: string) => {
     setIsLoading(true);
     try {
-      console.log('Attempting to login with email:', email);
-      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-      
-      if (error) {
-        console.error('Login error:', error);
-        throw error;
-      }
-      
-      console.log('Login successful, session:', !!data.session);
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) throw error;
       toast.success('Login successful');
     } catch (error: any) {
-      console.error('Login failed:', error.message);
       toast.error(error.message || 'Login failed');
       throw error;
     } finally {
@@ -204,7 +171,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const signup = async (name: string, email: string, password: string) => {
     setIsLoading(true);
     try {
-      console.log('Attempting to sign up with email:', email);
       const { error } = await supabase.auth.signUp({
         email,
         password,
@@ -213,16 +179,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           emailRedirectTo: REDIRECT_TO
         },
       });
-      
-      if (error) {
-        console.error('Signup error:', error);
-        throw error;
-      }
-      
-      console.log('Signup successful');
+      if (error) throw error;
       toast.success('Registration successful! Check your email.');
     } catch (error: any) {
-      console.error('Signup failed:', error.message);
       toast.error(error.message || 'Signup failed');
       throw error;
     } finally {
@@ -232,92 +191,42 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const loginWithGoogle = async () => {
     try {
-      console.log('Initiating Google login...');
-      sessionStorage.setItem('processing_oauth_login', 'true');
-      
-      const { data, error } = await supabase.auth.signInWithOAuth({
+      const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
-        options: { 
-          redirectTo: REDIRECT_TO,
-          queryParams: {
-            access_type: 'offline',
-            prompt: 'consent',
-          }
-        },
+        options: { redirectTo: REDIRECT_TO },
       });
-      
-      if (error) {
-        console.error('Google login error:', error);
-        throw error;
-      }
-      
-      console.log('Google login initiated, URL:', data.url);
+      if (error) throw error;
     } catch (error: any) {
-      console.error('Google login failed:', error.message);
       toast.error(error.message || 'Google login failed');
-      sessionStorage.removeItem('processing_oauth_login');
     }
   };
 
   const loginWithLinkedIn = async () => {
     try {
-      console.log('Initiating LinkedIn login...');
-      sessionStorage.setItem('processing_oauth_login', 'true');
-      
-      const { data, error } = await supabase.auth.signInWithOAuth({
+      const { error } = await supabase.auth.signInWithOAuth({
         provider: 'linkedin_oidc',
-        options: { 
-          redirectTo: REDIRECT_TO,
-          queryParams: {
-            access_type: 'offline',
-            prompt: 'consent',
-          }
-        },
+        options: { redirectTo: REDIRECT_TO },
       });
-      
-      if (error) {
-        console.error('LinkedIn login error:', error);
-        throw error;
-      }
-      
-      console.log('LinkedIn login initiated, URL:', data.url);
+      if (error) throw error;
     } catch (error: any) {
-      console.error('LinkedIn login failed:', error.message);
       toast.error(error.message || 'LinkedIn login failed');
-      sessionStorage.removeItem('processing_oauth_login');
     }
   };
 
   const logout = async () => {
     try {
-      console.log('Attempting to log out...');
       const { error } = await supabase.auth.signOut();
-      
-      if (error) {
-        console.error('Logout error:', error);
-        throw error;
-      }
-      
-      setUser(null);
-      setProfile(null);
-      setSession(null);
-      console.log('Logout successful');
+      if (error) throw error;
       toast.success('Logged out');
-      navigate('/login', { replace: true });
     } catch (error: any) {
-      console.error('Logout failed:', error.message);
       toast.error(error.message || 'Logout failed');
     }
   };
 
   const updateProfile = async (data: Partial<ProfileType>) => {
-    if (!user) {
-      console.error('No user to update profile for');
-      return;
-    }
+    if (!user) return;
     
     try {
-      // Make sure we include all required fields for ProfileUpdateInput
       const updateData = {
         ...data,
         phone: data.phone !== undefined ? data.phone : profile?.phone,
@@ -332,7 +241,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setProfile(updatedProfile);
       }
     } catch (error: any) {
-      console.error('Profile update failed:', error.message);
       toast.error(error.message || 'Profile update failed');
     }
   };
@@ -345,7 +253,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         session,
         isAuthenticated: !!user,
         isLoading,
-        authReady: initialSessionChecked,
+        authReady,
         login,
         signup,
         loginWithGoogle,

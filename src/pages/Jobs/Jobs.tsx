@@ -1,57 +1,24 @@
 import React, { useState, useEffect } from 'react';
-import { Header } from '@/components/Layout/MainLayout';
-import { toast } from 'sonner';
+import { Plus } from 'lucide-react';
 import { Button } from '@/components/UI/button';
 import JobsTable from '@/components/UI/JobsTable';
-import AddJobModal, { NewJobData } from '@/components/UI/JobsComponents/AddJobModal';
-import JobDetailsModal from '@/components/UI/JobDetailsModal';
-import { Job, JobInput } from '@/services/jobsService';
-import { PlusCircle, Loader2, AlertCircle } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
-import { useLinkedInAutoPost } from '@/hooks/useLinkedInAutoPost';
-import { useLinkedInPrompt } from '@/hooks/useLinkedInPrompt';
-import LinkedInPromptModal from '@/components/UI/LinkedInPromptModal';
-import { jobsService } from '@/services/jobsService';
+import AddJobModal from '@/components/UI/JobsComponents/AddJobModal';
 import { useAuth } from '@/contexts/AuthContext';
+import { Job, jobsService } from '@/services/jobsService';
+import { useLinkedInPrompt } from '@/hooks/useLinkedInPrompt';
+import { toast } from 'sonner';
 
-const Jobs = () => {
-  const [isAddJobModalOpen, setIsAddJobModalOpen] = useState(false);
-  const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
-  const [selectedJob, setSelectedJob] = useState<Job | null>(null);
+const Jobs: React.FC = () => {
   const [jobs, setJobs] = useState<Job[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const navigate = useNavigate();
-  const { autoPostToLinkedIn, isPosting } = useLinkedInAutoPost();
-  const { showModal, initiateLinkedInConnect, dismissModal } = useLinkedInPrompt();
+  const [showAddModal, setShowAddModal] = useState(false);
+  const { user } = useAuth();
+  const { initiateLinkedInConnect, hasLinkedInToken } = useLinkedInPrompt();
 
-  // Fetch jobs on mount
-  useEffect(() => {
-    fetchJobs();
-  }, []);
-
-  // Handle URL cleanup after LinkedIn callback
-  useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const linkedInConnected = urlParams.get('linkedin_connected');
-    
-    if (linkedInConnected === 'true') {
-      console.log('LinkedIn connected callback detected, refreshing jobs...');
-      
-      // Clean up URL
-      window.history.replaceState({}, document.title, window.location.pathname);
-      
-      // Refresh jobs to show any newly created job
-      setTimeout(() => {
-        fetchJobs();
-      }, 3000);
-    }
-  }, []);
-
-  const fetchJobs = async () => {
+  const loadJobs = async () => {
     setIsLoading(true);
     try {
       const fetchedJobs = await jobsService.getJobs();
-      console.log('Fetched jobs:', fetchedJobs);
       setJobs(fetchedJobs);
     } catch (error) {
       console.error('Error fetching jobs:', error);
@@ -61,135 +28,80 @@ const Jobs = () => {
     }
   };
 
-  const handleAddJobClick = () => {
-    setIsAddJobModalOpen(true);
-  };
+  useEffect(() => {
+    loadJobs();
+  }, []);
 
-  const handleCloseModal = () => {
-    setIsAddJobModalOpen(false);
-  };
-
-  const handleSaveJob = async (data: NewJobData) => {
-    console.log('Job data received, always requesting fresh LinkedIn authentication...');
-    
-    // Close the add job modal
-    setIsAddJobModalOpen(false);
-    
-    // Always request fresh LinkedIn authentication for every job post
-    toast.info('Requesting fresh LinkedIn authentication for job posting...');
-    await initiateLinkedInConnect(data);
-  };
-
-  const handleEditJob = (id: string) => {
-    console.log('Edit job:', id);
-    // To be implemented
-  };
-
-  const handleDeleteJob = async (id: string) => {
+  const handleDeleteJob = async (jobId: string) => {
     try {
-      const success = await jobsService.deleteJob(id);
-      if (success) {
-        setJobs(jobs.filter(job => job.id !== id));
-        toast.success('Job deleted successfully');
-      } else {
-        toast.error('Failed to delete job');
-      }
+      await jobsService.deleteJob(jobId);
+      setJobs(jobs.filter((job) => job.id !== jobId));
+      toast.success('Job deleted successfully');
     } catch (error) {
       console.error('Error deleting job:', error);
-      toast.error('An error occurred while deleting the job');
+      toast.error('Failed to delete job');
     }
   };
 
-  const handleViewJob = (job: Job) => {
-    setSelectedJob(job);
-    setIsDetailsModalOpen(true);
-  };
+  const handleAddJob = async (newJobData: any) => {
+    if (!user) {
+      toast.error('You must be logged in to create jobs');
+      return;
+    }
 
-  const handleLinkedInConnect = async () => {
-    console.log('User confirmed LinkedIn connection for job posting');
-    // The flow is already handled by the hook
-  };
+    try {
+      console.log('Creating job with data:', newJobData);
+      
+      if (newJobData.postToLinkedIn && !hasLinkedInToken) {
+        console.log('LinkedIn posting requested but no token, initiating OAuth...');
+        await initiateLinkedInConnect({ 
+          callbackSource: 'job_creation',
+          postData: newJobData 
+        });
+        return;
+      }
 
-  const handleLinkedInDismiss = () => {
-    console.log('User dismissed LinkedIn connection');
-    dismissModal();
-    toast.info('Job posting cancelled - LinkedIn authentication required');
+      const jobInput = {
+        title: newJobData.title,
+        description: newJobData.description,
+        location: newJobData.location,
+        type: newJobData.type,
+        workplace_type: newJobData.workplaceType,
+        technologies: newJobData.technologies,
+        status: 'Active',
+        posted_date: new Date().toISOString().split('T')[0],
+        active_days: newJobData.activeDays,
+        applicants: 0,
+      };
+
+      const createdJob = await jobsService.createJob(jobInput);
+
+      if (createdJob) {
+        setJobs([...jobs, createdJob]);
+        setShowAddModal(false);
+        toast.success('Job created successfully');
+        loadJobs();
+      } else {
+        toast.error('Failed to create job');
+      }
+    } catch (error) {
+      console.error('Error creating job:', error);
+      toast.error('Failed to create job');
+    }
   };
 
   return (
     <div className="container mx-auto p-4">
-      <Header 
-        title="Jobs Management" 
-        subtitle="Create and manage job postings"
-      />
-
-     
-
-      <div className="mb-6 flex justify-between items-center">
-        <div>
-          <h2 className="text-lg font-medium">All Jobs ({jobs.length})</h2>
-          <p className="text-sm text-gray-500">Manage your active and closed job postings</p>
-        </div>
-        <Button 
-          onClick={handleAddJobClick} 
-          disabled={isPosting}
-          className="flex items-center gap-2 bg-primary-100 hover:bg-primary-100/90"
-        >
-          {isPosting ? (
-            <>
-              <Loader2 className="h-4 w-4 animate-spin" />
-              Posting to LinkedIn...
-            </>
-          ) : (
-            <>
-              <PlusCircle size={16} />
-              Post New Job
-            </>
-          )}
-        </Button>
+      <div className="flex justify-between items-center mb-4">
+        <h1 className="text-2xl font-bold">Jobs</h1>
+        <Button onClick={() => setShowAddModal(true)}><Plus className="mr-2" /> Add Job</Button>
       </div>
-
       {isLoading ? (
-        <div className="flex justify-center items-center h-64">
-          <Loader2 className="h-8 w-8 animate-spin text-primary-100" />
-        </div>
-      ) : jobs.length > 0 ? (
-        <JobsTable 
-          jobs={jobs} 
-          onEdit={handleEditJob} 
-          onDelete={handleDeleteJob} 
-          onView={handleViewJob} 
-        />
+        <p>Loading jobs...</p>
       ) : (
-        <div className="glass-card p-8 text-center">
-          <h3 className="text-lg font-medium mb-2">No jobs posted yet</h3>
-          <p className="text-gray-500 mb-4">Create your first job posting to start receiving applications</p>
-          <Button onClick={handleAddJobClick} variant="outline" className="flex items-center gap-2 mx-auto">
-            <PlusCircle size={16} />
-            Post New Job
-          </Button>
-        </div>
+        <JobsTable jobs={jobs} onDelete={handleDeleteJob} />
       )}
-
-      <AddJobModal 
-        isOpen={isAddJobModalOpen} 
-        onClose={handleCloseModal} 
-        onSave={handleSaveJob} 
-      />
-
-      {selectedJob && (
-        <JobDetailsModal 
-          job={selectedJob}
-          isOpen={isDetailsModalOpen}
-          onClose={() => setIsDetailsModalOpen(false)}
-        />
-      )}
-
-      <LinkedInPromptModal
-        isOpen={showModal}
-        onConnect={handleLinkedInConnect}
-        onDismiss={handleLinkedInDismiss}
-      />
+      <AddJobModal isOpen={showAddModal} onClose={() => setShowAddModal(false)} onAdd={handleAddJob} />
     </div>
   );
 };
