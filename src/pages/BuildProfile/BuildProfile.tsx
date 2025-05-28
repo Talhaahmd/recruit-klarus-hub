@@ -411,7 +411,7 @@ const BuildProfile: React.FC = () => {
                   ? "Optionally, provide some initial ideas, key points, or a snippet of your article. The AI will use this along with the selected theme's style to generate a draft."
                   : "Review and edit the generated draft below. When you're satisfied, click 'Post to LinkedIn'."
                 }
-                className="min-h-[300px] sm:min-h-[350px] resize-none w-full p-3 border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-base leading-relaxed focus:ring-2 focus:ring-indigo-500"
+                className="w-full p-3 border border-gray-700 rounded-lg bg-gray-800 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors duration-200 ease-in-out shadow-sm"
                 value={postContent}
                 onChange={(e) => setPostContent(e.target.value)}
                 disabled={currentStage === PostStage.GeneratingDraft || currentStage === PostStage.PostingToLinkedIn}
