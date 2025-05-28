@@ -37,6 +37,7 @@ import Calendar from "./pages/Calendar/Calendar";
 import BuildProfile from "./pages/BuildProfile/BuildProfile";
 import Theme from "./pages/Theme/Theme";
 import Settings from "./pages/Settings/Settings";
+import BillingPage from "./pages/Settings/BillingPage";
 import NotFound from "./pages/NotFound";
 import Leads from "./pages/Leads/Leads";
 
@@ -129,6 +130,7 @@ const App = () => (
                 <Route path="ideas" element={<BuildProfile />} />
                 <Route path="leads" element={<Leads />} />
                 <Route path="settings" element={<Settings />} />
+                <Route path="settings/billing" element={<BillingPage />} />
               </Route>
 
               <Route path="/index" element={<Navigate to="/dashboard" />} />
