@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { Session, User } from '@supabase/supabase-js';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 import { profilesService, type Profile as ProfileType } from '@/services/profilesService';
@@ -46,6 +47,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [initialSessionChecked, setInitialSessionChecked] = useState<boolean>(false);
+  const navigate = useNavigate();
+  const location = useLocation();
 
   // Check if we're in an OAuth redirect scenario
   const isOAuthRedirect = () => {
@@ -84,44 +87,41 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     console.log('🔄 AuthProvider initializing auth state...');
     
-    // First set up the auth state change listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, currentSession) => {
         console.log('🔐 Auth state changed:', event, !!currentSession);
+        setIsLoading(true);
         
         if (currentSession) {
           setSession(currentSession);
           setUser(currentSession.user);
 
-          if (event === 'SIGNED_IN') {
-            console.log('✅ User signed in:', currentSession.user.email);
-            
-            // Clear OAuth processing flag
-            if (sessionStorage.getItem('processing_oauth_login')) {
-              console.log('🔄 Processing OAuth redirect...');
-              sessionStorage.removeItem('processing_oauth_login');
-              toast.success('Signed in successfully');
+          if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED') {
+            if (event === 'SIGNED_IN') {
+              console.log('✅ User signed in:', currentSession.user.email);
+              if (sessionStorage.getItem('processing_oauth_login')) {
+                console.log('🔄 Processing OAuth redirect...');
+                sessionStorage.removeItem('processing_oauth_login');
+              }
             }
-            
-            // Fetch profile after a slight delay to avoid potential deadlocks
-            setTimeout(() => {
-              fetchProfile(currentSession.user.id);
-            }, 0);
+            await fetchProfile(currentSession.user.id);
           }
         } else if (event === 'SIGNED_OUT') {
           console.log('👋 User signed out');
           setSession(null);
           setUser(null);
           setProfile(null);
+          if (location.pathname !== '/login' && location.pathname !== '/signup') {
+            navigate('/login');
+          }
         }
-
-        setIsLoading(false);
         setInitialSessionChecked(true);
+        setIsLoading(false);
       }
     );
 
-    // Then check for existing session
     const initializeAuth = async () => {
+      setIsLoading(true);
       try {
         const { data: { session: currentSession } } = await supabase.auth.getSession();
         console.log('📝 Initial session check:', !!currentSession);
@@ -129,9 +129,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (currentSession?.user) {
           setSession(currentSession);
           setUser(currentSession.user);
-          
-          // Only fetch profile if not in an OAuth redirect
-          // This prevents duplicate profile fetches during auth state changes
           if (!isOAuthRedirect()) {
             await fetchProfile(currentSession.user.id);
           }
@@ -139,15 +136,33 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       } catch (error) {
         console.error('Error checking session:', error);
       } finally {
-        setIsLoading(false);
         setInitialSessionChecked(true);
+        setIsLoading(false);
       }
     };
 
     initializeAuth();
 
     return () => subscription.unsubscribe();
-  }, []);
+  }, [navigate, location]);
+
+  useEffect(() => {
+    if (!isLoading && initialSessionChecked) {
+      if (user && profile) {
+        console.log('AuthContext: User authenticated and profile loaded, current path:', location.pathname);
+        if (!location.pathname.startsWith('/dashboard') && 
+            location.pathname !== '/settings' && !location.pathname.startsWith('/settings/') &&
+            !location.pathname.startsWith('/build-profile') &&
+            !location.pathname.startsWith('/linkedin-callback') &&
+            !location.pathname.startsWith('/linkedin-token-callback') 
+           ) {
+          console.log('AuthContext: Navigating to /dashboard');
+          navigate('/dashboard', { replace: true });
+        }
+      } else if (!user && !location.pathname.startsWith('/login') && !location.pathname.startsWith('/signup') && location.pathname !== '/') {
+      }
+    }
+  }, [user, profile, isLoading, initialSessionChecked, navigate, location]);
 
   const login = async (email: string, password: string) => {
     setIsLoading(true);
