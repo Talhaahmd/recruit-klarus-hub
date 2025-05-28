@@ -42,6 +42,7 @@ export const leadsService = {
 
     return data?.map(lead => ({
       ...lead,
+      prospect_status: lead.prospect_status as 'Lead' | 'Qualified' | 'Opportunity' | 'Customer',
       labels: lead.lead_labels?.map((ll: any) => ll.labels) || []
     })) || [];
   },
@@ -75,7 +76,10 @@ export const leadsService = {
       if (labelError) throw labelError;
     }
 
-    return data;
+    return {
+      ...data,
+      prospect_status: data.prospect_status as 'Lead' | 'Qualified' | 'Opportunity' | 'Customer'
+    };
   },
 
   async updateLead(id: string, updates: Partial<Lead>): Promise<Lead> {
@@ -87,7 +91,10 @@ export const leadsService = {
       .single();
 
     if (error) throw error;
-    return data;
+    return {
+      ...data,
+      prospect_status: data.prospect_status as 'Lead' | 'Qualified' | 'Opportunity' | 'Customer'
+    };
   },
 
   async deleteLead(id: string): Promise<void> {

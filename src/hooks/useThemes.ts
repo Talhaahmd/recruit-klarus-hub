@@ -1,48 +1,39 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 
 export interface Theme {
   id: string;
   title: string;
-  category: string;
   description: string;
-  audience: string;
-  objectives: string[];
-  post_types: string[];
-  complexity: 'Beginner' | 'Intermediate' | 'Advanced';
-  results: {
-    revenue: string;
-    cac: string;
-    churn: string;
-  };
-  details: {
-    background: string;
-    purpose: string;
-    mainTopic: string;
-    targetAudience: string;
-    complexityLevel: string;
-  };
-  background_explanation?: string;
-  purpose_explanation?: string;
-  main_topic_explanation?: string;
-  target_audience_explanation?: string;
-  complexity_explanation?: string;
+  category: string;
   is_custom: boolean;
   created_by?: string;
   created_at: string;
   updated_at: string;
+  details?: any;
+  results?: any;
+  complexity?: string;
+  objectives?: string[];
+  audience?: string;
+  post_types?: string[];
   sample_posts?: string[];
+  purpose_explanation?: string;
+  main_topic_explanation?: string;
+  background_explanation?: string;
+  target_audience_explanation?: string;
+  complexity_explanation?: string;
   posts_to_expect_1?: string;
   posts_to_expect_2?: string;
 }
 
 export interface UserTheme {
   id: string;
+  user_id: string;
   theme_id: string;
-  customization?: any;
   added_at: string;
+  customization?: any;
   theme: Theme;
 }
 
@@ -50,7 +41,6 @@ export const useThemes = () => {
   const [themes, setThemes] = useState<Theme[]>([]);
   const [userThemes, setUserThemes] = useState<UserTheme[]>([]);
   const [loading, setLoading] = useState(true);
-  const { toast } = useToast();
 
   const fetchThemes = async () => {
     try {
@@ -60,26 +50,21 @@ export const useThemes = () => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      
-      // Type assertion to ensure proper typing
-      const typedData = (data || []).map(theme => ({
+
+      // Ensure sample_posts is always an array
+      const processedThemes = data?.map(theme => ({
         ...theme,
-        complexity: theme.complexity as 'Beginner' | 'Intermediate' | 'Advanced',
-        results: theme.results as { revenue: string; cac: string; churn: string; },
-        details: theme.details as { background: string; purpose: string; mainTopic: string; targetAudience: string; complexityLevel: string; },
-        sample_posts: theme.sample_posts || [],
-        posts_to_expect_1: theme.posts_to_expect_1 || '',
-        posts_to_expect_2: theme.posts_to_expect_2 || ''
-      }));
-      
-      setThemes(typedData);
+        sample_posts: Array.isArray(theme.sample_posts) 
+          ? theme.sample_posts 
+          : typeof theme.sample_posts === 'string' 
+            ? [theme.sample_posts] 
+            : []
+      })) || [];
+
+      setThemes(processedThemes);
     } catch (error) {
       console.error('Error fetching themes:', error);
-      toast({
-        title: "Error",
-        description: "Failed to fetch themes",
-        variant: "destructive",
-      });
+      toast.error('Failed to fetch themes');
     }
   };
 
@@ -98,83 +83,50 @@ export const useThemes = () => {
         .order('added_at', { ascending: false });
 
       if (error) throw error;
-      
-      // Type assertion to ensure proper typing
-      const typedData = (data || []).map(userTheme => ({
+
+      // Process the nested theme data to ensure sample_posts is an array
+      const processedUserThemes = data?.map(userTheme => ({
         ...userTheme,
         theme: {
           ...userTheme.theme,
-          complexity: userTheme.theme.complexity as 'Beginner' | 'Intermediate' | 'Advanced',
-          results: userTheme.theme.results as { revenue: string; cac: string; churn: string; },
-          details: userTheme.theme.details as { background: string; purpose: string; mainTopic: string; targetAudience: string; complexityLevel: string; },
-          sample_posts: userTheme.theme.sample_posts || [],
-          posts_to_expect_1: userTheme.theme.posts_to_expect_1 || '',
-          posts_to_expect_2: userTheme.theme.posts_to_expect_2 || ''
+          sample_posts: Array.isArray(userTheme.theme.sample_posts) 
+            ? userTheme.theme.sample_posts 
+            : typeof userTheme.theme.sample_posts === 'string' 
+              ? [userTheme.theme.sample_posts] 
+              : []
         }
-      }));
-      
-      setUserThemes(typedData);
+      })) || [];
+
+      setUserThemes(processedUserThemes);
     } catch (error) {
       console.error('Error fetching user themes:', error);
-      toast({
-        title: "Error",
-        description: "Failed to fetch your themes",
-        variant: "destructive",
-      });
+      toast.error('Failed to fetch your themes');
     }
   };
 
-  const addThemeToCollection = async (themeId: string, customization?: any) => {
+  const addThemeToUser = async (themeId: string) => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        toast({
-          title: "Authentication required",
-          description: "Please log in to add themes to your collection",
-          variant: "destructive",
-        });
-        return false;
-      }
+      if (!user) throw new Error('Not authenticated');
 
       const { error } = await supabase
         .from('user_themes')
         .insert({
           user_id: user.id,
-          theme_id: themeId,
-          customization: customization || null,
+          theme_id: themeId
         });
 
-      if (error) {
-        if (error.code === '23505') {
-          toast({
-            title: "Theme already added",
-            description: "This theme is already in your collection",
-            variant: "destructive",
-          });
-          return false;
-        }
-        throw error;
-      }
-
-      toast({
-        title: "Success",
-        description: "Theme added to your collection",
-      });
+      if (error) throw error;
 
       await fetchUserThemes();
-      return true;
-    } catch (error) {
+      toast.success('Theme added successfully');
+    } catch (error: any) {
       console.error('Error adding theme:', error);
-      toast({
-        title: "Error",
-        description: "Failed to add theme to collection",
-        variant: "destructive",
-      });
-      return false;
+      toast.error(error.message || 'Failed to add theme');
     }
   };
 
-  const removeThemeFromCollection = async (userThemeId: string) => {
+  const removeThemeFromUser = async (userThemeId: string) => {
     try {
       const { error } = await supabase
         .from('user_themes')
@@ -183,87 +135,39 @@ export const useThemes = () => {
 
       if (error) throw error;
 
-      toast({
-        title: "Success",
-        description: "Theme removed from your collection",
-      });
-
       await fetchUserThemes();
-      return true;
-    } catch (error) {
+      toast.success('Theme removed successfully');
+    } catch (error: any) {
       console.error('Error removing theme:', error);
-      toast({
-        title: "Error",
-        description: "Failed to remove theme",
-        variant: "destructive",
-      });
-      return false;
+      toast.error(error.message || 'Failed to remove theme');
     }
   };
 
-  const createCustomTheme = async (themeData: Partial<Theme>) => {
+  const createCustomTheme = async (themeData: Omit<Theme, 'id' | 'created_at' | 'updated_at' | 'created_by'>) => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        toast({
-          title: "Authentication required",
-          description: "Please log in to create custom themes",
-          variant: "destructive",
-        });
-        return false;
-      }
-
-      // Generate sample posts using ChatGPT
-      const { data: samplePostsData, error: postsError } = await supabase.functions.invoke('generate-content', {
-        body: {
-          action: 'generate_sample_posts',
-          themeData: themeData,
-        },
-      });
-
-      if (postsError) {
-        console.error('Error generating sample posts:', postsError);
-      }
+      if (!user) throw new Error('Not authenticated');
 
       const { data, error } = await supabase
         .from('themes')
         .insert({
-          title: themeData.title || '',
-          category: themeData.category || '',
-          description: themeData.description,
-          audience: themeData.audience,
-          objectives: themeData.objectives,
-          post_types: themeData.post_types,
-          complexity: themeData.complexity,
-          results: themeData.results,
-          details: themeData.details,
+          ...themeData,
           is_custom: true,
           created_by: user.id,
-          sample_posts: samplePostsData?.posts || [],
+          sample_posts: Array.isArray(themeData.sample_posts) ? themeData.sample_posts : []
         })
         .select()
         .single();
 
       if (error) throw error;
 
-      // Automatically add the custom theme to user's collection
-      await addThemeToCollection(data.id);
-
-      toast({
-        title: "Success",
-        description: "Custom theme created and added to your collection",
-      });
-
       await fetchThemes();
+      toast.success('Custom theme created successfully');
       return data;
-    } catch (error) {
-      console.error('Error creating theme:', error);
-      toast({
-        title: "Error",
-        description: "Failed to create custom theme",
-        variant: "destructive",
-      });
-      return false;
+    } catch (error: any) {
+      console.error('Error creating custom theme:', error);
+      toast.error(error.message || 'Failed to create custom theme');
+      throw error;
     }
   };
 
@@ -281,10 +185,10 @@ export const useThemes = () => {
     themes,
     userThemes,
     loading,
-    addThemeToCollection,
-    removeThemeFromCollection,
-    createCustomTheme,
-    refreshThemes: fetchThemes,
-    refreshUserThemes: fetchUserThemes,
+    fetchThemes,
+    fetchUserThemes,
+    addThemeToUser,
+    removeThemeFromUser,
+    createCustomTheme
   };
 };
