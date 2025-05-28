@@ -6,7 +6,7 @@ import { Save, Moon, Sun } from 'lucide-react';
 import { useTheme } from '@/contexts/ThemeContext';
 import { Switch } from '@/components/UI/switch';
 import { profilesService } from '@/services/profilesService';
-import { supabase } from '@/integrations/supabase/client'; // Added missing import
+import { supabase } from '@/lib/supabase';
 
 const Settings: React.FC = () => {
   const { user } = useAuth();

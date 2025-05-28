@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/UI/dialog';
 import { Button } from '@/components/UI/button';
@@ -7,7 +6,7 @@ import { Textarea } from '@/components/UI/textarea';
 import { Label } from '@/components/UI/label';
 import { Mail, Send } from 'lucide-react';
 import { toast } from 'sonner';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/lib/supabase';
 import type { LeadWithLabels } from '@/services/leadsService';
 
 interface EmailModalProps {

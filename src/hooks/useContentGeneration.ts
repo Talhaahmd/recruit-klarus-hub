@@ -1,7 +1,6 @@
-
 import { useState } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/lib/supabase';
+import { toast } from 'sonner';
 
 export interface PostIdea {
   id: string;
@@ -34,7 +33,6 @@ export const useContentGeneration = () => {
   const [loading, setLoading] = useState(false);
   const [ideas, setIdeas] = useState<PostIdea[]>([]);
   const [posts, setPosts] = useState<AutomatedPost[]>([]);
-  const { toast } = useToast();
 
   const generateIdeas = async (themeId: string) => {
     setLoading(true);
@@ -49,17 +47,10 @@ export const useContentGeneration = () => {
       if (error) throw error;
 
       setIdeas(data.ideas || []);
-      toast({
-        title: "Success",
-        description: "Post ideas generated successfully",
-      });
+      toast.success("Post ideas generated successfully");
     } catch (error) {
       console.error('Error generating ideas:', error);
-      toast({
-        title: "Error",
-        description: "Failed to generate ideas",
-        variant: "destructive",
-      });
+      toast.error("Failed to generate ideas");
     } finally {
       setLoading(false);
     }
@@ -95,17 +86,10 @@ export const useContentGeneration = () => {
       }
 
       setIdeas(allIdeas);
-      toast({
-        title: "Success",
-        description: "Post ideas generated for all your themes",
-      });
+      toast.success("Post ideas generated for all your themes");
     } catch (error) {
       console.error('Error generating ideas for all themes:', error);
-      toast({
-        title: "Error",
-        description: "Failed to generate ideas",
-        variant: "destructive",
-      });
+      toast.error("Failed to generate ideas");
     } finally {
       setLoading(false);
     }
@@ -125,19 +109,12 @@ export const useContentGeneration = () => {
 
       if (error) throw error;
 
-      toast({
-        title: "Success",
-        description: "Post generated successfully",
-      });
+      toast.success("Post generated successfully");
 
       return data.post;
     } catch (error) {
       console.error('Error generating post:', error);
-      toast({
-        title: "Error",
-        description: "Failed to generate post",
-        variant: "destructive",
-      });
+      toast.error("Failed to generate post");
       return null;
     } finally {
       setLoading(false);
@@ -156,19 +133,12 @@ export const useContentGeneration = () => {
 
       if (error) throw error;
 
-      toast({
-        title: "Success",
-        description: "Post regenerated successfully",
-      });
+      toast.success("Post regenerated successfully");
 
       return data.post;
     } catch (error) {
       console.error('Error regenerating post:', error);
-      toast({
-        title: "Error",
-        description: "Failed to regenerate post",
-        variant: "destructive",
-      });
+      toast.error("Failed to regenerate post");
       return null;
     } finally {
       setLoading(false);
@@ -187,19 +157,12 @@ export const useContentGeneration = () => {
 
       if (error) throw error;
 
-      toast({
-        title: "Success",
-        description: "Post published to LinkedIn successfully",
-      });
+      toast.success("Post published to LinkedIn successfully");
 
       return data;
     } catch (error) {
       console.error('Error publishing post:', error);
-      toast({
-        title: "Error",
-        description: error.message || "Failed to publish post",
-        variant: "destructive",
-      });
+      toast.error(error.message || "Failed to publish post");
       return null;
     } finally {
       setLoading(false);
@@ -216,17 +179,10 @@ export const useContentGeneration = () => {
         .update({ is_copied: true })
         .eq('id', idea.id);
 
-      toast({
-        title: "Copied",
-        description: "Idea copied to clipboard",
-      });
-    } catch (error) {
-      console.error('Error copying to clipboard:', error);
-      toast({
-        title: "Error",
-        description: "Failed to copy idea",
-        variant: "destructive",
-      });
+      toast.success('Idea copied to clipboard!');
+    } catch (err) {
+      console.error('Failed to copy idea: ', err);
+      toast.error('Failed to copy idea.');
     }
   };
 
@@ -251,7 +207,8 @@ export const useContentGeneration = () => {
       
       setPosts(typedData);
     } catch (error) {
-      console.error('Error fetching posts:', error);
+      console.error('Error fetching user posts:', error);
+      toast.error('Failed to fetch posts.');
     }
   };
 
@@ -274,7 +231,8 @@ export const useContentGeneration = () => {
       if (error) throw error;
       setIdeas(data || []);
     } catch (error) {
-      console.error('Error fetching ideas:', error);
+      console.error('Error fetching user ideas:', error);
+      toast.error('Failed to fetch ideas.');
     }
   };
 

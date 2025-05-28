@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -6,7 +5,7 @@ import { toast } from 'sonner';
 import { Loader2, Check, CreditCard } from 'lucide-react';
 import { Button } from '@/components/UI/button';
 import { Card, CardContent } from '@/components/UI/card';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/lib/supabase';
 
 // Same testimonials as your signup page
 const testimonials = [
