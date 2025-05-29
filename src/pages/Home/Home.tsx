@@ -5,12 +5,16 @@ import FeaturesSection from './FeaturesSection';
 import ClientsSection from './ClientsSection';
 import QuoteSection from './QuoteSection';
 import Footer from './Footer';
+import FeatureVideoSection from './VideoFeaturesSection';
+import Navbar from './Navbar';
 
 const Home: React.FC = () => {
   return (
     <div className="bg-gray-50 min-h-screen">
+      <Navbar/>
       <HeroSection />
       <FeaturesSection />
+      <FeatureVideoSection/>
       <ClientsSection />
       <QuoteSection />
       <Footer />
