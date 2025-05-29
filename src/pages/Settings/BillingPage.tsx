@@ -1,185 +1,270 @@
+
 import React, { useState, useEffect } from 'react';
-import { loadStripe } from '@stripe/stripe-js';
-import { 
-  Elements, 
-  PaymentElement, 
-  useStripe, 
-  useElements 
-} from '@stripe/react-stripe-js';
-import { supabase } from '@/lib/supabase'; // Assuming you have supabase client configured
+import { Button } from '@/components/UI/button';
+import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
-import { Button } from '@/components/UI/button'; // Assuming you have a Button component
+import { useAuth } from '@/contexts/AuthContext';
+import { CreditCard, CheckCircle, AlertCircle, Calendar, DollarSign } from 'lucide-react';
 
-// Using the provided Stripe publishable key
-const stripePromise = loadStripe('pk_live_51RTC6JCfskS4ePH3XH16jF1kMMAE9YWAhyBOWZTi2uO60kdwfeZXP9mDvrYoYiTY8RueUpQNmBjKZDKm1IvZmVsu00U6yJZyBb');
+interface SubscriptionData {
+  subscribed: boolean;
+  subscription: {
+    id: string;
+    status: string;
+    current_period_end: number;
+    amount: number;
+    currency: string;
+  } | null;
+}
 
-const FIXED_AMOUNT = 1999; // $19.99 in cents
-const CURRENCY = 'usd';
+const BillingPage: React.FC = () => {
+  const { user } = useAuth();
+  const [subscriptionData, setSubscriptionData] = useState<SubscriptionData | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isCreatingCheckout, setIsCreatingCheckout] = useState(false);
+  const [isCreatingPortal, setIsCreatingPortal] = useState(false);
 
-// New CheckoutForm component
-const CheckoutForm: React.FC<{ clientSecret: string }> = ({ clientSecret }) => {
-  const stripe = useStripe();
-  const elements = useElements();
-  const [isLoading, setIsLoading] = useState(false);
-  const [paymentStatusMessage, setPaymentStatusMessage] = useState<string | null>(null);
+  const checkSubscriptionStatus = async () => {
+    if (!user) return;
+    
+    setIsLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('check-subscription-status');
+      
+      if (error) {
+        throw new Error(error.message);
+      }
+      
+      setSubscriptionData(data);
+    } catch (error: any) {
+      console.error('Error checking subscription:', error);
+      toast.error('Failed to check subscription status');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-  const handleSubmit = async (event: React.FormEvent) => {
-    event.preventDefault();
+  useEffect(() => {
+    checkSubscriptionStatus();
+    
+    // Check for success/cancel URL parameters
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('success') === 'true') {
+      toast.success('Subscription activated successfully!');
+      // Clean the URL
+      window.history.replaceState({}, document.title, window.location.pathname);
+      // Refresh subscription status
+      setTimeout(checkSubscriptionStatus, 2000);
+    } else if (urlParams.get('canceled') === 'true') {
+      toast.error('Subscription setup was canceled');
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+  }, [user]);
 
-    if (!stripe || !elements) {
-      console.log('Stripe.js has not yet loaded.');
+  const handleSubscribe = async () => {
+    if (!user) {
+      toast.error('Please log in to subscribe');
       return;
     }
 
-    setIsLoading(true);
-    setPaymentStatusMessage(null);
+    setIsCreatingCheckout(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('create-subscription-checkout');
+      
+      if (error) {
+        throw new Error(error.message);
+      }
+      
+      if (data.url) {
+        // Open Stripe checkout in a new tab
+        window.open(data.url, '_blank');
+      }
+    } catch (error: any) {
+      console.error('Error creating checkout:', error);
+      toast.error('Failed to create checkout session');
+    } finally {
+      setIsCreatingCheckout(false);
+    }
+  };
 
-    const { error } = await stripe.confirmPayment({
-      elements,
-      confirmParams: {
-        return_url: `${window.location.origin}/settings/billing?payment_success=true`,
-      },
+  const handleManageSubscription = async () => {
+    if (!user) {
+      toast.error('Please log in to manage subscription');
+      return;
+    }
+
+    setIsCreatingPortal(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('create-customer-portal');
+      
+      if (error) {
+        throw new Error(error.message);
+      }
+      
+      if (data.url) {
+        // Open customer portal in a new tab
+        window.open(data.url, '_blank');
+      }
+    } catch (error: any) {
+      console.error('Error creating portal session:', error);
+      toast.error('Failed to open customer portal');
+    } finally {
+      setIsCreatingPortal(false);
+    }
+  };
+
+  const formatDate = (timestamp: number) => {
+    return new Date(timestamp * 1000).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
     });
-
-    if (error) {
-      if (error.type === "card_error" || error.type === "validation_error") {
-        setPaymentStatusMessage(error.message || 'An unexpected error occurred. Please check your card details.');
-      } else {
-        setPaymentStatusMessage("An unexpected error occurred while attempting to process your payment.");
-      }
-    } else {
-      setPaymentStatusMessage("Processing payment... you should be redirected shortly.");
-    }
-
-    setIsLoading(false);
   };
 
-  return (
-    <form onSubmit={handleSubmit} className="space-y-6">
-      <PaymentElement id="payment-element" />
-      <Button type="submit" disabled={isLoading || !stripe || !elements} className="w-full">
-        {isLoading ? 'Processing...' : `Pay $${(FIXED_AMOUNT / 100).toFixed(2)}`}
-      </Button>
-      {paymentStatusMessage && 
-        <div className={`mt-2 text-sm ${paymentStatusMessage.includes('successful') ? 'text-green-600' : 'text-red-600'}`}>
-          {paymentStatusMessage}
-        </div>
-      }
-    </form>
-  );
-};
-
-const BillingPage: React.FC = () => {
-  const [clientSecret, setClientSecret] = useState<string | null>(null);
-  const [isLoadingClientSecret, setIsLoadingClientSecret] = useState(true);
-  const [paymentAttempted, setPaymentAttempted] = useState(false);
-  const [paymentSuccess, setPaymentSuccess] = useState<boolean | null>(null);
-
-  useEffect(() => {
-    // Check for payment success query params on component mount (from redirect)
-    const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.get('payment_success') === 'true') {
-      setPaymentSuccess(true);
-      toast.success('Payment processed successfully!');
-      // Clean the URL
-      window.history.replaceState({}, document.title, `${window.location.pathname}`);
-    } else if (urlParams.get('payment_error')) {
-      setPaymentSuccess(false);
-      toast.error(urlParams.get('payment_error') || 'Payment failed. Please try again.');
-      window.history.replaceState({}, document.title, `${window.location.pathname}`);
-    }
-  }, []);
-
-  useEffect(() => {
-    // Fetch client secret for the Payment Intent when the page loads
-    const fetchPaymentIntent = async () => {
-      if (paymentAttempted || clientSecret) return; // Don't refetch if already attempted or have secret
-
-      setIsLoadingClientSecret(true);
-      try {
-        const { data, error } = await supabase.functions.invoke('stripe-payment-intent', {
-          body: { amount: FIXED_AMOUNT, currency: CURRENCY, description: 'Klarus HR One-Time Payment' },
-        });
-
-        if (error) {
-          throw new Error(error.message);
-        }
-        if (data.error) {
-          throw new Error(data.error);
-        }
-        if (data.clientSecret) {
-          setClientSecret(data.clientSecret);
-        } else {
-          throw new Error('Failed to get payment client secret.');
-        }
-      } catch (err: any) {
-        console.error('Error fetching payment intent:', err);
-        toast.error(`Error initializing payment: ${err.message}`);
-      }
-      setIsLoadingClientSecret(false);
-    };
-
-    fetchPaymentIntent();
-  }, [paymentAttempted, clientSecret]);
-
-  const appearance = {
-    theme: 'stripe',
-    variables: {
-      colorPrimary: '#0570de', // Your brand color
-    },
+  const formatAmount = (amount: number, currency: string) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: currency.toUpperCase(),
+    }).format(amount / 100);
   };
 
-  const options = clientSecret ? {
-    clientSecret,
-    appearance,
-  } : {};
-
-  if (paymentSuccess) {
+  if (isLoading) {
     return (
-      <div className="p-4 sm:p-6 lg:p-8 text-center">
-        <h1 className="text-2xl font-semibold text-green-600 mb-4">Payment Successful!</h1>
-        <p className="text-gray-700 dark:text-gray-300">Your payment of $${(FIXED_AMOUNT / 100).toFixed(2)} has been processed.</p>
-        {/* Add a button to navigate elsewhere or refresh data */}
-      </div>
-    );
-  }
-  
-  if (paymentSuccess === false) {
-     return (
-      <div className="p-4 sm:p-6 lg:p-8 text-center">
-        <h1 className="text-2xl font-semibold text-red-600 mb-4">Payment Failed</h1>
-        <p className="text-gray-700 dark:text-gray-300">There was an issue with your payment. Please try again or contact support.</p>
-        <Button onClick={() => { setPaymentSuccess(null); setClientSecret(null); /* Allow refetch */ }} className="mt-4">
-          Try Again
-        </Button>
+      <div className="p-4 sm:p-6 lg:p-8">
+        <div className="animate-pulse">
+          <div className="h-8 bg-gray-200 rounded w-1/4 mb-4"></div>
+          <div className="h-4 bg-gray-200 rounded w-1/2 mb-8"></div>
+          <div className="h-32 bg-gray-200 rounded"></div>
+        </div>
       </div>
     );
   }
 
   return (
-    <Elements stripe={stripePromise} options={options as any}> {/* Cast options because type might not be perfect yet */}
-      <div className="p-4 sm:p-6 lg:p-8">
-        <header className="mb-8">
-          <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white">
-            Complete Your Payment
-          </h1>
-          <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
-            Securely pay $${(FIXED_AMOUNT / 100).toFixed(2)} USD with Stripe.
-          </p>
-        </header>
+    <div className="p-4 sm:p-6 lg:p-8">
+      <header className="mb-8">
+        <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white">
+          Billing & Subscription
+        </h1>
+        <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
+          Manage your Klarus HR subscription and billing information.
+        </p>
+      </header>
 
-        <div className="bg-white dark:bg-gray-800 shadow sm:rounded-lg p-6 max-w-md mx-auto">
-          {isLoadingClientSecret && <p className="text-center text-gray-600 dark:text-gray-300">Loading payment form...</p>}
-          {!isLoadingClientSecret && clientSecret && (
-            <CheckoutForm clientSecret={clientSecret} />
-          )}
-          {!isLoadingClientSecret && !clientSecret && (
-            <p className="text-center text-red-600 dark:text-red-400">Could not initialize payment form. Please try again later.</p>
+      <div className="grid gap-6 md:grid-cols-2">
+        {/* Current Plan Card */}
+        <div className="bg-white dark:bg-gray-800 shadow sm:rounded-lg p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-medium text-gray-900 dark:text-white">
+              Current Plan
+            </h3>
+            <Button 
+              onClick={checkSubscriptionStatus}
+              variant="outline"
+              size="sm"
+            >
+              Refresh
+            </Button>
+          </div>
+          
+          {subscriptionData?.subscribed ? (
+            <div className="space-y-4">
+              <div className="flex items-center space-x-2">
+                <CheckCircle className="h-5 w-5 text-green-500" />
+                <span className="text-sm font-medium text-green-700 dark:text-green-300">
+                  Active Subscription
+                </span>
+              </div>
+              
+              <div className="space-y-2">
+                <div className="flex items-center space-x-2">
+                  <DollarSign className="h-4 w-4 text-gray-400" />
+                  <span className="text-sm text-gray-600 dark:text-gray-300">
+                    {formatAmount(
+                      subscriptionData.subscription?.amount || 1999,
+                      subscriptionData.subscription?.currency || 'usd'
+                    )} per month
+                  </span>
+                </div>
+                
+                <div className="flex items-center space-x-2">
+                  <Calendar className="h-4 w-4 text-gray-400" />
+                  <span className="text-sm text-gray-600 dark:text-gray-300">
+                    Next billing: {formatDate(subscriptionData.subscription?.current_period_end || 0)}
+                  </span>
+                </div>
+              </div>
+              
+              <Button 
+                onClick={handleManageSubscription}
+                disabled={isCreatingPortal}
+                className="w-full"
+              >
+                <CreditCard className="mr-2 h-4 w-4" />
+                {isCreatingPortal ? 'Opening...' : 'Manage Subscription'}
+              </Button>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              <div className="flex items-center space-x-2">
+                <AlertCircle className="h-5 w-5 text-yellow-500" />
+                <span className="text-sm font-medium text-yellow-700 dark:text-yellow-300">
+                  No Active Subscription
+                </span>
+              </div>
+              
+              <p className="text-sm text-gray-600 dark:text-gray-300">
+                Subscribe to Klarus HR to access all premium features.
+              </p>
+              
+              <Button 
+                onClick={handleSubscribe}
+                disabled={isCreatingCheckout}
+                className="w-full"
+              >
+                <CreditCard className="mr-2 h-4 w-4" />
+                {isCreatingCheckout ? 'Creating...' : 'Subscribe for $19.99/month'}
+              </Button>
+            </div>
           )}
         </div>
+
+        {/* Plan Features Card */}
+        <div className="bg-white dark:bg-gray-800 shadow sm:rounded-lg p-6">
+          <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">
+            Klarus HR Features
+          </h3>
+          
+          <ul className="space-y-3 text-sm text-gray-600 dark:text-gray-300">
+            <li className="flex items-center space-x-2">
+              <CheckCircle className="h-4 w-4 text-green-500" />
+              <span>Unlimited job postings</span>
+            </li>
+            <li className="flex items-center space-x-2">
+              <CheckCircle className="h-4 w-4 text-green-500" />
+              <span>Candidate management system</span>
+            </li>
+            <li className="flex items-center space-x-2">
+              <CheckCircle className="h-4 w-4 text-green-500" />
+              <span>LinkedIn integration</span>
+            </li>
+            <li className="flex items-center space-x-2">
+              <CheckCircle className="h-4 w-4 text-green-500" />
+              <span>Advanced analytics</span>
+            </li>
+            <li className="flex items-center space-x-2">
+              <CheckCircle className="h-4 w-4 text-green-500" />
+              <span>Priority support</span>
+            </li>
+            <li className="flex items-center space-x-2">
+              <CheckCircle className="h-4 w-4 text-green-500" />
+              <span>Custom themes and branding</span>
+            </li>
+          </ul>
+        </div>
       </div>
-    </Elements>
+    </div>
   );
 };
 
-export default BillingPage; 
+export default BillingPage;
