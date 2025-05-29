@@ -27,6 +27,7 @@ const MainLayout: React.FC = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isPinned, setIsPinned] = useState(false);
   const [isDesktop, setIsDesktop] = useState(window.innerWidth >= 1024);
+  const [isHovered, setIsHovered] = useState(false);
 
   const {
     isCheckingToken,
@@ -39,8 +40,8 @@ const MainLayout: React.FC = () => {
   useEffect(() => {
     console.log('🏠 MainLayout rendered, authenticated:', isAuthenticated, 'loading:', isLoading, 'path:', location.pathname);
     console.log('🔗 LinkedIn token status:', hasLinkedInToken, 'show modal:', showModal, 'checking:', isCheckingToken);
-    console.log(`📌 Sidebar: Pinned=${isPinned}, Desktop=${isDesktop}, MobileOpen=${isMobileMenuOpen}`);
-  }, [isAuthenticated, isLoading, location.pathname, hasLinkedInToken, showModal, isCheckingToken, isPinned, isDesktop, isMobileMenuOpen]);
+    console.log(`📌 Sidebar: Pinned=${isPinned}, Desktop=${isDesktop}, MobileOpen=${isMobileMenuOpen}, Hovered=${isHovered}`);
+  }, [isAuthenticated, isLoading, location.pathname, hasLinkedInToken, showModal, isCheckingToken, isPinned, isDesktop, isMobileMenuOpen, isHovered]);
 
   useEffect(() => {
     const handleResize = () => {
@@ -48,7 +49,6 @@ const MainLayout: React.FC = () => {
       setIsDesktop(desktop);
       if (desktop) {
         setIsMobileMenuOpen(false);
-        setIsPinned(true);
       } else {
         setIsPinned(false);
       }
@@ -74,6 +74,9 @@ const MainLayout: React.FC = () => {
       setIsPinned(!isPinned);
     }
   };
+
+  // Auto-close logic: sidebar expands on hover when not pinned
+  const shouldSidebarBeExpanded = isPinned || isHovered || !isDesktop;
   
   if (isLoading) {
     return (
@@ -105,17 +108,23 @@ const MainLayout: React.FC = () => {
         </button>
       )}
 
-      <Sidebar 
-        isMobileMenuOpen={isMobileMenuOpen}
-        isPinned={isPinned}
-        isDesktop={isDesktop}
-        toggleMobileMenu={toggleMobileMenu}
-        togglePinned={togglePinned}
-        closeMobileMenu={closeMobileMenu}
-      />
+      <div
+        onMouseEnter={() => isDesktop && setIsHovered(true)}
+        onMouseLeave={() => isDesktop && setIsHovered(false)}
+      >
+        <Sidebar 
+          isMobileMenuOpen={isMobileMenuOpen}
+          isPinned={isPinned}
+          isDesktop={isDesktop}
+          toggleMobileMenu={toggleMobileMenu}
+          togglePinned={togglePinned}
+          closeMobileMenu={closeMobileMenu}
+          isExpanded={shouldSidebarBeExpanded}
+        />
+      </div>
       
       <div className={`flex-1 overflow-y-auto transition-all duration-300 ease-in-out
-                      ${isDesktop ? (isPinned ? 'lg:ml-64' : 'lg:ml-20') : 'ml-0'}
+                      ${isDesktop ? (shouldSidebarBeExpanded ? 'lg:ml-64' : 'lg:ml-20') : 'ml-0'}
                       ${!isDesktop ? 'pt-16' : 'pt-0'}
       `}>
         <div className="min-h-full">

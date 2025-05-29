@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { 
@@ -25,6 +26,7 @@ interface SidebarProps {
   toggleMobileMenu: () => void;
   togglePinned: () => void;
   closeMobileMenu: () => void;
+  isExpanded: boolean;
 }
 
 const Sidebar: React.FC<SidebarProps> = ({
@@ -33,7 +35,8 @@ const Sidebar: React.FC<SidebarProps> = ({
   isDesktop,
   toggleMobileMenu,
   togglePinned,
-  closeMobileMenu
+  closeMobileMenu,
+  isExpanded
 }) => {
   const { logout } = useAuth();
 
@@ -84,16 +87,16 @@ const Sidebar: React.FC<SidebarProps> = ({
         bg-gray-100 dark:bg-gray-800 
         transition-all duration-300 ease-in-out
         fixed lg:relative z-40 lg:z-auto 
-        ${isDesktop ? (isPinned ? 'w-64' : 'w-20') : 'w-72'}
+        ${isDesktop ? (isExpanded ? 'w-64' : 'w-20') : 'w-72'}
         ${isMobileMenuOpen && !isDesktop ? 'translate-x-0' : (!isDesktop ? '-translate-x-full' : '')}
       `}>
         {/* Header */}
         <div className={`flex items-center h-16 sm:h-20 border-b border-gray-200 dark:border-gray-700 px-4
-                         ${isDesktop ? (isPinned ? 'justify-between' : 'justify-center') : 'justify-between'}`}>
+                         ${isDesktop ? (isExpanded ? 'justify-between' : 'justify-center') : 'justify-between'}`}>
           {/* Logo */}
-          {(isPinned || !isDesktop) && (
+          {(isExpanded || !isDesktop) && (
             <img 
-              src="/lovable-uploads/67d45eae-154d-4a02-a7a5-1f115188b97b.png" 
+              src="https://media.licdn.com/dms/image/v2/D4D0BAQFDM9EHPi7Ytw/company-logo_200_200/B4DZcS5YkIGYAM-/0/1748368723047/klarushr_logo?e=1753920000&v=beta&t=XHn_4UOG1fh73hgQQ9sxGxyoXACiu8PpgDqsjpgvW9w" 
               alt="Klarus HR Logo" 
               className="h-8 sm:h-10 object-contain"
             />
@@ -102,7 +105,7 @@ const Sidebar: React.FC<SidebarProps> = ({
           {/* Controls */}
           <div className="flex items-center gap-2">
             {/* Pin Toggle Button - Desktop only */}
-            {isDesktop && (
+            {isDesktop && isExpanded && (
               <button
                 onClick={togglePinned}
                 className="p-2 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700" 
@@ -134,7 +137,7 @@ const Sidebar: React.FC<SidebarProps> = ({
           <nav className="space-y-1">
             {sidebarSections.map((section) => (
               <div key={section.title} className="mb-4">
-                {(isPinned || !isDesktop) && section.title && (
+                {(isExpanded || !isDesktop) && section.title && (
                   <h3 className="px-3 py-2 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                     {section.title}
                   </h3>
@@ -146,11 +149,11 @@ const Sidebar: React.FC<SidebarProps> = ({
                     onClick={!isDesktop ? closeMobileMenu : undefined}
                     title={item.name}
                     className={({ isActive }) => 
-                      `sidebar-item ${isActive ? 'active' : ''} glow ${(!isPinned && isDesktop) ? 'justify-center px-2' : 'px-3'}`
+                      `sidebar-item ${isActive ? 'active' : ''} glow ${(!isExpanded && isDesktop) ? 'justify-center px-2' : 'px-3'}`
                     }
                   >
-                    <item.icon size={(!isPinned && isDesktop) ? 20 : 18} />
-                    {(isPinned || !isDesktop) && <span className="text-sm sm:text-base">{item.name}</span>}
+                    <item.icon size={(!isExpanded && isDesktop) ? 20 : 18} />
+                    {(isExpanded || !isDesktop) && <span className="text-sm sm:text-base">{item.name}</span>}
                   </NavLink>
                 ))}
               </div>
@@ -159,17 +162,17 @@ const Sidebar: React.FC<SidebarProps> = ({
         </div>
         
         {/* Footer */}
-        <div className={`p-4 border-t border-gray-200 dark:border-gray-700 ${(!isPinned && isDesktop) ? 'flex justify-center' : ''}`}>
+        <div className={`p-4 border-t border-gray-200 dark:border-gray-700 ${(!isExpanded && isDesktop) ? 'flex justify-center' : ''}`}>
           <button 
             onClick={() => {
               logout();
               if (!isDesktop) closeMobileMenu();
             }}
             title="Logout"
-            className={`sidebar-item text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 w-full ${(!isPinned && isDesktop) ? 'justify-center px-2' : 'px-3'}`}
+            className={`sidebar-item text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 w-full ${(!isExpanded && isDesktop) ? 'justify-center px-2' : 'px-3'}`}
           >
-            <LogOut size={(!isPinned && isDesktop) ? 20 : 18} />
-            {(isPinned || !isDesktop) && <span className="text-sm sm:text-base">Logout</span>}
+            <LogOut size={(!isExpanded && isDesktop) ? 20 : 18} />
+            {(isExpanded || !isDesktop) && <span className="text-sm sm:text-base">Logout</span>}
           </button>
         </div>
       </div>

@@ -1,10 +1,10 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/UI/card';
 import { Button } from '@/components/UI/button';
 import { Input } from '@/components/UI/input';
 import { Badge } from '@/components/UI/badge';
-import { Plus, Search, Filter, Grid, List, Mail, User, Building, Phone, MapPin, Edit, Trash2 } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/UI/dialog';
+import { Plus, Search, Filter, Grid, List, Mail, User, Building, Phone, MapPin, Edit, Trash2, Eye } from 'lucide-react';
 import { leadsService, type LeadWithLabels, type Label } from '@/services/leadsService';
 import { toast } from 'sonner';
 import AddLeadModal from './AddLeadModal';
@@ -20,6 +20,8 @@ const Leads: React.FC = () => {
   const [selectedLabels, setSelectedLabels] = useState<string[]>([]);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [selectedLead, setSelectedLead] = useState<LeadWithLabels | null>(null);
+  const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
   const [emailModal, setEmailModal] = useState<{ isOpen: boolean; lead: LeadWithLabels | null }>({
     isOpen: false,
     lead: null
@@ -32,10 +34,13 @@ const Leads: React.FC = () => {
   const loadData = async () => {
     try {
       setLoading(true);
+      console.log('Loading leads data...');
       const [leadsData, labelsData] = await Promise.all([
         leadsService.getLeads(),
         leadsService.getLabels()
       ]);
+      console.log('Loaded leads:', leadsData);
+      console.log('Loaded labels:', labelsData);
       setLeads(leadsData);
       setLabels(labelsData);
     } catch (error) {
@@ -69,6 +74,11 @@ const Leads: React.FC = () => {
       console.error('Error deleting lead:', error);
       toast.error('Failed to delete lead');
     }
+  };
+
+  const handleViewDetails = (lead: LeadWithLabels) => {
+    setSelectedLead(lead);
+    setIsDetailsModalOpen(true);
   };
 
   const filteredLeads = leads.filter(lead => {
@@ -118,7 +128,7 @@ const Leads: React.FC = () => {
             Leads Management
           </h1>
           <p className="text-gray-600 dark:text-gray-300 mt-1">
-            Manage your sales pipeline and track prospects
+            Manage your sales pipeline and track prospects ({leads.length} total leads)
           </p>
         </div>
         <Button onClick={() => setIsAddModalOpen(true)} className="w-full sm:w-auto">
@@ -198,11 +208,11 @@ const Leads: React.FC = () => {
       {viewMode === 'grid' ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {filteredLeads.map(lead => (
-            <Card key={lead.id} className="hover:shadow-lg transition-shadow">
+            <Card key={lead.id} className="hover:shadow-lg transition-shadow cursor-pointer">
               <CardHeader className="pb-3">
                 <div className="flex justify-between items-start">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-primary-100 rounded-full flex items-center justify-center">
+                  <div className="flex items-center gap-3" onClick={() => handleViewDetails(lead)}>
+                    <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center">
                       <User className="w-5 h-5 text-white" />
                     </div>
                     <div>
@@ -213,11 +223,26 @@ const Leads: React.FC = () => {
                     </div>
                   </div>
                   <div className="flex gap-1">
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleViewDetails(lead);
+                      }}
+                      title="View Details"
+                    >
+                      <Eye className="w-4 h-4" />
+                    </Button>
                     {lead.email && (
                       <Button
                         size="sm"
                         variant="ghost"
-                        onClick={() => setEmailModal({ isOpen: true, lead })}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setEmailModal({ isOpen: true, lead });
+                        }}
+                        title="Send Email"
                       >
                         <Mail className="w-4 h-4" />
                       </Button>
@@ -225,14 +250,18 @@ const Leads: React.FC = () => {
                     <Button
                       size="sm"
                       variant="ghost"
-                      onClick={() => handleDeleteLead(lead.id)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDeleteLead(lead.id);
+                      }}
+                      title="Delete Lead"
                     >
                       <Trash2 className="w-4 h-4" />
                     </Button>
                   </div>
                 </div>
               </CardHeader>
-              <CardContent className="space-y-3">
+              <CardContent className="space-y-3" onClick={() => handleViewDetails(lead)}>
                 {lead.email && (
                   <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
                     <Mail className="w-4 h-4" />
@@ -243,7 +272,7 @@ const Leads: React.FC = () => {
                   <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
                     <Building className="w-4 h-4" />
                     <a href={lead.linkedin_url} target="_blank" rel="noopener noreferrer" 
-                       className="text-primary-100 hover:underline">
+                       className="text-blue-500 hover:underline" onClick={(e) => e.stopPropagation()}>
                       LinkedIn Profile
                     </a>
                   </div>
@@ -282,22 +311,22 @@ const Leads: React.FC = () => {
                 </thead>
                 <tbody>
                   {filteredLeads.map(lead => (
-                    <tr key={lead.id} className="border-b hover:bg-gray-50 dark:hover:bg-gray-800">
-                      <td className="p-4">
+                    <tr key={lead.id} className="border-b hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer">
+                      <td className="p-4" onClick={() => handleViewDetails(lead)}>
                         <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 bg-primary-100 rounded-full flex items-center justify-center">
+                          <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
                             <User className="w-4 h-4 text-white" />
                           </div>
                           {lead.full_name}
                         </div>
                       </td>
-                      <td className="p-4">
+                      <td className="p-4" onClick={() => handleViewDetails(lead)}>
                         <Badge className={getStatusColor(lead.prospect_status)}>
                           {lead.prospect_status}
                         </Badge>
                       </td>
-                      <td className="p-4">{lead.email || '-'}</td>
-                      <td className="p-4">
+                      <td className="p-4" onClick={() => handleViewDetails(lead)}>{lead.email || '-'}</td>
+                      <td className="p-4" onClick={() => handleViewDetails(lead)}>
                         <div className="flex flex-wrap gap-1">
                           {lead.labels.map(label => (
                             <Badge key={label.id} variant="outline" style={{ borderColor: label.color }}>
@@ -308,11 +337,20 @@ const Leads: React.FC = () => {
                       </td>
                       <td className="p-4">
                         <div className="flex gap-1">
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => handleViewDetails(lead)}
+                            title="View Details"
+                          >
+                            <Eye className="w-4 h-4" />
+                          </Button>
                           {lead.email && (
                             <Button
                               size="sm"
                               variant="ghost"
                               onClick={() => setEmailModal({ isOpen: true, lead })}
+                              title="Send Email"
                             >
                               <Mail className="w-4 h-4" />
                             </Button>
@@ -321,6 +359,7 @@ const Leads: React.FC = () => {
                             size="sm"
                             variant="ghost"
                             onClick={() => handleDeleteLead(lead.id)}
+                            title="Delete Lead"
                           >
                             <Trash2 className="w-4 h-4" />
                           </Button>
@@ -335,14 +374,101 @@ const Leads: React.FC = () => {
         </Card>
       )}
 
-      {filteredLeads.length === 0 && (
+      {filteredLeads.length === 0 && !loading && (
         <div className="text-center py-12">
           <User className="w-12 h-12 text-gray-400 mx-auto mb-4" />
           <p className="text-gray-500 dark:text-gray-400">
             {searchTerm || selectedLabels.length > 0 ? 'No leads match your filters' : 'No leads yet. Add your first lead to get started!'}
           </p>
+          {leads.length === 0 && (
+            <Button onClick={() => setIsAddModalOpen(true)} className="mt-4">
+              <Plus className="w-4 h-4 mr-2" />
+              Add Your First Lead
+            </Button>
+          )}
         </div>
       )}
+
+      {/* Lead Details Modal */}
+      <Dialog open={isDetailsModalOpen} onOpenChange={setIsDetailsModalOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <User className="w-5 h-5" />
+              Lead Details
+            </DialogTitle>
+          </DialogHeader>
+          {selectedLead && (
+            <div className="space-y-4">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center">
+                  <User className="w-6 h-6 text-white" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold">{selectedLead.full_name}</h3>
+                  <Badge className={getStatusColor(selectedLead.prospect_status)}>
+                    {selectedLead.prospect_status}
+                  </Badge>
+                </div>
+              </div>
+              
+              {selectedLead.email && (
+                <div className="flex items-center gap-2">
+                  <Mail className="w-4 h-4 text-gray-500" />
+                  <span>{selectedLead.email}</span>
+                  <Button
+                    size="sm"
+                    onClick={() => {
+                      setEmailModal({ isOpen: true, lead: selectedLead });
+                      setIsDetailsModalOpen(false);
+                    }}
+                  >
+                    Send Email
+                  </Button>
+                </div>
+              )}
+              
+              {selectedLead.linkedin_url && (
+                <div className="flex items-center gap-2">
+                  <Building className="w-4 h-4 text-gray-500" />
+                  <a 
+                    href={selectedLead.linkedin_url} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="text-blue-500 hover:underline"
+                  >
+                    LinkedIn Profile
+                  </a>
+                </div>
+              )}
+              
+              {selectedLead.notes && (
+                <div>
+                  <label className="text-sm font-medium text-gray-700">Notes:</label>
+                  <p className="text-sm text-gray-600 mt-1">{selectedLead.notes}</p>
+                </div>
+              )}
+              
+              {selectedLead.labels.length > 0 && (
+                <div>
+                  <label className="text-sm font-medium text-gray-700">Labels:</label>
+                  <div className="flex flex-wrap gap-1 mt-1">
+                    {selectedLead.labels.map(label => (
+                      <Badge key={label.id} variant="outline" style={{ borderColor: label.color }}>
+                        {label.name}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              )}
+              
+              <div className="text-xs text-gray-500">
+                Created: {new Date(selectedLead.created_at).toLocaleDateString()}
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
 
       <AddLeadModal
         isOpen={isAddModalOpen}
