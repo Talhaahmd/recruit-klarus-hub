@@ -1,63 +1,164 @@
-import React from 'react';
+
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { Menu, X, Play } from 'lucide-react';
 
 const HeroSection: React.FC = () => {
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+  const toggleMenu = () => {
+    setIsMenuOpen(!isMenuOpen);
+  };
+
   const scrollToDemo = (e: React.MouseEvent) => {
     e.preventDefault();
     const demoSection = document.getElementById('demo');
     if (demoSection) {
       demoSection.scrollIntoView({ behavior: 'smooth' });
     }
+    setIsMenuOpen(false);
   };
 
   return (
-    <section className="relative pt-12 overflow-hidden bg-black sm:pt-16">
-      <div className="relative px-4 mx-auto sm:px-6 lg:px-8 max-w-7xl">
-        <div className="max-w-4xl mx-auto text-center">
-          <p className="text-sm font-normal tracking-widest uppercase">
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-500 to-purple-500">Klarus Supports Over 6,000+ Diverse Job Categories</span>
-          </p>
-          <h1 className="mt-4 text-4xl font-bold text-white sm:text-5xl lg:text-6xl xl:text-7xl">Klarus HR</h1>
-          <p className="mt-3 text-base text-gray-400 italic">From CV to Interview in Under 60 Seconds.</p>
-
-          <div className="flex flex-col items-center justify-center px-8 mt-8 space-y-5 sm:space-y-0 sm:px-0 sm:space-x-5 sm:flex-row">
-            <div className="relative inline-flex items-center justify-center w-full sm:w-auto group">
-              <div className="absolute transition-all duration-200 rounded-full -inset-px bg-gradient-to-r from-cyan-500 to-purple-500 group-hover:shadow-lg group-hover:shadow-cyan-500/50"></div>
-              <Link to="/signup" className="relative inline-flex items-center justify-center w-full px-8 py-3 text-base font-normal text-white bg-black border border-transparent rounded-full sm:w-auto">
-                Start 14 Days Free Trial
+    <div className="overflow-x-hidden bg-gray-50">
+      <header className="py-4 md:py-6">
+        <div className="container px-4 mx-auto sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between">
+            <div className="flex-shrink-0">
+              <Link to="/" className="flex rounded outline-none focus:ring-1 focus:ring-gray-900 focus:ring-offset-2">
+                <img 
+                  className="w-auto h-8" 
+                  src="https://media.licdn.com/dms/image/v2/D4D0BAQFDM9EHPi7Ytw/company-logo_200_200/B4DZcS5YkIGYAM-/0/1748368723047/klarushr_logo?e=1753920000&v=beta&t=XHn_4UOG1fh73hgQQ9sxGxyoXACiu8PpgDqsjpgvW9w" 
+                  alt="Klarus HR" 
+                />
               </Link>
             </div>
 
-            <button 
-              onClick={scrollToDemo}
-              className="inline-flex items-center justify-center w-full px-8 py-3 text-base font-normal text-white transition-all duration-200 bg-black border border-gray-600 rounded-full sm:w-auto hover:border-white"
-            >
-              Book a Demo
-            </button>
+            <div className="flex lg:hidden">
+              <button 
+                type="button" 
+                className="text-gray-900" 
+                onClick={toggleMenu}
+                aria-expanded={isMenuOpen}
+              >
+                {!isMenuOpen ? (
+                  <Menu className="w-7 h-7" />
+                ) : (
+                  <X className="w-7 h-7" />
+                )}
+              </button>
+            </div>
+
+            <div className="hidden lg:flex lg:ml-16 lg:items-center lg:justify-center lg:space-x-10 xl:space-x-16">
+              <a href="#features" className="text-base font-medium text-gray-900 transition-all duration-200 rounded focus:outline-none font-pj hover:text-opacity-50 focus:ring-1 focus:ring-gray-900 focus:ring-offset-2">
+                Features
+              </a>
+              <Link to="/pricing" className="text-base font-medium text-gray-900 transition-all duration-200 rounded focus:outline-none font-pj hover:text-opacity-50 focus:ring-1 focus:ring-gray-900 focus:ring-offset-2">
+                Pricing
+              </Link>
+              <button 
+                onClick={scrollToDemo}
+                className="text-base font-medium text-gray-900 transition-all duration-200 rounded focus:outline-none font-pj hover:text-opacity-50 focus:ring-1 focus:ring-gray-900 focus:ring-offset-2"
+              >
+                Automation
+              </button>
+            </div>
+
+            <div className="hidden lg:ml-auto lg:flex lg:items-center lg:space-x-10">
+              <Link to="/login" className="text-base font-medium text-gray-900 transition-all duration-200 rounded focus:outline-none font-pj hover:text-opacity-50 focus:ring-1 focus:ring-gray-900 focus:ring-offset-2">
+                Customer Login
+              </Link>
+              <Link
+                to="/signup"
+                className="inline-flex items-center justify-center px-6 py-3 text-base font-bold leading-7 text-white transition-all duration-200 bg-gray-900 border border-transparent rounded-xl hover:bg-gray-600 font-pj focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-900"
+                role="button"
+              >
+                Sign up
+              </Link>
+            </div>
+          </div>
+
+          {isMenuOpen && (
+            <nav className="lg:hidden">
+              <div className="px-1 py-8">
+                <div className="grid gap-y-7">
+                  <a href="#features" className="flex items-center p-3 -m-3 text-base font-medium text-gray-900 transition-all duration-200 rounded-xl hover:bg-gray-50 focus:outline-none font-pj focus:ring-1 focus:ring-gray-900 focus:ring-offset-2" onClick={() => setIsMenuOpen(false)}>
+                    Features
+                  </a>
+                  <Link to="/pricing" className="flex items-center p-3 -m-3 text-base font-medium text-gray-900 transition-all duration-200 rounded-xl hover:bg-gray-50 focus:outline-none font-pj focus:ring-1 focus:ring-gray-900 focus:ring-offset-2" onClick={() => setIsMenuOpen(false)}>
+                    Pricing
+                  </Link>
+                  <button 
+                    onClick={scrollToDemo}
+                    className="flex items-center p-3 -m-3 text-base font-medium text-gray-900 transition-all duration-200 rounded-xl hover:bg-gray-50 focus:outline-none font-pj focus:ring-1 focus:ring-gray-900 focus:ring-offset-2"
+                  >
+                    Automation
+                  </button>
+                  <Link to="/login" className="flex items-center p-3 -m-3 text-base font-medium text-gray-900 transition-all duration-200 rounded-xl hover:bg-gray-50 focus:outline-none font-pj focus:ring-1 focus:ring-gray-900 focus:ring-offset-2" onClick={() => setIsMenuOpen(false)}>
+                    Customer Login
+                  </Link>
+                  <Link
+                    to="/signup"
+                    className="inline-flex items-center justify-center px-6 py-3 text-base font-bold leading-7 text-white transition-all duration-200 bg-gray-900 border border-transparent rounded-xl hover:bg-gray-600 font-pj focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-900"
+                    role="button"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    Sign up
+                  </Link>
+                </div>
+              </div>
+            </nav>
+          )}
+        </div>
+      </header>
+
+      <section className="pt-12 bg-gray-50 sm:pt-16">
+        <div className="px-4 mx-auto max-w-7xl sm:px-6 lg:px-8">
+          <div className="max-w-2xl mx-auto text-center">
+            <h1 className="px-6 text-lg text-gray-600 font-inter">Smart HR platform, made for modern recruitment</h1>
+            <p className="mt-5 text-4xl font-bold leading-tight text-gray-900 sm:leading-tight sm:text-5xl lg:text-6xl lg:leading-tight font-pj">
+              Turn your candidates into perfect
+              <span className="relative inline-flex sm:inline">
+                <span className="bg-gradient-to-r from-[#44BCFF] via-[#FF44EC] to-[#FF675E] blur-lg filter opacity-30 w-full h-full absolute inset-0"></span>
+                <span className="relative"> matches </span>
+              </span>
+            </p>
+
+            <div className="px-8 sm:items-center sm:justify-center sm:px-0 sm:space-x-5 sm:flex mt-9">
+              <Link
+                to="/signup"
+                className="inline-flex items-center justify-center w-full px-8 py-3 text-lg font-bold text-white transition-all duration-200 bg-gray-900 border-2 border-transparent sm:w-auto rounded-xl font-pj hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-900"
+                role="button"
+              >
+                Start 14 Days Free Trial
+              </Link>
+
+              <button
+                onClick={scrollToDemo}
+                className="inline-flex items-center justify-center w-full px-6 py-3 mt-4 text-lg font-bold text-gray-900 transition-all duration-200 border-2 border-gray-400 sm:w-auto sm:mt-0 rounded-xl font-pj focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-900 hover:bg-gray-900 focus:bg-gray-900 hover:text-white focus:text-white hover:border-gray-900 focus:border-gray-900"
+                role="button"
+              >
+                <Play className="w-5 h-5 mr-2" />
+                Watch free demo
+              </button>
+            </div>
+
+            <p className="mt-8 text-base text-gray-500 font-inter">60 Days free trial · No credit card required</p>
           </div>
         </div>
 
-        <div className="relative mt-12 -mb-4 sm:-mb-10 lg:-mb-12 sm:mt-16 lg:mt-24">
-          <div className="absolute top-0 transform -translate-x-1/2 left-1/2">
-            <svg className="blur-3xl filter" style={{ filter: 'blur(64px)' }} width="645" height="413" viewBox="0 0 645 413" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M181.316 218.778C86.2529 123.715 -63.7045 134.94 31.3589 39.8762C126.422 -55.1873 528.427 41.1918 623.49 136.255C718.554 231.319 470.678 289.068 375.614 384.131C280.551 479.195 276.38 313.842 181.316 218.778Z" fill="url(#d)" />
-              <defs>
-                <linearGradient id="d" x1="665.741" y1="178.506" x2="296.286" y2="474.62" gradientUnits="userSpaceOnUse">
-                  <stop offset="0%" stopColor="#0EA5E9" />
-                  <stop offset="100%" stopColor="#A855F7" />
-                </linearGradient>
-              </defs>
-            </svg>
+        <div className="pb-12 bg-white">
+          <div className="relative">
+            <div className="absolute inset-0 h-2/3 bg-gray-50"></div>
+            <div className="relative mx-auto">
+              <div className="lg:max-w-6xl lg:mx-auto">
+                <img className="transform scale-110" src="https://cdn.rareblocks.xyz/collection/clarity/images/hero/2/illustration.png" alt="Klarus HR Dashboard" />
+              </div>
+            </div>
           </div>
-
-          <div className="absolute inset-0">
-            <img className="object-cover w-full h-full opacity-50" src="https://landingfoliocom.imgix.net/store/collection/dusk/images/noise.png" alt="" />
-          </div>
-
-          <img className="relative w-full max-w-5xl mx-auto" src="https://landingfoliocom.imgix.net/store/collection/dusk/images/hero/4/dashboard-mockup.png" alt="" />
         </div>
-      </div>
-    </section>
+      </section>
+    </div>
   );
 };
 

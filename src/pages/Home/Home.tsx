@@ -1,10 +1,9 @@
 
 import React from 'react';
 import HeroSection from './HeroSection';
-import RadarSection from './RadarSection';
-import VideoFeaturesSection from './VideoFeaturesSection';
+import VideoSection from './VideoSection';
+import FeaturesSection from './FeaturesSection';
 import ClientsSection from './ClientsSection';
-import TeamSection from './TeamSection';
 import DemoSection from './DemoSection';
 import PlansSection from './PlansSection';
 import QuoteSection from './QuoteSection';
@@ -13,13 +12,12 @@ import Navbar from './Navbar';
 
 const Home: React.FC = () => {
   return (
-    <div className="bg-black text-white min-h-screen">
+    <div className="bg-gray-50 min-h-screen">
       <Navbar />
       <HeroSection />
-      <RadarSection />
-      <VideoFeaturesSection />
+      <VideoSection />
+      <FeaturesSection />
       <ClientsSection />
-      <TeamSection />
       <DemoSection />
       <PlansSection />
       <QuoteSection />

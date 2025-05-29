@@ -20,14 +20,14 @@ const Navbar: React.FC = () => {
   };
 
   return (
-    <header className="py-4 bg-black sm:py-6">
+    <header className="py-4 bg-gray-50 sm:py-6">
       <div className="px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between">
           <div className="shrink-0">
             <Link to="/" className="flex items-center">
               <img 
                 className="w-auto h-9" 
-                src="/lovable-uploads/67d45eae-154d-4a02-a7a5-1f115188b97b.png" 
+                src="https://media.licdn.com/dms/image/v2/D4D0BAQFDM9EHPi7Ytw/company-logo_200_200/B4DZcS5YkIGYAM-/0/1748368723047/klarushr_logo?e=1753920000&v=beta&t=XHn_4UOG1fh73hgQQ9sxGxyoXACiu8PpgDqsjpgvW9w" 
                 alt="Klarus HR Logo" 
               />
             </Link>
@@ -36,7 +36,7 @@ const Navbar: React.FC = () => {
           <div className="flex md:hidden">
             <button 
               type="button" 
-              className="text-white" 
+              className="text-gray-900" 
               onClick={toggleMenu}
               aria-expanded={isMenuOpen}
             >
@@ -49,19 +49,22 @@ const Navbar: React.FC = () => {
           </div>
 
           <nav className="hidden space-x-10 md:flex md:items-center md:justify-center lg:space-x-12">
-            <Link to="/#features" className="text-base font-normal text-gray-400 transition-all duration-200 hover:text-white">
+            <a href="#features" className="text-base font-normal text-gray-600 transition-all duration-200 hover:text-gray-900">
               Features
-            </Link>
-            <Link to="/#process" className="text-base font-normal text-gray-400 transition-all duration-200 hover:text-white">
-              Our Process
+            </a>
+            <Link to="/pricing" className="text-base font-normal text-gray-600 transition-all duration-200 hover:text-gray-900">
+              Pricing
             </Link>
             <button 
               onClick={scrollToDemo}
-              className="text-base font-normal text-gray-400 transition-all duration-200 hover:text-white"
+              className="text-base font-normal text-gray-600 transition-all duration-200 hover:text-gray-900"
             >
               Book a Demo
             </button>
-            <Link to="/signup" className="text-base font-normal text-gray-400 transition-all duration-200 hover:text-white">
+            <Link to="/login" className="text-base font-normal text-gray-600 transition-all duration-200 hover:text-gray-900">
+              Login
+            </Link>
+            <Link to="/signup" className="text-base font-normal text-white bg-blue-600 px-4 py-2 rounded-lg transition-all duration-200 hover:bg-blue-700">
               Sign Up
             </Link>
           </nav>
@@ -70,29 +73,36 @@ const Navbar: React.FC = () => {
         {isMenuOpen && (
           <nav className="md:hidden">
             <div className="flex flex-col pt-8 pb-4 space-y-6">
-              <Link 
-                to="/#features" 
-                className="text-base font-normal text-gray-400 transition-all duration-200 hover:text-white"
+              <a 
+                href="#features" 
+                className="text-base font-normal text-gray-600 transition-all duration-200 hover:text-gray-900"
                 onClick={() => setIsMenuOpen(false)}
               >
                 Features
-              </Link>
+              </a>
               <Link 
-                to="/#process" 
-                className="text-base font-normal text-gray-400 transition-all duration-200 hover:text-white"
+                to="/pricing" 
+                className="text-base font-normal text-gray-600 transition-all duration-200 hover:text-gray-900"
                 onClick={() => setIsMenuOpen(false)}
               >
-                Our Process
+                Pricing
               </Link>
               <button 
                 onClick={scrollToDemo}
-                className="text-left text-base font-normal text-gray-400 transition-all duration-200 hover:text-white"
+                className="text-left text-base font-normal text-gray-600 transition-all duration-200 hover:text-gray-900"
               >
                 Book a Demo
               </button>
               <Link 
+                to="/login" 
+                className="text-base font-normal text-gray-600 transition-all duration-200 hover:text-gray-900"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                Login
+              </Link>
+              <Link 
                 to="/signup" 
-                className="text-base font-normal text-gray-400 transition-all duration-200 hover:text-white"
+                className="text-base font-normal text-white bg-blue-600 px-4 py-2 rounded-lg transition-all duration-200 hover:bg-blue-700 text-center"
                 onClick={() => setIsMenuOpen(false)}
               >
                 Sign Up
