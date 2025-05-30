@@ -19,17 +19,37 @@ const LinkedInTokenCallback: React.FC = () => {
 
       console.log('LinkedIn callback received:', { code: !!code, state, error });
 
+      // Default to /jobs if no source is found
+      let redirectPath = '/jobs';
+      let callbackSource = 'jobs';
+
+      // Extract source from state if available
+      if (state && state.includes('___')) {
+        const [actualState, source] = state.split('___');
+        callbackSource = source;
+        
+        // Map sources to redirect paths
+        switch (source) {
+          case 'BuildProfile':
+            redirectPath = '/build-profile';
+            break;
+          case 'Jobs':
+          default:
+            redirectPath = '/jobs';
+        }
+      }
+
       if (error) {
         console.error('LinkedIn OAuth error:', error);
         toast.error('LinkedIn connection failed. Please try again.');
-        navigate('/jobs');
+        navigate(redirectPath);
         return;
       }
 
       if (!code) {
         console.error('No authorization code received');
         toast.error('LinkedIn connection failed. No authorization code received.');
-        navigate('/jobs');
+        navigate(redirectPath);
         return;
       }
 
@@ -40,7 +60,7 @@ const LinkedInTokenCallback: React.FC = () => {
       if (state !== storedState) {
         console.error('OAuth state mismatch - security verification failed');
         toast.error('LinkedIn connection failed. Security verification failed.');
-        navigate('/jobs');
+        navigate(redirectPath);
         return;
       }
 
@@ -54,14 +74,14 @@ const LinkedInTokenCallback: React.FC = () => {
         if (functionError) {
           console.error('Token exchange function error:', functionError);
           toast.error(`LinkedIn connection failed: ${functionError.message}`);
-          navigate('/jobs');
+          navigate(redirectPath);
           return;
         }
 
         if (data?.error) {
           console.error('Token exchange failed:', data.error);
           toast.error(`LinkedIn connection failed: ${data.error}`);
-          navigate('/jobs');
+          navigate(redirectPath);
           return;
         }
 
@@ -72,42 +92,61 @@ const LinkedInTokenCallback: React.FC = () => {
         sessionStorage.removeItem('linkedin_oauth_state');
         localStorage.removeItem('linkedin_oauth_state');
         
-        // Check for pending LinkedIn post
-        const pendingPost = sessionStorage.getItem('pending_linkedin_post');
-        if (pendingPost) {
+        // Check for pending post data
+        const pendingDataString = sessionStorage.getItem('pending_post_data');
+        if (pendingDataString) {
           try {
-            const { jobId } = JSON.parse(pendingPost);
-            console.log('Found pending LinkedIn post for job:', jobId);
-            sessionStorage.removeItem('pending_linkedin_post');
+            const pendingData = JSON.parse(pendingDataString);
+            console.log('Found pending post data:', pendingData);
+            sessionStorage.removeItem('pending_post_data');
 
             // Add delay to ensure token is properly stored
-            setTimeout(async () => {
-              console.log('Attempting to post job to LinkedIn with new token...');
-              const { data: linkedInResponse, error } = await supabase.functions.invoke('auto-linkedin-post', {
-                body: { jobId }
-              });
+            if (pendingData.source === callbackSource) {
+              setTimeout(async () => {
+                if (pendingData.source === 'BuildProfile') {
+                  // Handle BuildProfile post
+                  console.log('Processing BuildProfile post with data:', pendingData.payload);
+                  const { data: linkedInResponse, error } = await supabase.functions.invoke('generate-linkedin-post', {
+                    body: pendingData.payload
+                  });
 
-              if (error || linkedInResponse?.error) {
-                console.error('LinkedIn post failed after re-authentication:', error || linkedInResponse?.error);
-                toast.error('LinkedIn posting failed even after re-authentication. Please try posting manually.');
-              } else {
-                console.log('Job posted to LinkedIn successfully after re-authentication');
-                toast.success('Job posted to LinkedIn successfully!');
-              }
-            }, 2000); // Wait 2 seconds for token to be fully processed
+                  if (error || linkedInResponse?.error) {
+                    console.error('LinkedIn post failed after re-authentication:', error || linkedInResponse?.error);
+                    toast.error('LinkedIn posting failed even after re-authentication. Please try posting manually.');
+                  } else {
+                    console.log('Content posted to LinkedIn successfully after re-authentication');
+                    toast.success('Content posted to LinkedIn successfully!');
+                  }
+                } else if (pendingData.source === 'Jobs' && pendingData.payload.jobId) {
+                  // Handle Jobs post
+                  console.log('Processing Jobs post for job:', pendingData.payload.jobId);
+                  const { data: linkedInResponse, error } = await supabase.functions.invoke('auto-linkedin-post', {
+                    body: { jobId: pendingData.payload.jobId }
+                  });
+
+                  if (error || linkedInResponse?.error) {
+                    console.error('LinkedIn post failed after re-authentication:', error || linkedInResponse?.error);
+                    toast.error('LinkedIn posting failed even after re-authentication. Please try posting manually.');
+                  } else {
+                    console.log('Job posted to LinkedIn successfully after re-authentication');
+                    toast.success('Job posted to LinkedIn successfully!');
+                  }
+                }
+              }, 2000); // Wait 2 seconds for token to be fully processed
+            }
           } catch (error) {
-            console.error('Error processing pending LinkedIn post:', error);
-            toast.error('Failed to process LinkedIn post after re-authentication');
+            console.error('Error processing pending post data:', error);
+            toast.error('Failed to process post after re-authentication');
           }
         }
         
-        // Navigate back to jobs page
-        navigate('/jobs?linkedin_connected=true');
+        // Navigate back to original page
+        navigate(`${redirectPath}?linkedin_connected=true`);
         
       } catch (error) {
         console.error('Unexpected error during token exchange:', error);
         toast.error('An unexpected error occurred. Please try again.');
-        navigate('/jobs');
+        navigate(redirectPath);
       }
     };
 
