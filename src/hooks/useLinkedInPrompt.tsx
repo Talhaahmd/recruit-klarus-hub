@@ -119,9 +119,11 @@ export const useLinkedInPrompt = () => {
       const clientId = '771girpp9fv439';
       const redirectUri = encodeURIComponent('https://klarushr.com/linkedin-token-callback');
       const scope = encodeURIComponent('openid profile email w_member_social');
-      const authUrl = `https://www.linkedin.com/oauth/v2/authorization?response_type=code&client_id=${clientId}&redirect_uri=${redirectUri}&scope=${scope}&state=${stateWithSource}`;
+      
+      // Force fresh consent by adding prompt=consent
+      const authUrl = `https://www.linkedin.com/oauth/v2/authorization?response_type=code&client_id=${clientId}&redirect_uri=${redirectUri}&scope=${scope}&state=${stateWithSource}&prompt=consent`;
 
-      console.log('Redirecting to LinkedIn OAuth:', authUrl);
+      console.log('Redirecting to LinkedIn OAuth with fresh consent:', authUrl);
       window.location.href = authUrl;
     } catch (error) {
       console.error('Error initiating LinkedIn OAuth:', error);
