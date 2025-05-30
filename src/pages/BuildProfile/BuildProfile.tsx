@@ -107,11 +107,19 @@ const BuildProfile: React.FC = () => {
         return;
       }
 
+      // Validate required fields before making the request
+      if (!postData.content || !postData.niche || !postData.tone) {
+        console.error('Missing required fields:', postData);
+        toast.error('Missing required fields for LinkedIn post');
+        setCurrentStage(PostStage.DraftReady);
+        return;
+      }
+
       const { data, error } = await supabase.functions.invoke('generate-linkedin-post', {
         body: {
           niche: postData.niche,
           tone: postData.tone,
-          contentPrompt: postData.content, 
+          contentPrompt: postData.content,  // This was the issue - we need to use contentPrompt
           scheduleDate: null,
           scheduleTime: null
         }
@@ -249,12 +257,12 @@ const BuildProfile: React.FC = () => {
       }
 
     } else if (currentStage === PostStage.DraftReady) {
-      if (postContent.trim().length < 10) {
+      if (!postContent || postContent.trim().length < 10) {
         toast.error('Post content is too short.');
         return;
       }
       const finalPostData = {
-        content: postContent,
+        content: postContent.trim(),  // Ensure content is trimmed
         niche: selectedThemeObj.theme.title,
         tone: selectedTone
       };

@@ -20,6 +20,28 @@ interface LinkedInTokenData {
   expires_at: string;
 }
 
+function validatePayload(payload: any): { isValid: boolean; error?: string } {
+  if (!payload) {
+    return { isValid: false, error: 'Missing request payload' };
+  }
+
+  const { niche, tone, contentPrompt } = payload;
+
+  if (!niche || typeof niche !== 'string' || niche.trim().length === 0) {
+    return { isValid: false, error: 'Missing or invalid niche field' };
+  }
+
+  if (!tone || typeof tone !== 'string' || tone.trim().length === 0) {
+    return { isValid: false, error: 'Missing or invalid tone field' };
+  }
+
+  if (!contentPrompt || typeof contentPrompt !== 'string' || contentPrompt.trim().length === 0) {
+    return { isValid: false, error: 'Missing or invalid contentPrompt field' };
+  }
+
+  return { isValid: true };
+}
+
 Deno.serve(async (req) => {
   console.log('[GLP] Function Invoked', { method: req.method });
   if (req.method === 'OPTIONS') {
@@ -56,15 +78,28 @@ Deno.serve(async (req) => {
     console.log('[GLP] User verified:', { userId: user.id });
 
     const requestData: LinkedInPostPayload = await req.json();
-    const { niche, tone, contentPrompt, scheduleDate, scheduleTime } = requestData;
-    console.log('[GLP] Request body parsed:', { niche, tone, contentPromptPresent: !!contentPrompt, scheduleDate, scheduleTime });
+    console.log('[GLP] Request body received:', {
+      niche: requestData.niche,
+      tone: requestData.tone,
+      contentPromptLength: requestData.contentPrompt?.length || 0,
+      hasSchedule: !!(requestData.scheduleDate && requestData.scheduleTime)
+    });
 
-    if (!niche || !tone || !contentPrompt) {
-      console.error('[GLP] Error: Missing required fields.', { niche, tone, contentPromptPresent: !!contentPrompt });
-      return new Response(JSON.stringify({ error: 'Missing required fields: niche, tone, and contentPrompt are required' }), {
-        status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+    // Validate payload
+    const validation = validatePayload(requestData);
+    if (!validation.isValid) {
+      console.error('[GLP] Payload validation failed:', validation.error);
+      return new Response(JSON.stringify({ 
+        error: 'Invalid request payload', 
+        message: validation.error 
+      }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
     }
+
+    const { niche, tone, contentPrompt, scheduleDate, scheduleTime } = requestData;
+    console.log('[GLP] Request body parsed:', { niche, tone, contentPromptPresent: !!contentPrompt, scheduleDate, scheduleTime });
 
     console.log('[GLP] Fetching LinkedIn token for user:', user.id);
     const { data: linkedinTokenData, error: tokenError } = await supabase
