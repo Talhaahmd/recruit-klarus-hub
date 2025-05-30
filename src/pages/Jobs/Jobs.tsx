@@ -1,5 +1,3 @@
-
-
 import React, { useState, useEffect } from 'react';
 import { Plus } from 'lucide-react';
 import { Button } from '@/components/UI/button';
@@ -9,6 +7,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Job, jobsService } from '@/services/jobsService';
 import { useLinkedInPrompt } from '@/hooks/useLinkedInPrompt';
 import { toast } from 'sonner';
+import { supabase } from '@/lib/supabase';
 
 const Jobs: React.FC = () => {
   const [jobs, setJobs] = useState<Job[]>([]);
@@ -94,6 +93,31 @@ const Jobs: React.FC = () => {
         setJobs([...jobs, createdJob]);
         setShowAddModal(false);
         toast.success('Job created successfully');
+        
+        // If LinkedIn posting was requested and we have a token, post to LinkedIn
+        if (newJobData.postToLinkedIn && hasLinkedInToken) {
+          try {
+            console.log('Posting job to LinkedIn...');
+            const { data: linkedInResponse, error } = await supabase.functions.invoke('auto-linkedin-post', {
+              body: { jobId: createdJob.id }
+            });
+
+            if (error) {
+              console.error('LinkedIn auto-post error:', error);
+              toast.error('Job created but LinkedIn posting failed. Please try posting manually.');
+            } else if (linkedInResponse?.error) {
+              console.error('LinkedIn auto-post failed:', linkedInResponse.error);
+              toast.error('Job created but LinkedIn posting failed. Please try posting manually.');
+            } else {
+              console.log('Job posted to LinkedIn successfully');
+              toast.success('Job created and posted to LinkedIn successfully!');
+            }
+          } catch (linkedInError) {
+            console.error('Error posting to LinkedIn:', linkedInError);
+            toast.error('Job created but LinkedIn posting failed. Please try posting manually.');
+          }
+        }
+        
         loadJobs();
       } else {
         toast.error('Failed to create job');

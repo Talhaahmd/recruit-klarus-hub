@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -48,6 +47,7 @@ const jobFormSchema = z.object({
   type: z.enum(['Full-time', 'Part-time', 'Contract'], { message: "Invalid job type" }),
   description: z.string().min(10, { message: "Description must be at least 10 characters" }),
   activeDays: z.coerce.number().min(1, { message: "Active days must be at least 1" }),
+  postToLinkedIn: z.boolean().default(false),
 });
 
 const technologiesSchema = z.object({
@@ -79,6 +79,7 @@ const AddJobModal: React.FC<AddJobModalProps> = ({ isOpen, onClose, onSave }) =>
       type: 'Full-time',
       description: '',
       activeDays: 30,
+      postToLinkedIn: false,
     }
   });
 
@@ -120,7 +121,8 @@ const AddJobModal: React.FC<AddJobModalProps> = ({ isOpen, onClose, onSave }) =>
   const onSubmitSecondTab = (data: TechnologiesFormValues) => {
     if (jobData) {
       onSave({ 
-        ...jobData, 
+        ...jobData,
+        postToLinkedIn: jobData.postToLinkedIn, 
         ...data 
       });
       resetAndClose();
@@ -321,6 +323,31 @@ const AddJobModal: React.FC<AddJobModalProps> = ({ isOpen, onClose, onSave }) =>
                         />
                       </FormControl>
                       <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={jobForm.control}
+                  name="postToLinkedIn"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-center space-x-3 space-y-0 rounded-md border p-4">
+                      <FormControl>
+                        <input
+                          type="checkbox"
+                          className="h-4 w-4 text-primary-100 border-gray-300 rounded focus:ring-primary-100"
+                          checked={field.value}
+                          onChange={field.onChange}
+                        />
+                      </FormControl>
+                      <div className="space-y-1 leading-none">
+                        <FormLabel className="font-medium">
+                          Post to LinkedIn
+                        </FormLabel>
+                        <p className="text-sm text-gray-500">
+                          Automatically create and post a job listing to your LinkedIn profile
+                        </p>
+                      </div>
                     </FormItem>
                   )}
                 />
