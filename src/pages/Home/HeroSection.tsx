@@ -4,16 +4,19 @@ import { Link } from 'react-router-dom';
 const HeroSection: React.FC = () => {
   return (
     <div
-      className="overflow-x-hidden bg-cover bg-center bg-no-repeat min-h-screen"
+      className="overflow-x-hidden bg-cover bg-center bg-no-repeat min-h-screen relative"
       style={{
         backgroundImage:
           "url('https://res.cloudinary.com/dt93sahp2/image/upload/v1748548189/blue-light-rays-on-dark-blue-background-abstract-g-2024-12-05-11-07-31-utc_ourexg.jpg')",
       }}
     >
-      <section className="pt-8 sm:pt-12 lg:pt-20 pb-8 sm:pb-12 lg:pb-16">
+      {/* Dark overlay */}
+      <div className="absolute inset-0 bg-black/50"></div>
+      
+      <section className="pt-8 sm:pt-12 lg:pt-20 pb-8 sm:pb-12 lg:pb-16 relative z-10">
         <div className="px-4 sm:px-6 lg:px-8 mx-auto max-w-7xl">
           <div className="max-w-4xl mx-auto text-center">
-            <p className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-bold leading-tight text-gray-900">
+            <p className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-bold leading-tight text-white">
               Your Full Stack
               <span className="relative inline-flex ml-2 sm:ml-3">
                 <span
@@ -39,7 +42,7 @@ const HeroSection: React.FC = () => {
               </Link>
             </div>
 
-            <p className="mt-6 sm:mt-8 text-sm sm:text-base text-gray-600">
+            <p className="mt-6 sm:mt-8 text-sm sm:text-base text-gray-200">
               14 Days free trial · No credit card required
             </p>
           </div>
