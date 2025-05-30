@@ -1,11 +1,16 @@
-
 import React from 'react';
 import { Link } from 'react-router-dom';
 
 const HeroSection: React.FC = () => {
   return (
-    <div className="overflow-x-hidden bg-gradient-to-br from-blue-50 via-white to-indigo-50 min-h-screen">
-      <section className="pt-8 sm:pt-12 lg:pt-20 pb-8 sm:pb-12 lg:pb-16">
+    <div
+      className="overflow-x-hidden bg-cover bg-center bg-no-repeat min-h-screen"
+      style={{
+        backgroundImage:
+          "url('https://res.cloudinary.com/dt93sahp2/image/upload/v1748548189/blue-light-rays-on-dark-blue-background-abstract-g-2024-12-05-11-07-31-utc_ourexg.jpg')",
+      }}
+    >
+      <section className="pt-8 sm:pt-12 lg:pt-20 pb-8 sm:pb-12 lg:pb-16 bg-gradient-to-br from-blue-50/80 via-white/70 to-indigo-50/80 backdrop-blur">
         <div className="px-4 sm:px-6 lg:px-8 mx-auto max-w-7xl">
           <div className="max-w-4xl mx-auto text-center">
             <p className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-bold leading-tight text-gray-900">
@@ -34,7 +39,9 @@ const HeroSection: React.FC = () => {
               </Link>
             </div>
 
-            <p className="mt-6 sm:mt-8 text-sm sm:text-base text-gray-600">14 Days free trial · No credit card required</p>
+            <p className="mt-6 sm:mt-8 text-sm sm:text-base text-gray-600">
+              14 Days free trial · No credit card required
+            </p>
           </div>
         </div>
 
@@ -59,11 +66,11 @@ const HeroSection: React.FC = () => {
                   />
                 </div>
               </div>
-              
+
               {/* Laptop Base */}
               <div className="h-3 sm:h-4 bg-gradient-to-b from-gray-700 to-gray-800 rounded-b-2xl"></div>
             </div>
-            
+
             {/* Keyboard Base */}
             <div className="h-1 sm:h-2 bg-gradient-to-b from-gray-600 to-gray-700 rounded-b-3xl mx-8 sm:mx-12"></div>
           </div>
