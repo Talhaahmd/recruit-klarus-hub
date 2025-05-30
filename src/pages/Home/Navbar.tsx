@@ -1,4 +1,4 @@
-// src/components/Navbar.tsx
+
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Menu, X } from 'lucide-react';
@@ -18,36 +18,39 @@ const Navbar: React.FC = () => {
 
   return (
     <header
-      className={`fixed top-10 left-0 w-full z-50 transition-all duration-300 ${
-        scrolled ? 'bg-white/10 backdrop-blur-md shadow-md' : 'bg-transparent'
+      className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 ${
+        scrolled ? 'bg-white/90 backdrop-blur-md shadow-md' : 'bg-white/70 backdrop-blur-sm'
       }`}
     >
-      <nav className="max-w-7xl mx-auto flex justify-between items-center px-6 py-4 relative">
+      <nav className="max-w-7xl mx-auto flex justify-between items-center px-4 sm:px-6 py-3 sm:py-4 relative">
         {/* Logo */}
-        <div className="text-white font-bold text-2xl tracking-wider">
+        <div className="text-gray-900 font-bold text-xl sm:text-2xl tracking-wider">
           Klarus HR
         </div>
 
         {/* Desktop Nav */}
-        <div className="hidden md:flex gap-12 items-center text-lg font-medium text-white">
-          <Link to="/" className="hover:text-blue-300 transition">Home</Link>
-          <a href="#features" className="hover:text-blue-300 transition">Features</a>
-          <Link to="/signup" className="hover:text-blue-300 transition">Sign Up</Link>
+        <div className="hidden md:flex gap-8 lg:gap-12 items-center text-base lg:text-lg font-medium text-gray-700">
+          <Link to="/" className="hover:text-blue-600 transition">Home</Link>
+          <a href="#features" className="hover:text-blue-600 transition">Features</a>
+          <Link to="/signup" className="hover:text-blue-600 transition">Sign Up</Link>
         </div>
 
         {/* Mobile Toggle */}
         <div className="md:hidden">
-          <button onClick={() => setMenuOpen(!menuOpen)} className="text-white">
-            {menuOpen ? <X size={28} /> : <Menu size={28} />}
+          <button 
+            onClick={() => setMenuOpen(!menuOpen)} 
+            className="text-gray-900 p-2 hover:bg-gray-100 rounded-lg transition-colors"
+          >
+            {menuOpen ? <X size={24} /> : <Menu size={24} />}
           </button>
         </div>
 
         {/* Mobile Menu */}
         {menuOpen && (
-          <div className="absolute top-full left-0 w-full bg-black/70 backdrop-blur-md shadow-md py-6 flex flex-col items-center gap-6 text-white text-lg font-medium md:hidden">
-            <Link to="/" onClick={() => setMenuOpen(false)}>Home</Link>
-            <a href="#features" onClick={() => setMenuOpen(false)}>Features</a>
-            <Link to="/signup" onClick={() => setMenuOpen(false)}>Sign Up</Link>
+          <div className="absolute top-full left-0 w-full bg-white/95 backdrop-blur-md shadow-lg border-t border-gray-100 py-4 flex flex-col items-center gap-4 text-gray-700 text-base font-medium md:hidden">
+            <Link to="/" onClick={() => setMenuOpen(false)} className="py-2 hover:text-blue-600 transition">Home</Link>
+            <a href="#features" onClick={() => setMenuOpen(false)} className="py-2 hover:text-blue-600 transition">Features</a>
+            <Link to="/signup" onClick={() => setMenuOpen(false)} className="py-2 hover:text-blue-600 transition">Sign Up</Link>
           </div>
         )}
       </nav>

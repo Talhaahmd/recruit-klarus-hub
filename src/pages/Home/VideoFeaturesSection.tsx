@@ -1,5 +1,5 @@
+
 import React from 'react';
-import { X, Minus } from 'lucide-react';
 
 const features = [
   {
@@ -21,35 +21,30 @@ const features = [
 
 const FeatureVideoSection: React.FC = () => {
   return (
-    <section className="bg-black">
+    <section className="bg-gray-900">
       <div className="space-y-0">
         {features.map((feature, index) => (
           <div
             key={index}
-            className="min-h-screen w-full bg-black flex flex-col justify-between px-0 sm:px-8 py-6"
+            className="min-h-screen w-full bg-gray-900 flex flex-col justify-between px-4 sm:px-6 lg:px-8 py-6 sm:py-8"
           >
-            {/* Top Bar with Icons */}
-            <div className="flex justify-end gap-4 px-6">
-             
-            </div>
-
             {/* Main Content */}
-            <div className="flex flex-col items-center text-center gap-12 flex-grow justify-center px-6">
-              <div className="max-w-[1200px]">
-                <h2 className="text-4xl lg:text-5xl font-bold text-white mb-4">
+            <div className="flex flex-col items-center text-center gap-8 sm:gap-12 flex-grow justify-center">
+              <div className="max-w-6xl">
+                <h2 className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-bold text-white mb-4 px-4">
                   {feature.title}
                 </h2>
-                <p className="text-gray-300 text-lg max-w-3xl mx-auto">
+                <p className="text-gray-300 text-sm sm:text-base lg:text-lg max-w-3xl mx-auto px-4">
                   {feature.description}
                 </p>
               </div>
 
-              <div className="w-full max-w-[1600px] px-2">
-                <div className="rounded-2xl overflow-hidden shadow-2xl bg-gradient-to-br from-yellow-200 via-pink-300 to-purple-400 p-1">
-                  <div className="bg-black rounded-xl w-full h-[720px]">
+              <div className="w-full max-w-6xl px-2 sm:px-4">
+                <div className="rounded-xl sm:rounded-2xl overflow-hidden shadow-2xl bg-gradient-to-br from-yellow-200 via-pink-300 to-purple-400 p-1">
+                  <div className="bg-gray-900 rounded-lg sm:rounded-xl w-full aspect-video">
                     <video
                       src={feature.videoSrc}
-                      className="w-full h-full object-cover rounded-xl"
+                      className="w-full h-full object-cover rounded-lg sm:rounded-xl"
                       autoPlay
                       loop
                       muted
@@ -63,7 +58,7 @@ const FeatureVideoSection: React.FC = () => {
             </div>
 
             {/* Bottom Spacer */}
-            <div className="h-6" />
+            <div className="h-4 sm:h-6" />
           </div>
         ))}
       </div>
