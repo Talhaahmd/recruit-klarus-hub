@@ -3,16 +3,7 @@ import { Link } from 'react-router-dom';
 
 const HeroSection: React.FC = () => {
   return (
-    <div
-      className="overflow-x-hidden bg-cover bg-center bg-no-repeat min-h-screen relative"
-      style={{
-        backgroundImage:
-          "url('https://res.cloudinary.com/dt93sahp2/image/upload/v1748548189/blue-light-rays-on-dark-blue-background-abstract-g-2024-12-05-11-07-31-utc_ourexg.jpg')",
-      }}
-    >
-      {/* Dark overlay */}
-      <div className="absolute inset-0 bg-black/50"></div>
-      
+    <div className="overflow-x-hidden bg-black min-h-screen relative">
       <section className="pt-8 sm:pt-12 lg:pt-20 pb-8 sm:pb-12 lg:pb-16 relative z-10">
         <div className="px-4 sm:px-6 lg:px-8 mx-auto max-w-7xl">
           <div className="max-w-4xl mx-auto text-center">
@@ -48,24 +39,19 @@ const HeroSection: React.FC = () => {
           </div>
         </div>
 
-        {/* Video in Laptop Frame */}
+        {/* Image in Laptop Frame */}
         <div className="mt-12 sm:mt-16 lg:mt-20 px-4 sm:px-6 lg:px-8 mx-auto w-full max-w-5xl">
           <div className="relative mx-auto" style={{ maxWidth: '900px' }}>
             {/* Laptop Frame */}
             <div className="relative bg-gradient-to-b from-gray-800 to-gray-900 rounded-t-3xl p-3 sm:p-4 shadow-2xl">
               {/* Screen Bezel */}
               <div className="bg-black rounded-t-2xl p-2 sm:p-3">
-                {/* Actual Video */}
+                {/* Image replacing video */}
                 <div className="relative aspect-video bg-black rounded-lg overflow-hidden">
-                  <video
-                    src="https://res.cloudinary.com/dt93sahp2/video/upload/q_auto:best,f_auto/Untitled_video_-_Made_with_Clipchamp_udsinf.mp4"
+                  <img
+                    src="https://res.cloudinary.com/dt93sahp2/image/upload/v1748548888/Screenshot_2025-05-30_010106_hdqfk2.png"
+                    alt="App preview"
                     className="w-full h-full object-cover"
-                    autoPlay
-                    loop
-                    muted
-                    playsInline
-                    preload="auto"
-                    controls={false}
                   />
                 </div>
               </div>
