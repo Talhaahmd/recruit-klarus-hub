@@ -45,7 +45,7 @@ const BuildProfile: React.FC = () => {
 
   const [currentStage, setCurrentStage] = useState<PostStage>(PostStage.Idle);
   
-  const { showModal, initiateLinkedInConnect, dismissModal, hasLinkedInToken } = useLinkedInPrompt();
+  const { showModal, initiateLinkedInConnect, dismissModal, hasLinkedInToken, recheckToken } = useLinkedInPrompt();
   const { userThemes, loading: themesLoading } = useThemes();
 
   useEffect(() => {
@@ -65,15 +65,14 @@ const BuildProfile: React.FC = () => {
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const linkedInConnected = urlParams.get('linkedin_connected');
-    const sourceFromUrl = urlParams.get('source');
     
-    if (linkedInConnected === 'true' && sourceFromUrl === 'buildProfile') {
+    if (linkedInConnected === 'true') {
       window.history.replaceState({}, document.title, window.location.pathname);
       const pendingPostDataString = sessionStorage.getItem('pending_post_data');
       if (pendingPostDataString) {
         try {
           const pendingData = JSON.parse(pendingPostDataString);
-          if (pendingData.source === 'buildProfile') { 
+          if (pendingData.source === 'BuildProfile') { 
             sessionStorage.removeItem('pending_post_data');
             setTimeout(() => {
               processFinalLinkedInPost(pendingData.payload);
@@ -88,9 +87,13 @@ const BuildProfile: React.FC = () => {
         }
       } else {
         toast.success('LinkedIn connected successfully!');
+        // Recheck token status after connection
+        setTimeout(() => {
+          recheckToken();
+        }, 1000);
       }
     }
-  }, []);
+  }, [recheckToken]);
 
   const processFinalLinkedInPost = async (postData: any) => {
     try {
@@ -119,10 +122,13 @@ const BuildProfile: React.FC = () => {
         return;
       }
 
-      // Check if token is expired
+      // Check if token is expired (with 5 minute buffer)
       const expiresAt = new Date(tokenData.expires_at);
-      if (expiresAt <= new Date()) {
-        console.warn('LinkedIn token expired, prompting for reconnection');
+      const now = new Date();
+      const fiveMinutesFromNow = new Date(now.getTime() + 5 * 60 * 1000);
+      
+      if (expiresAt <= fiveMinutesFromNow) {
+        console.warn('LinkedIn token expired or expiring soon, prompting for reconnection');
         toast.error('LinkedIn token expired. Please reconnect your account');
         initiateFinalLinkedInPost(postData);
         return;
@@ -140,13 +146,21 @@ const BuildProfile: React.FC = () => {
 
       if (error) {
         console.error('LinkedIn post function invocation error:', error);
+        
+        // Check if it's a token-related error
+        if (error.message?.includes('token') || error.message?.includes('REVOKED_ACCESS_TOKEN')) {
+          toast.error('LinkedIn token expired. Please reconnect your account');
+          initiateFinalLinkedInPost(postData);
+          return;
+        }
+        
         toast.error(`Failed to generate LinkedIn post: ${error.message}`);
         setCurrentStage(PostStage.DraftReady);
         return;
       }
 
       if (data?.error) {
-        if (data.error === 'LINKEDIN_TOKEN_REVOKED') {
+        if (data.error === 'LINKEDIN_TOKEN_REVOKED' || data.error.includes('REVOKED_ACCESS_TOKEN') || data.error.includes('token')) {
           console.warn('LinkedIn token revoked. Message from function:', data.message);
           toast.error(data.message || 'LinkedIn token revoked or invalid. Please reconnect your LinkedIn account.');
           setCurrentStage(PostStage.DraftReady); 
@@ -172,6 +186,14 @@ const BuildProfile: React.FC = () => {
       
     } catch (error) {
       console.error('Error processing final LinkedIn post:', error);
+      
+      // Check if it's a token-related error
+      if (error.message?.includes('token') || error.message?.includes('REVOKED_ACCESS_TOKEN')) {
+        toast.error('LinkedIn token issue detected. Please reconnect your account');
+        initiateFinalLinkedInPost(postData);
+        return;
+      }
+      
       toast.error('Failed to publish LinkedIn post');
       setCurrentStage(PostStage.DraftReady);
     }
@@ -180,8 +202,14 @@ const BuildProfile: React.FC = () => {
   const initiateFinalLinkedInPost = async (finalPostData: any) => {
     console.log('Starting FINAL LinkedIn post process...', finalPostData);
     
+    // Always check token status first
+    await recheckToken();
+    
     if (hasLinkedInToken === true) {
-      await processFinalLinkedInPost(finalPostData);
+      // Wait a bit for token check to complete then try posting again
+      setTimeout(() => {
+        processFinalLinkedInPost(finalPostData);
+      }, 1000);
       return;
     }
     
@@ -189,7 +217,7 @@ const BuildProfile: React.FC = () => {
     try {
       await initiateLinkedInConnect({ 
         postData: finalPostData, 
-        callbackSource: 'buildProfile' 
+        callbackSource: 'BuildProfile' 
       });
     } catch (error) {
       console.error('Error initiating final LinkedIn post:', error);

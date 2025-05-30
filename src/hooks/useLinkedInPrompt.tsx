@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/lib/supabase';
@@ -37,14 +38,25 @@ export const useLinkedInPrompt = () => {
       if (data) {
         const expiresAt = new Date(data.expires_at);
         const now = new Date();
-        const oneHourBuffer = 60 * 60 * 1000;
-        const tokenValid = expiresAt.getTime() > (now.getTime() + oneHourBuffer);
+        // Use 10 minute buffer instead of 1 hour for more accurate checking
+        const tenMinuteBuffer = 10 * 60 * 1000;
+        const tokenValid = expiresAt.getTime() > (now.getTime() + tenMinuteBuffer);
         
         console.log('LinkedIn token found, valid:', tokenValid, 'expires:', expiresAt);
         setHasLinkedInToken(tokenValid);
         
         if (!tokenValid) {
           console.log('LinkedIn token will expire soon or has expired');
+          // Clear the expired token from the database
+          try {
+            await supabase
+              .from('linkedin_tokens')
+              .delete()
+              .eq('user_id', user.id);
+            console.log('Cleared expired LinkedIn token');
+          } catch (deleteError) {
+            console.warn('Error clearing expired token:', deleteError);
+          }
         }
       } else {
         console.log('No LinkedIn token found');
