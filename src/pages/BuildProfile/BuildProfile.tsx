@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Header } from '@/components/Layout/MainLayout';
 import { Send, Loader2, Check, Edit3, Linkedin } from 'lucide-react';
@@ -120,7 +119,7 @@ const BuildProfile: React.FC = () => {
 
       if (error) {
         console.error('LinkedIn post function invocation error:', error);
-        toast.error('LinkedIn authentication required. Please reconnect your account.');
+        toast.error('Failed to connect to LinkedIn. Please try again.');
         setCurrentStage(PostStage.DraftReady);
         initiateFinalLinkedInPost(postData);
         return;
@@ -129,19 +128,36 @@ const BuildProfile: React.FC = () => {
       if (data?.error) {
         console.error('LinkedIn post generation failed:', data.error, data.message);
         
-        // Check for any token-related errors
+        // Check for specific error types
         if (data.error === 'LINKEDIN_TOKEN_REVOKED' || 
             data.error.includes('token') || 
             data.error.includes('REVOKED_ACCESS_TOKEN') ||
             data.message?.includes('token') ||
-            data.message?.includes('revoked')) {
+            data.message?.includes('revoked') ||
+            data.message?.includes('reconnect')) {
           
-          toast.error('LinkedIn token expired. Please reconnect your account.');
+          console.log('LinkedIn token issue detected, initiating re-authentication...');
+          toast.error('LinkedIn authentication required. Please reconnect your account.');
           setCurrentStage(PostStage.DraftReady);
           initiateFinalLinkedInPost(postData);
           return;
         }
+
+        // Handle OpenAI errors
+        if (data.error.includes('OpenAI') || data.message?.includes('OpenAI')) {
+          toast.error('Failed to generate post content. Please try again.');
+          setCurrentStage(PostStage.DraftReady);
+          return;
+        }
         
+        // Handle LinkedIn API errors
+        if (data.error.includes('Failed to post to LinkedIn')) {
+          toast.error('Failed to post to LinkedIn. Please try again later.');
+          setCurrentStage(PostStage.DraftReady);
+          return;
+        }
+        
+        // Generic error
         toast.error(`Failed to generate LinkedIn post: ${data.message || data.error}`);
         setCurrentStage(PostStage.DraftReady);
         return;
@@ -160,9 +176,8 @@ const BuildProfile: React.FC = () => {
       
     } catch (error) {
       console.error('Error processing final LinkedIn post:', error);
-      toast.error('LinkedIn authentication required. Please reconnect your account.');
+      toast.error('Failed to process LinkedIn post. Please try again.');
       setCurrentStage(PostStage.DraftReady);
-      initiateFinalLinkedInPost(postData);
     }
   };
 
