@@ -262,7 +262,7 @@ const BuildProfile: React.FC = () => {
         return;
       }
       const finalPostData = {
-        content: postContent.trim(),  // Ensure content is trimmed
+        contentPrompt: postContent.trim(),  // Changed from content to contentPrompt
         niche: selectedThemeObj.theme.title,
         tone: selectedTone
       };
