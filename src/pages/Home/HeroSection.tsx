@@ -10,7 +10,7 @@ const HeroSection: React.FC = () => {
           "url('https://res.cloudinary.com/dt93sahp2/image/upload/v1748548189/blue-light-rays-on-dark-blue-background-abstract-g-2024-12-05-11-07-31-utc_ourexg.jpg')",
       }}
     >
-      <section className="pt-8 sm:pt-12 lg:pt-20 pb-8 sm:pb-12 lg:pb-16 bg-gradient-to-br from-blue-50/80 via-white/70 to-indigo-50/80 backdrop-blur">
+      <section className="pt-8 sm:pt-12 lg:pt-20 pb-8 sm:pb-12 lg:pb-16">
         <div className="px-4 sm:px-6 lg:px-8 mx-auto max-w-7xl">
           <div className="max-w-4xl mx-auto text-center">
             <p className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-bold leading-tight text-gray-900">
