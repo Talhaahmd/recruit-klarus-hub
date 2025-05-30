@@ -65,15 +65,6 @@ const Jobs: React.FC = () => {
     try {
       console.log('Creating job with data:', newJobData);
       
-      if (newJobData.postToLinkedIn && !hasLinkedInToken) {
-        console.log('LinkedIn posting requested but no token, initiating OAuth...');
-        await initiateLinkedInConnect({ 
-          callbackSource: 'job_creation',
-          postData: newJobData 
-        });
-        return;
-      }
-
       const jobInput = {
         title: newJobData.title,
         description: newJobData.description,
@@ -94,8 +85,8 @@ const Jobs: React.FC = () => {
         setShowAddModal(false);
         toast.success('Job created successfully');
         
-        // If LinkedIn posting was requested and we have a token, post to LinkedIn
-        if (newJobData.postToLinkedIn && hasLinkedInToken) {
+        // If LinkedIn posting was requested, attempt to post
+        if (newJobData.postToLinkedIn) {
           try {
             console.log('Posting job to LinkedIn...');
             const { data: linkedInResponse, error } = await supabase.functions.invoke('auto-linkedin-post', {
@@ -104,10 +95,31 @@ const Jobs: React.FC = () => {
 
             if (error) {
               console.error('LinkedIn auto-post error:', error);
-              toast.error('Job created but LinkedIn posting failed. Please try posting manually.');
+              // Store job ID for reposting after re-authentication
+              sessionStorage.setItem('pending_linkedin_post', JSON.stringify({
+                jobId: createdJob.id,
+                timestamp: Date.now()
+              }));
+              await initiateLinkedInConnect({ 
+                callbackSource: 'job_posting',
+                postData: { jobId: createdJob.id }
+              });
             } else if (linkedInResponse?.error) {
-              console.error('LinkedIn auto-post failed:', linkedInResponse.error);
-              toast.error('Job created but LinkedIn posting failed. Please try posting manually.');
+              if (linkedInResponse.error.includes('REVOKED_ACCESS_TOKEN')) {
+                console.log('LinkedIn token revoked, initiating re-authentication...');
+                // Store job ID for reposting after re-authentication
+                sessionStorage.setItem('pending_linkedin_post', JSON.stringify({
+                  jobId: createdJob.id,
+                  timestamp: Date.now()
+                }));
+                await initiateLinkedInConnect({ 
+                  callbackSource: 'job_posting',
+                  postData: { jobId: createdJob.id }
+                });
+              } else {
+                console.error('LinkedIn auto-post failed:', linkedInResponse.error);
+                toast.error('Job created but LinkedIn posting failed. Please try posting manually.');
+              }
             } else {
               console.log('Job posted to LinkedIn successfully');
               toast.success('Job created and posted to LinkedIn successfully!');

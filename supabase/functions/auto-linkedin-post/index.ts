@@ -100,7 +100,11 @@ Deno.serve(async (req) => {
     if (tokenError || !linkedinToken) {
       console.error('LinkedIn token not found:', tokenError);
       return new Response(
-        JSON.stringify({ error: 'LinkedIn not connected. Please connect your LinkedIn account first.' }),
+        JSON.stringify({ 
+          error: 'LinkedIn not connected. Please connect your LinkedIn account first.',
+          shouldRetry: true,
+          jobId
+        }),
         { 
           status: 400, 
           headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
@@ -114,7 +118,11 @@ Deno.serve(async (req) => {
     if (expiresAt <= now) {
       console.error('LinkedIn token expired');
       return new Response(
-        JSON.stringify({ error: 'LinkedIn token expired. Please reconnect your LinkedIn account.' }),
+        JSON.stringify({ 
+          error: 'LinkedIn token expired. Please reconnect your LinkedIn account.',
+          shouldRetry: true,
+          jobId
+        }),
         { 
           status: 400, 
           headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
@@ -166,7 +174,12 @@ Make the post sound professional, exciting, and include a call to action. Includ
       const errorText = await openAIResponse.text();
       console.error('OpenAI API error:', errorText);
       return new Response(
-        JSON.stringify({ error: 'Failed to generate post content' }),
+        JSON.stringify({ 
+          error: 'Failed to generate post content',
+          shouldRetry: true,
+          retryAfter: 30,
+          jobId
+        }),
         { 
           status: 500, 
           headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
@@ -217,12 +230,17 @@ Make the post sound professional, exciting, and include a call to action. Includ
     if (!linkedinResponse.ok) {
       console.error('LinkedIn posting failed:', linkedinResponseText);
       
-      // Parse the error to provide specific feedback
       let errorMessage = 'Failed to post to LinkedIn';
+      let shouldRetry = false;
+      let retryAfter = 0;
+      
       try {
         const errorData = JSON.parse(linkedinResponseText);
+        
+        // Handle specific error cases
         if (errorData.serviceErrorCode === 65601 || errorData.code === 'REVOKED_ACCESS_TOKEN') {
           errorMessage = 'REVOKED_ACCESS_TOKEN: LinkedIn token expired or was revoked. Please reconnect your LinkedIn account.';
+          shouldRetry = true;
           
           // Clear the invalid token from database
           await supabase
@@ -231,18 +249,59 @@ Make the post sound professional, exciting, and include a call to action. Includ
             .eq('user_id', user.id);
             
           console.log('Cleared invalid LinkedIn token from database');
-        } else if (errorData.message) {
+        } 
+        // Rate limiting
+        else if (linkedinResponse.status === 429) {
+          const retryAfterHeader = linkedinResponse.headers.get('Retry-After');
+          retryAfter = retryAfterHeader ? parseInt(retryAfterHeader) : 60;
+          errorMessage = `LinkedIn rate limit reached. Please try again in ${retryAfter} seconds.`;
+          shouldRetry = true;
+        }
+        // Authentication errors
+        else if (linkedinResponse.status === 401) {
+          errorMessage = 'LinkedIn authentication failed. Please reconnect your LinkedIn account.';
+          shouldRetry = true;
+        }
+        // Server errors
+        else if (linkedinResponse.status >= 500) {
+          errorMessage = 'LinkedIn server error. Please try again later.';
+          shouldRetry = true;
+          retryAfter = 30;
+        }
+        // Other errors with messages
+        else if (errorData.message) {
           errorMessage = `LinkedIn error: ${errorData.message}`;
+          // Check if error message suggests retrying
+          if (errorData.message.toLowerCase().includes('try again') || 
+              errorData.message.toLowerCase().includes('temporary')) {
+            shouldRetry = true;
+            retryAfter = 30;
+          }
         }
       } catch (parseError) {
         console.error('Error parsing LinkedIn response:', parseError);
+        // For unparseable errors, suggest retry if it's a server error
+        if (linkedinResponse.status >= 500) {
+          shouldRetry = true;
+          retryAfter = 30;
+        }
       }
       
       return new Response(
-        JSON.stringify({ error: errorMessage }),
+        JSON.stringify({ 
+          error: errorMessage,
+          shouldRetry,
+          retryAfter,
+          jobId, // Include jobId for retry handling
+          status: linkedinResponse.status
+        }),
         { 
-          status: 400, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+          status: linkedinResponse.status || 400, 
+          headers: { 
+            ...corsHeaders, 
+            'Content-Type': 'application/json',
+            ...(retryAfter ? { 'Retry-After': retryAfter.toString() } : {})
+          } 
         }
       );
     }
@@ -290,7 +349,12 @@ Make the post sound professional, exciting, and include a call to action. Includ
   } catch (error) {
     console.error('Error in auto LinkedIn post function:', error);
     return new Response(
-      JSON.stringify({ error: 'Internal server error', details: error.message }),
+      JSON.stringify({ 
+        error: 'Internal server error', 
+        details: error.message,
+        shouldRetry: true,
+        retryAfter: 30
+      }),
       { 
         status: 500, 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' } 

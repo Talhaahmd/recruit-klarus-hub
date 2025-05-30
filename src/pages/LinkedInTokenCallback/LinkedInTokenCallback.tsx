@@ -1,4 +1,3 @@
-
 import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
@@ -73,87 +72,36 @@ const LinkedInTokenCallback: React.FC = () => {
         sessionStorage.removeItem('linkedin_oauth_state');
         localStorage.removeItem('linkedin_oauth_state');
         
-        // Check for pending data and determine the source
-        const pendingJobData = sessionStorage.getItem('pending_job_data');
-        const pendingPostData = sessionStorage.getItem('pending_post_data');
-        
-        // Handle BuildProfile post data first
-        if (pendingPostData) {
-          console.log('Found pending post data, checking source...');
+        // Check for pending LinkedIn post
+        const pendingPost = sessionStorage.getItem('pending_linkedin_post');
+        if (pendingPost) {
           try {
-            const postData = JSON.parse(pendingPostData);
-            
-            // Check if this is BuildProfile data
-            if (postData.source === 'BuildProfile') {
-              console.log('Processing BuildProfile post generation...');
-              sessionStorage.removeItem('pending_post_data');
-              
-              // Redirect to BuildProfile with success parameter
-              navigate('/build-profile?linkedin_connected=true');
-              return;
-            }
+            const { jobId } = JSON.parse(pendingPost);
+            console.log('Found pending LinkedIn post for job:', jobId);
+            sessionStorage.removeItem('pending_linkedin_post');
+
+            // Add delay to ensure token is properly stored
+            setTimeout(async () => {
+              console.log('Attempting to post job to LinkedIn with new token...');
+              const { data: linkedInResponse, error } = await supabase.functions.invoke('auto-linkedin-post', {
+                body: { jobId }
+              });
+
+              if (error || linkedInResponse?.error) {
+                console.error('LinkedIn post failed after re-authentication:', error || linkedInResponse?.error);
+                toast.error('LinkedIn posting failed even after re-authentication. Please try posting manually.');
+              } else {
+                console.log('Job posted to LinkedIn successfully after re-authentication');
+                toast.success('Job posted to LinkedIn successfully!');
+              }
+            }, 2000); // Wait 2 seconds for token to be fully processed
           } catch (error) {
-            console.error('Error parsing pending post data:', error);
+            console.error('Error processing pending LinkedIn post:', error);
+            toast.error('Failed to process LinkedIn post after re-authentication');
           }
         }
         
-        // Handle job posting data
-        if (pendingJobData) {
-          console.log('Found pending job data, creating job...');
-          
-          try {
-            const jobData = JSON.parse(pendingJobData);
-            sessionStorage.removeItem('pending_job_data');
-            
-            // Create the job
-            const jobPayload = {
-              title: jobData.title,
-              description: jobData.description,
-              location: jobData.location,
-              type: jobData.type,
-              status: 'Active',
-              posted_date: new Date().toISOString().split('T')[0],
-              active_days: jobData.activeDays,
-              technologies: jobData.technologies,
-              workplace_type: jobData.workplaceType,
-              applicants: 0
-            };
-
-            console.log('Creating job with payload:', jobPayload);
-            const savedJob = await jobsService.createJob(jobPayload);
-
-            if (savedJob) {
-              console.log('Job created successfully:', savedJob);
-              toast.success('Job created successfully');
-              
-              // Auto-post to LinkedIn with fresh token - add delay to ensure token is ready
-              console.log('Attempting LinkedIn auto-post with fresh token...');
-              setTimeout(async () => {
-                const linkedInSuccess = await autoPostToLinkedIn(savedJob.id);
-                
-                if (linkedInSuccess) {
-                  console.log('LinkedIn auto-post completed successfully');
-                  toast.success('Job posted to LinkedIn successfully!');
-                } else {
-                  console.log('LinkedIn auto-post failed, but job was created');
-                  toast.error('Job created but LinkedIn posting failed. You can try posting manually.');
-                }
-              }, 2000); // Wait 2 seconds for token to be fully processed
-            } else {
-              console.error('Job creation failed - no job returned');
-              toast.error('Failed to create job');
-            }
-          } catch (parseError) {
-            console.error('Error parsing pending job data:', parseError);
-            toast.error('Failed to create job after LinkedIn connection');
-          }
-          
-          // Redirect to jobs page with success parameter
-          navigate('/jobs?linkedin_connected=true');
-          return;
-        }
-        
-        // No pending data, default to jobs page
+        // Navigate back to jobs page
         navigate('/jobs?linkedin_connected=true');
         
       } catch (error) {
@@ -164,7 +112,7 @@ const LinkedInTokenCallback: React.FC = () => {
     };
 
     handleCallback();
-  }, [navigate, autoPostToLinkedIn]);
+  }, [navigate]);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
