@@ -11,43 +11,42 @@ const FeaturesSection: React.FC = () => {
   });
 
   return (
-    <section className="bg-gray-900 text-white py-16 sm:py-24 lg:py-32 px-4 sm:px-6">
+    <section id="features" className="bg-background py-16 sm:py-24 lg:py-32 px-4 sm:px-6">
       <motion.div
         style={{ y: translateY }}
-        className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8 sm:gap-12 lg:gap-16"
+        className="max-w-7xl mx-auto"
       >
-        {/* Title on left */}
-        <div className="lg:col-span-1 flex items-start">
-          <h2 className="text-lg sm:text-xl font-semibold text-white mt-1">About Us</h2>
+        {/* Header */}
+        <div className="text-center mb-16">
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-foreground mb-6">
+            Why Choose Klarus HR?
+          </h2>
+          <p className="text-lg sm:text-xl text-muted-foreground max-w-3xl mx-auto">
+            We are <strong className="text-foreground">Klarus</strong> — the first-of-its-kind, multi-modal platform engineered to transform how professionals manage their presence on{' '}
+            <strong className="text-primary font-semibold">LinkedIn</strong>. Klarus empowers you with strategic content planning, real-time lead and application tracking, intelligent hiring assessment tools, and access to high-impact trending topics.
+          </p>
         </div>
 
-        {/* Description + Stats */}
-        <div className="lg:col-span-2 space-y-8 sm:space-y-12">
-          <p className="text-base sm:text-lg lg:text-xl leading-relaxed text-gray-300">
-            We are <strong className="text-white">Klarus</strong> — the first-of-its-kind, multi-modal platform engineered to transform how professionals manage their presence on{' '}
-            <strong className="text-[#0077B5] font-semibold">LinkedIn</strong>. Klarus empowers you with strategic content planning, real-time lead and application tracking, intelligent hiring assessment tools, and access to high-impact trending topics — so you not only build your profile, but truly differentiate yourself in the market.
-          </p>
-
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 sm:gap-12 text-center">
-            <div>
-              <h3 className="text-3xl sm:text-4xl font-bold text-white">88+</h3>
-              <p className="mt-2 text-xs sm:text-sm text-gray-400">Paid Clients</p>
-            </div>
-            <div>
-              <h3 className="text-3xl sm:text-4xl font-bold text-white">3+</h3>
-              <p className="mt-2 text-xs sm:text-sm text-gray-400">AI Models Enabled</p>
-            </div>
-            <div>
-              <h3 className="text-3xl sm:text-4xl font-bold text-white">100%+</h3>
-              <p className="mt-2 text-xs sm:text-sm text-gray-400">Client Satisfactions</p>
-            </div>
+        {/* Stats */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
+          <div className="text-center p-6 rounded-2xl bg-card border border-border">
+            <h3 className="text-4xl sm:text-5xl font-bold text-primary mb-2">88+</h3>
+            <p className="text-muted-foreground font-medium">Happy Clients</p>
           </div>
-
-          {/* Arrow CTA */}
-          <div className="flex flex-col items-center mt-8 sm:mt-12">
-            <p className="text-xs sm:text-sm font-medium text-gray-200 mb-2">Discover our features</p>
-            <ChevronDown className="w-5 h-5 sm:w-6 sm:h-6 text-white animate-bounce" />
+          <div className="text-center p-6 rounded-2xl bg-card border border-border">
+            <h3 className="text-4xl sm:text-5xl font-bold text-primary mb-2">3+</h3>
+            <p className="text-muted-foreground font-medium">AI Models</p>
           </div>
+          <div className="text-center p-6 rounded-2xl bg-card border border-border">
+            <h3 className="text-4xl sm:text-5xl font-bold text-primary mb-2">100%</h3>
+            <p className="text-muted-foreground font-medium">Satisfaction Rate</p>
+          </div>
+        </div>
+
+        {/* Arrow CTA */}
+        <div className="flex flex-col items-center">
+          <p className="text-sm font-medium text-muted-foreground mb-2">Discover our features</p>
+          <ChevronDown className="w-6 h-6 text-primary animate-bounce" />
         </div>
       </motion.div>
     </section>

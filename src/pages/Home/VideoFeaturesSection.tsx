@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { ChevronDown } from 'lucide-react';
 
 const features = [
   {
@@ -21,30 +22,44 @@ const features = [
 
 const FeatureVideoSection: React.FC = () => {
   return (
-    <section className="bg-gray-900">
-      <div className="space-y-0">
-        {features.map((feature, index) => (
-          <div
-            key={index}
-            className="min-h-screen w-full bg-gray-900 flex flex-col justify-between px-4 sm:px-6 lg:px-8 py-6 sm:py-8"
-          >
-            {/* Main Content */}
-            <div className="flex flex-col items-center text-center gap-8 sm:gap-12 flex-grow justify-center">
-              <div className="max-w-6xl">
-                <h2 className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-bold text-white mb-4 px-4">
+    <section className="bg-muted/30 py-20">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="text-center mb-16">
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-foreground mb-6">
+            Powerful Features for Modern Professionals
+          </h2>
+          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+            Discover how our AI-powered platform transforms your LinkedIn strategy and hiring process
+          </p>
+        </div>
+
+        <div className="space-y-24">
+          {features.map((feature, index) => (
+            <div
+              key={index}
+              className={`flex flex-col ${index % 2 === 1 ? 'lg:flex-row-reverse' : 'lg:flex-row'} items-center gap-12 lg:gap-16`}
+            >
+              {/* Content */}
+              <div className="flex-1 space-y-6">
+                <h3 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-foreground leading-tight">
                   {feature.title}
-                </h2>
-                <p className="text-gray-300 text-sm sm:text-base lg:text-lg max-w-3xl mx-auto px-4">
+                </h3>
+                <p className="text-lg text-muted-foreground leading-relaxed">
                   {feature.description}
                 </p>
+                <button className="inline-flex items-center text-primary font-semibold hover:text-primary/80 transition-colors">
+                  Learn more
+                  <ChevronDown className="ml-2 w-4 h-4 rotate-[-90deg]" />
+                </button>
               </div>
 
-              <div className="w-full max-w-6xl px-2 sm:px-4">
-                <div className="rounded-xl sm:rounded-2xl overflow-hidden shadow-2xl bg-gradient-to-br from-yellow-200 via-pink-300 to-purple-400 p-1">
-                  <div className="bg-gray-900 rounded-lg sm:rounded-xl w-full aspect-video">
+              {/* Video */}
+              <div className="flex-1 w-full max-w-2xl">
+                <div className="relative rounded-2xl overflow-hidden shadow-2xl bg-card border border-border">
+                  <div className="aspect-video">
                     <video
                       src={feature.videoSrc}
-                      className="w-full h-full object-cover rounded-lg sm:rounded-xl"
+                      className="w-full h-full object-cover"
                       autoPlay
                       loop
                       muted
@@ -56,11 +71,8 @@ const FeatureVideoSection: React.FC = () => {
                 </div>
               </div>
             </div>
-
-            {/* Bottom Spacer */}
-            <div className="h-4 sm:h-6" />
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
     </section>
   );

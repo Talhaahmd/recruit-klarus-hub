@@ -41,27 +41,34 @@ const ClientsSection: React.FC = () => {
   ];
 
   return (
-    <section className="py-20 bg-black text-white">
+    <section className="py-20 bg-background border-t border-border">
       <div className="max-w-7xl mx-auto px-6 sm:px-10 lg:px-16">
         <div className="text-center mb-12">
-          <h2 className="text-3xl lg:text-4xl font-bold text-white mb-4">
+          <h2 className="text-3xl lg:text-4xl font-bold text-foreground mb-4">
             Companies We Work With
           </h2>
-          <p className="text-lg text-gray-400 max-w-3xl mx-auto">
+          <p className="text-lg text-muted-foreground max-w-3xl mx-auto">
             Trusted by forward-thinking teams — 12 partner companies, 88+ successful placements, and 6000+ jobs supported.
           </p>
         </div>
 
-        {/* Logo Row */}
-        <div className="flex flex-wrap justify-between items-center gap-6">
+        {/* Logo Grid */}
+        <div className="grid grid-cols-3 md:grid-cols-5 lg:grid-cols-9 gap-8 items-center justify-items-center opacity-60">
           {companies.map((company, index) => (
-            <img
-              key={index}
-              src={company.logo}
-              alt={company.name}
-              className="h-10 sm:h-12 object-contain grayscale hover:grayscale-0 transition duration-300"
-            />
+            <div key={index} className="hover:opacity-100 transition-opacity duration-300">
+              <img
+                src={company.logo}
+                alt={`${company.name} logo`}
+                className="h-8 sm:h-10 object-contain filter grayscale hover:grayscale-0 transition-all duration-300"
+              />
+            </div>
           ))}
+        </div>
+        
+        <div className="text-center mt-12">
+          <p className="text-sm text-muted-foreground">
+            And many more innovative companies trust Klarus HR
+          </p>
         </div>
       </div>
     </section>

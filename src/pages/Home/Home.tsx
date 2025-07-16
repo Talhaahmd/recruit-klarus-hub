@@ -10,7 +10,7 @@ import Navbar from './Navbar';
 
 const Home: React.FC = () => {
   return (
-    <div className="bg-gray-50 min-h-screen">
+    <div className="bg-background min-h-screen">
       <Navbar/>
       <HeroSection />
       <FeaturesSection />

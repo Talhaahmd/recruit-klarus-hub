@@ -3,65 +3,55 @@ import { Link } from 'react-router-dom';
 
 const HeroSection: React.FC = () => {
   return (
-    <div className="overflow-x-hidden bg-black min-h-screen relative">
-      <section className="pt-8 sm:pt-12 lg:pt-20 pb-8 sm:pb-12 lg:pb-16 relative z-10">
+    <div className="overflow-x-hidden bg-background min-h-screen relative pt-16">
+      <section className="pt-16 sm:pt-20 lg:pt-24 pb-16 sm:pb-20 lg:pb-24 relative z-10">
         <div className="px-4 sm:px-6 lg:px-8 mx-auto max-w-7xl">
           <div className="max-w-4xl mx-auto text-center">
-            <p className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-bold leading-tight text-white">
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-bold leading-tight text-foreground">
               Your Full Stack
               <span className="relative inline-flex ml-2 sm:ml-3">
-                <span
-                  className="absolute inset-0 blur-sm opacity-30"
-                  style={{
-                    background:
-                      'radial-gradient(circle, rgba(0,183,255,0.5), rgba(0,102,255,0.2))',
-                  }}
-                ></span>
-                <span className="relative text-blue-600 drop-shadow-[0_0_6px_rgba(0,183,255,0.6)]">
+                <span className="relative text-primary">
                   LinkedIn
                 </span>
               </span>{' '}
               Developer
+            </h1>
+
+            <p className="mt-6 sm:mt-8 text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto">
+              Revolutionize your LinkedIn presence with AI-powered content creation, 
+              smart lead tracking, and intelligent hiring tools.
             </p>
 
-            <div className="px-4 sm:items-center sm:justify-center sm:px-0 sm:space-x-6 sm:flex mt-8 lg:mt-10">
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mt-8 lg:mt-12">
               <Link
                 to="/signup"
-                className="inline-flex items-center justify-center w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 text-base sm:text-lg font-semibold text-white bg-blue-600 border-2 border-transparent rounded-xl hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-600 shadow-lg hover:shadow-xl transition-all duration-200"
+                className="inline-flex items-center justify-center w-full sm:w-auto px-8 py-4 text-lg font-semibold text-primary-foreground bg-primary border-2 border-transparent rounded-xl hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary shadow-lg hover:shadow-xl transition-all duration-200"
               >
-                Sign Up
+                Get Started Free
               </Link>
+              <button className="inline-flex items-center justify-center w-full sm:w-auto px-8 py-4 text-lg font-semibold text-foreground bg-background border-2 border-border rounded-xl hover:bg-muted focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-border transition-all duration-200">
+                Watch Demo
+              </button>
             </div>
 
-            <p className="mt-6 sm:mt-8 text-sm sm:text-base text-gray-200">
-              14 Days free trial · No credit card required
+            <p className="mt-6 sm:mt-8 text-sm sm:text-base text-muted-foreground">
+              14 days free trial · No credit card required
             </p>
           </div>
         </div>
 
-        {/* Image in Laptop Frame */}
-        <div className="mt-12 sm:mt-16 lg:mt-20 px-4 sm:px-6 lg:px-8 mx-auto w-full max-w-5xl">
-          <div className="relative mx-auto" style={{ maxWidth: '900px' }}>
-            {/* Laptop Frame */}
-            <div className="relative bg-gradient-to-b from-gray-800 to-gray-900 rounded-t-3xl p-3 sm:p-4 shadow-2xl">
-              {/* Screen Bezel */}
-              <div className="bg-black rounded-t-2xl p-2 sm:p-3">
-                {/* Image replacing video */}
-                <div className="relative aspect-video bg-black rounded-lg overflow-hidden">
-                  <img
-                    src="https://res.cloudinary.com/dt93sahp2/image/upload/v1748548888/Screenshot_2025-05-30_010106_hdqfk2.png"
-                    alt="App preview"
-                    className="w-full h-full object-cover"
-                  />
-                </div>
+        {/* Dashboard Preview */}
+        <div className="mt-16 sm:mt-20 lg:mt-24 px-4 sm:px-6 lg:px-8 mx-auto w-full max-w-6xl">
+          <div className="relative mx-auto">
+            <div className="relative bg-background rounded-2xl p-4 shadow-2xl border border-border">
+              <div className="aspect-video bg-muted rounded-xl overflow-hidden">
+                <img
+                  src="https://res.cloudinary.com/dt93sahp2/image/upload/v1748548888/Screenshot_2025-05-30_010106_hdqfk2.png"
+                  alt="Klarus HR Dashboard Preview"
+                  className="w-full h-full object-cover"
+                />
               </div>
-
-              {/* Laptop Base */}
-              <div className="h-3 sm:h-4 bg-gradient-to-b from-gray-700 to-gray-800 rounded-b-2xl"></div>
             </div>
-
-            {/* Keyboard Base */}
-            <div className="h-1 sm:h-2 bg-gradient-to-b from-gray-600 to-gray-700 rounded-b-3xl mx-8 sm:mx-12"></div>
           </div>
         </div>
       </section>
