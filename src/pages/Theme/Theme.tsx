@@ -177,18 +177,20 @@ const ThemePage: React.FC = () => {
                 <CardHeader className="pb-4">
                   <div className={`h-2 w-full bg-gradient-to-r ${getCategoryGradient(theme.category)} rounded-full mb-4`} />
                   
-                  <div className="flex items-start justify-between mb-3">
-                    <CardTitle className="text-xl font-bold text-gray-900 group-hover:text-blue-600 transition-colors">
-                      {theme.title}
-                    </CardTitle>
-                    <Badge className={`border ${getComplexityColor(theme.complexity || 'Beginner')}`}>
-                      {theme.complexity || 'Beginner'}
-                    </Badge>
-                  </div>
-                  
-                  <Badge variant="secondary" className="w-fit bg-gray-100 text-gray-700 border-gray-200">
-                    {theme.category}
-                  </Badge>
+                                     <div className="flex items-start justify-between mb-3">
+                     <CardTitle className="text-xl font-bold text-gray-900 group-hover:text-blue-600 transition-colors">
+                       {theme.title}
+                     </CardTitle>
+                     <Badge className={`border-2 px-3 py-1 text-xs font-semibold ${getComplexityColor(theme.complexity || 'Beginner')} float-animation`}>
+                       {theme.complexity || 'Beginner'}
+                     </Badge>
+                   </div>
+                   
+                   <div className="flex items-center gap-3 mb-3">
+                     <Badge variant="secondary" className="px-3 py-1 text-xs font-medium bg-gray-100/80 text-gray-700 border-gray-200/50 backdrop-blur-sm float-animation-delayed">
+                       {theme.category}
+                     </Badge>
+                   </div>
                 </CardHeader>
                 
                 <CardContent className="space-y-4">
