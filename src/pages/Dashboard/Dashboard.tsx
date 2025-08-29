@@ -4,7 +4,6 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/UI/card';
 import { Button } from '@/components/UI/button';
 import { Slider } from '@/components/UI/slider';
-import { Progress } from '@/components/UI/progress';
 import { Badge } from '@/components/UI/badge';
 import { 
   Users, 
@@ -13,10 +12,8 @@ import {
   Calendar, 
   Mail, 
   UserPlus,
-  Target,
   Clock,
-  CheckCircle,
-  AlertCircle
+  CheckCircle
 } from 'lucide-react';
 import { leadsService } from '@/services/leadsService';
 import { supabase } from '@/lib/supabase';
@@ -201,40 +198,8 @@ const Dashboard: React.FC = () => {
         </Card>
       </div>
 
-      {/* Performance Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <Card className="shadow-lg">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Target className="w-5 h-5" />
-              Recruitment Goals
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <div className="flex justify-between mb-2">
-                <span className="text-sm font-medium">Monthly Lead Target</span>
-                <span className="text-sm text-gray-600">{stats.totalLeads}/50</span>
-              </div>
-              <Progress value={(stats.totalLeads / 50) * 100} className="h-2" />
-            </div>
-            <div>
-              <div className="flex justify-between mb-2">
-                <span className="text-sm font-medium">Job Placements</span>
-                <span className="text-sm text-gray-600">3/10</span>
-              </div>
-              <Progress value={30} className="h-2" />
-            </div>
-            <div>
-              <div className="flex justify-between mb-2">
-                <span className="text-sm font-medium">Interview Success Rate</span>
-                <span className="text-sm text-gray-600">75%</span>
-              </div>
-              <Progress value={75} className="h-2" />
-            </div>
-          </CardContent>
-        </Card>
-
+      {/* Quick Actions */}
+      <div className="grid grid-cols-1 gap-6">
         <Card className="shadow-lg">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
