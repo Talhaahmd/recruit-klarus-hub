@@ -17,17 +17,6 @@ import {
 } from 'lucide-react';
 import { leadsService } from '@/services/leadsService';
 import { supabase } from '@/lib/supabase';
-import { formatDistanceToNow } from 'date-fns';
-
-// Define a type for our activity items for better type safety
-type Activity = {
-  id: string;
-  type: 'lead' | 'job' | 'application' | 'interview';
-  message: string;
-  time: string;
-  timestamp: Date;
-  icon: React.ElementType;
-};
 
 const Dashboard: React.FC = () => {
   const { user } = useAuth();
@@ -37,140 +26,41 @@ const Dashboard: React.FC = () => {
     totalCandidates: 0,
     recentApplications: 0
   });
-  const [recentActivity, setRecentActivity] = useState<Activity[]>([]);
+  const [recentActivity, setRecentActivity] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const fetchInitialActivity = async () => {
-    try {
-      // Fetch latest 5 from each source
-      const [leadsRes, jobsRes, candidatesRes] = await Promise.all([
-        supabase.from('leads').select('*').order('created_at', { ascending: false }).limit(5),
-        supabase.from('jobs').select('*').order('created_at', { ascending: false }).limit(5),
-        supabase.from('candidates').select('*').order('created_at', { ascending: false }).limit(5)
-      ]);
-
-      const leadActivities: Activity[] = (leadsRes.data || []).map(lead => ({
-        id: `lead-${lead.id}`,
-        type: 'lead',
-        message: `New lead added: ${lead.full_name}`,
-        timestamp: new Date(lead.created_at),
-        time: formatDistanceToNow(new Date(lead.created_at), { addSuffix: true }),
-        icon: UserPlus
-      }));
-
-      const jobActivities: Activity[] = (jobsRes.data || []).map(job => ({
-        id: `job-${job.id}`,
-        type: 'job',
-        message: `Job posting "${job.title}" published`,
-        timestamp: new Date(job.created_at),
-        time: formatDistanceToNow(new Date(job.created_at), { addSuffix: true }),
-        icon: Briefcase
-      }));
-
-      const candidateActivities: Activity[] = (candidatesRes.data || []).map(candidate => ({
-        id: `candidate-${candidate.id}`,
-        type: 'application',
-        message: `New application from ${candidate.name}`,
-        timestamp: new Date(candidate.created_at),
-        time: formatDistanceToNow(new Date(candidate.created_at), { addSuffix: true }),
-        icon: Mail
-      }));
-      
-      // Combine, sort, and slice
-      const allActivities = [...leadActivities, ...jobActivities, ...candidateActivities];
-      allActivities.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
-      
-      setRecentActivity(allActivities.slice(0, 5));
-
-    } catch (error) {
-      console.error("Error fetching initial activity:", error);
-    }
-  };
+  useEffect(() => {
+    loadDashboardData();
+  }, []);
 
   const loadDashboardData = async () => {
     try {
       const [leadsData, jobsData, candidatesData] = await Promise.all([
         leadsService.getLeads(),
-        supabase.from('jobs').select('*'),
-        supabase.from('candidates').select('*')
+        supabase.from('jobs').select('*').limit(10),
+        supabase.from('candidates').select('*').limit(10)
       ]);
 
       setStats({
         totalLeads: leadsData.length,
         totalJobs: jobsData.data?.length || 0,
         totalCandidates: candidatesData.data?.length || 0,
-        recentApplications: (candidatesData.data || []).filter(c => new Date(c.created_at) > new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)).length
+        recentApplications: Math.floor(Math.random() * 15) + 5
       });
 
-      await fetchInitialActivity();
-
+      // Mock recent activity
+      setRecentActivity([
+        { type: 'lead', message: 'New lead added: John Smith', time: '2 hours ago', icon: UserPlus },
+        { type: 'job', message: 'Job posting "Senior Developer" published', time: '4 hours ago', icon: Briefcase },
+        { type: 'application', message: '3 new applications received', time: '6 hours ago', icon: Mail },
+        { type: 'interview', message: 'Interview scheduled with Sarah Connor', time: '1 day ago', icon: Calendar },
+      ]);
     } catch (error) {
       console.error('Error loading dashboard data:', error);
     } finally {
       setLoading(false);
     }
   };
-  
-  useEffect(() => {
-    loadDashboardData();
-
-    const handleNewLead = (payload: any) => {
-      const newLead = payload.new;
-      const activity: Activity = {
-        id: `lead-${newLead.id}`,
-        type: 'lead',
-        message: `New lead added: ${newLead.full_name}`,
-        timestamp: new Date(newLead.created_at),
-        time: formatDistanceToNow(new Date(newLead.created_at), { addSuffix: true }),
-        icon: UserPlus
-      };
-      setRecentActivity(prev => [activity, ...prev].sort((a,b) => b.timestamp.getTime() - a.timestamp.getTime()).slice(0, 5));
-    };
-
-    const handleNewJob = (payload: any) => {
-      const newJob = payload.new;
-      const activity: Activity = {
-        id: `job-${newJob.id}`,
-        type: 'job',
-        message: `Job posting "${newJob.title}" published`,
-        timestamp: new Date(newJob.created_at),
-        time: formatDistanceToNow(new Date(newJob.created_at), { addSuffix: true }),
-        icon: Briefcase
-      };
-      setRecentActivity(prev => [activity, ...prev].sort((a,b) => b.timestamp.getTime() - a.timestamp.getTime()).slice(0, 5));
-    };
-    
-    const handleNewCandidate = (payload: any) => {
-      const newCandidate = payload.new;
-      const activity: Activity = {
-        id: `candidate-${newCandidate.id}`,
-        type: 'application',
-        message: `New application from ${newCandidate.name}`,
-        timestamp: new Date(newCandidate.created_at),
-        time: formatDistanceToNow(new Date(newCandidate.created_at), { addSuffix: true }),
-        icon: Mail
-      };
-      setRecentActivity(prev => [activity, ...prev].sort((a,b) => b.timestamp.getTime() - a.timestamp.getTime()).slice(0, 5));
-    };
-
-    const leadsChannel = supabase.channel('public:leads')
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'leads' }, handleNewLead)
-      .subscribe();
-
-    const jobsChannel = supabase.channel('public:jobs')
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'jobs' }, handleNewJob)
-      .subscribe();
-
-    const candidatesChannel = supabase.channel('public:candidates')
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'candidates' }, handleNewCandidate)
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(leadsChannel);
-      supabase.removeChannel(jobsChannel);
-      supabase.removeChannel(candidatesChannel);
-    };
-  }, []);
 
   const planItems = [
     { label: "Ideas generated", current: 20, max: 40 },
@@ -283,8 +173,8 @@ const Dashboard: React.FC = () => {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {recentActivity.map((activity) => (
-                <div key={activity.id} className="flex items-start gap-3 p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+              {recentActivity.map((activity, index) => (
+                <div key={index} className="flex items-start gap-3 p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
                   <div className={`p-2 rounded-full ${
                     activity.type === 'lead' ? 'bg-blue-100 text-blue-600' :
                     activity.type === 'job' ? 'bg-green-100 text-green-600' :
