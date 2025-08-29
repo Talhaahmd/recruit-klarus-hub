@@ -262,3 +262,97 @@
     -webkit-overflow-scrolling: touch;
   }
 }
+
+  .theme-glow:hover::before {
+    @apply opacity-20;
+  }
+
+  /* Enhanced glow with multiple colors */
+  .theme-glow::after {
+    @apply content-[''] absolute -inset-1 bg-gradient-to-r from-purple-600 to-pink-600 rounded-2xl blur opacity-0 transition-opacity duration-500 -z-20;
+    animation: glowPulse 2s ease-in-out infinite;
+  }
+
+  .theme-glow:hover::after {
+    @apply opacity-15;
+  }
+
+  @keyframes glowPulse {
+    0%, 100% { opacity: 0; }
+    50% { opacity: 0.15; }
+  }
+
+  /* Animated gradient borders */
+  .theme-card-border {
+    @apply relative;
+    background: linear-gradient(45deg, #667eea, #764ba2, #f093fb, #f5576c);
+    background-size: 400% 400%;
+    animation: gradientShift 3s ease infinite;
+  }
+
+  @keyframes gradientShift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+
+  /* Ripple effect for buttons */
+  .ripple {
+    @apply relative overflow-hidden;
+  }
+
+  .ripple::after {
+    @apply content-[''] absolute top-1/2 left-1/2 w-0 h-0 bg-white/30 rounded-full transition-all duration-500;
+    transform: translate(-50%, -50%);
+  }
+
+  .ripple:active::after {
+    @apply w-96 h-96 opacity-0;
+  }
+
+  /* Enhanced liquid glass theme cards */
+  .theme-card-liquid {
+    @apply relative overflow-hidden rounded-2xl transition-all duration-500 ease-out;
+    background: linear-gradient(135deg, rgba(255,255,255,0.15), rgba(255,255,255,0.05));
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255,255,255,0.2);
+    box-shadow: 
+      0 8px 32px rgba(0,0,0,0.1),
+      inset 0 1px 0 rgba(255,255,255,0.2);
+  }
+
+  .theme-card-liquid:hover {
+    @apply transform scale-[1.02] rotate-1;
+    box-shadow: 
+      0 20px 40px rgba(0,0,0,0.15),
+      0 0 0 1px rgba(255,255,255,0.3),
+      inset 0 1px 0 rgba(255,255,255,0.3);
+  }
+
+  /* Particle effect for theme cards */
+  .theme-card-liquid::before {
+    @apply content-[''] absolute top-0 left-0 w-full h-full opacity-0 transition-opacity duration-500;
+    background: 
+      radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
+      radial-gradient(circle at 80% 20%, rgba(255, 119, 198, 0.3) 0%, transparent 50%),
+      radial-gradient(circle at 40% 40%, rgba(120, 219, 255, 0.3) 0%, transparent 50%);
+  }
+
+  .theme-card-liquid:hover::before {
+    @apply opacity-100;
+  }
+
+  /* Enhanced floating animation for badges */
+  .float-animation {
+    animation: float 3s ease-in-out infinite;
+  }
+
+  .float-animation-delayed {
+    animation: float 3s ease-in-out infinite;
+    animation-delay: 1.5s;
+  }
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0px) rotate(0deg); }
+    50% { transform: translateY(-5px) rotate(1deg); }
+  }
