@@ -115,35 +115,39 @@ const ThemePage: React.FC = () => {
           </div>
 
           {/* Category Navigation */}
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+          <div className="bg-white/90 backdrop-blur-sm rounded-xl shadow-sm border border-gray-100/80 p-5">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
               {categories.map((category) => {
                 const IconComponent = category.icon;
                 const count = getCategoryCount(category.id);
+                const isSelected = selectedCategory === category.id;
+                
                 return (
                   <button
                     key={category.id}
                     onClick={() => setSelectedCategory(category.id)}
                     className={`theme-card-liquid ripple p-4 transition-all duration-200 text-left ${
-                      selectedCategory === category.id
-                        ? 'border-blue-500 bg-blue-50/80 shadow-md'
-                        : 'border-gray-200 hover:border-gray-300 hover:shadow-sm'
+                      isSelected
+                        ? 'border border-blue-200 shadow-md'
+                        : 'border border-transparent hover:border-gray-200 hover:shadow-sm'
                     }`}
                   >
                     <div className="flex items-center justify-between mb-2">
-                      <IconComponent className={`h-5 w-5 ${
-                        selectedCategory === category.id ? 'text-blue-600' : 'text-gray-600'
-                      }`} />
-                      <span className={`text-sm font-medium px-2 py-1 rounded-full ${
-                        selectedCategory === category.id 
-                          ? 'bg-blue-100 text-blue-700' 
-                          : 'bg-gray-100 text-gray-600'
+                      <div className={`p-1.5 rounded-md ${isSelected ? 'bg-blue-100/80' : 'bg-gray-100/80'}`}>
+                        <IconComponent className={`h-4 w-4 ${
+                          isSelected ? 'text-blue-600' : 'text-gray-600'
+                        }`} />
+                      </div>
+                      <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
+                        isSelected 
+                          ? 'bg-blue-100/90 text-blue-700' 
+                          : 'bg-gray-100/80 text-gray-600'
                       }`}>
                         {count}
                       </span>
                     </div>
-                    <h3 className={`font-medium ${
-                      selectedCategory === category.id ? 'text-blue-900' : 'text-gray-900'
+                    <h3 className={`text-sm font-medium ${
+                      isSelected ? 'text-blue-900' : 'text-gray-800'
                     }`}>
                       {category.name}
                     </h3>
@@ -154,19 +158,29 @@ const ThemePage: React.FC = () => {
           </div>
 
           {/* Create Custom Theme */}
-          <div className="bg-gradient-to-r from-indigo-500 to-purple-600 rounded-2xl p-8 text-white">
-            <div className="max-w-2xl">
-              <h2 className="text-2xl font-bold mb-4">Create Your Unique Theme</h2>
-              <p className="text-indigo-100 mb-6">
-                Not finding the perfect fit? Design a custom theme tailored to your industry, audience, and goals.
-              </p>
-              <Button 
-                onClick={() => setIsCreateModalOpen(true)}
-                className="bg-white text-indigo-600 hover:bg-indigo-50 font-medium"
-              >
-                <Plus className="h-4 w-4 mr-2" />
-                Create Custom Theme
-              </Button>
+          <div className="theme-card-liquid overflow-hidden rounded-xl">
+            <div className="bg-gradient-to-r from-indigo-500/90 to-purple-600/90 p-6 lg:p-8 text-white relative">
+              <div className="max-w-2xl relative z-10">
+                <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm text-white px-3 py-1.5 rounded-full text-xs font-medium mb-4">
+                  <Plus className="h-3.5 w-3.5" />
+                  Custom Creation
+                </div>
+                <h2 className="text-2xl font-bold mb-3">Create Your Unique Theme</h2>
+                <p className="text-indigo-100/90 mb-6 leading-relaxed">
+                  Not finding the perfect fit? Design a custom theme tailored to your industry, audience, and goals.
+                </p>
+                <Button 
+                  onClick={() => setIsCreateModalOpen(true)}
+                  className="bg-white text-indigo-600 hover:bg-indigo-50 font-medium shadow-lg shadow-indigo-600/20 ripple"
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Create Custom Theme
+                </Button>
+              </div>
+              
+              {/* Decorative elements */}
+              <div className="absolute top-0 right-0 w-64 h-64 bg-purple-500/20 rounded-full blur-3xl -translate-y-1/2 translate-x-1/4"></div>
+              <div className="absolute bottom-0 left-0 w-48 h-48 bg-indigo-500/20 rounded-full blur-3xl translate-y-1/3 -translate-x-1/4"></div>
             </div>
           </div>
 
@@ -174,98 +188,102 @@ const ThemePage: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {filteredThemes.map((theme) => (
               <div key={theme.id} className="theme-glow group">
-                <div className="theme-card-liquid p-6 h-full flex flex-col">
-                  {/* Enhanced Header with Floating Elements */}
-                  <div className="flex items-start justify-between mb-6">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-3">
-                        <Badge className={`border-2 px-3 py-1 text-xs font-semibold ${getComplexityColor(theme.complexity || 'Beginner')} float-animation`}>
+                <div className="theme-card-liquid p-0 h-full flex flex-col overflow-hidden">
+                  {/* Professional header with accent line and category badge */}
+                  <div className="relative">
+                    {/* Top accent line with gradient based on category */}
+                    <div className={`h-1.5 w-full bg-gradient-to-r ${getCategoryGradient(theme.category)}`}></div>
+                    
+                    {/* Header content with improved spacing */}
+                    <div className="px-6 pt-5 pb-2">
+                      <div className="flex justify-between items-start mb-2">
+                        <Badge className={`border px-3 py-1 text-xs font-medium ${getComplexityColor(theme.complexity || 'Beginner')} float-animation`}>
                           {theme.complexity || 'Beginner'}
                         </Badge>
-                        <Badge variant="secondary" className="px-3 py-1 text-xs font-medium bg-gray-100/80 text-gray-700 border-gray-200/50 backdrop-blur-sm float-animation-delayed">
+                        <Badge variant="secondary" className="px-3 py-1 text-xs font-medium bg-gray-100/90 text-gray-700 border-gray-200/50 backdrop-blur-sm">
                           {theme.category}
                         </Badge>
                       </div>
-
-                      <CardTitle className="text-2xl font-bold text-gray-900 group-hover:text-blue-600 transition-colors duration-300 leading-tight mb-4">
+                      
+                      <CardTitle className="text-2xl font-bold text-gray-900 group-hover:text-blue-600 transition-colors duration-300 leading-tight mt-3 mb-1">
                         {theme.title}
                       </CardTitle>
                     </div>
                   </div>
+                  
+                  {/* Main content with improved visual separation */}
+                  <div className="px-6 py-4 flex-1 space-y-5 border-t border-gray-100/30">
+                    {/* Description with professional typography */}
+                    <p className="text-gray-700 leading-relaxed text-base">
+                      {theme.description}
+                    </p>
 
-                  {/* Enhanced Content Layout */}
-                  <div className="flex-1 space-y-6">
-                    {/* Description with better typography */}
+                    {/* Professional information sections with consistent design */}
                     <div className="space-y-4">
-                      <p className="text-gray-700 leading-relaxed text-base font-medium">
-                        {theme.description}
-                      </p>
-                    </div>
-
-                    {/* Enhanced Information Sections */}
-                    <div className="space-y-4">
-                      {/* Target Audience */}
-                      <div className="bg-gradient-to-r from-blue-50/50 to-indigo-50/50 rounded-xl p-4 border border-blue-100/30">
+                      {/* Target Audience - more professional styling */}
+                      <div className="bg-gradient-to-r from-blue-50/70 to-indigo-50/70 rounded-lg p-3.5 border border-blue-100/40 shadow-sm">
                         <div className="flex items-start gap-3">
-                          <div className="p-2 bg-blue-100/50 rounded-lg">
+                          <div className="p-1.5 bg-blue-100/80 rounded-md flex items-center justify-center">
                             <Target className="h-4 w-4 text-blue-600" />
                           </div>
                           <div className="flex-1">
-                            <h4 className="text-sm font-semibold text-blue-900 mb-1">Target Audience</h4>
-                            <p className="text-sm text-blue-700 leading-relaxed">{theme.audience}</p>
+                            <h4 className="text-sm font-semibold text-blue-900 mb-0.5">Target Audience</h4>
+                            <p className="text-sm text-blue-800/80 leading-relaxed">{theme.audience}</p>
                           </div>
                         </div>
                       </div>
 
-                      {/* Objectives */}
+                      {/* Objectives - matching professional style */}
                       {theme.objectives && theme.objectives.length > 0 && (
-                        <div className="bg-gradient-to-r from-green-50/50 to-emerald-50/50 rounded-xl p-4 border border-green-100/30">
+                        <div className="bg-gradient-to-r from-green-50/70 to-emerald-50/70 rounded-lg p-3.5 border border-green-100/40 shadow-sm">
                           <div className="flex items-start gap-3">
-                            <div className="p-2 bg-green-100/50 rounded-lg">
+                            <div className="p-1.5 bg-green-100/80 rounded-md flex items-center justify-center">
                               <Users className="h-4 w-4 text-green-600" />
                             </div>
                             <div className="flex-1">
-                              <h4 className="text-sm font-semibold text-green-900 mb-1">Objective</h4>
-                              <p className="text-sm text-green-700 leading-relaxed">{theme.objectives[0]}</p>
+                              <h4 className="text-sm font-semibold text-green-900 mb-0.5">Objective</h4>
+                              <p className="text-sm text-green-800/80 leading-relaxed">{theme.objectives[0]}</p>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                      
+                      {/* Results - professional metrics display */}
+                      {theme.results && (
+                        <div className="bg-gradient-to-r from-purple-50/70 to-pink-50/70 rounded-lg p-3.5 border border-purple-100/40 shadow-sm">
+                          <h4 className="text-sm font-semibold text-purple-900 mb-2 flex items-center gap-2">
+                            <div className="p-1 bg-purple-100/80 rounded-md flex items-center justify-center">
+                              <TrendingUp className="h-3.5 w-3.5 text-purple-600" />
+                            </div>
+                            <span>Expected Results</span>
+                          </h4>
+                          <div className="grid grid-cols-3 gap-2 mt-2">
+                            <div className="text-center p-2 bg-white/70 rounded-md shadow-sm">
+                              <div className="text-base font-bold text-green-600">{theme.results.revenue}</div>
+                              <div className="text-xs text-gray-600 font-medium">Revenue</div>
+                            </div>
+                            <div className="text-center p-2 bg-white/70 rounded-md shadow-sm">
+                              <div className="text-base font-bold text-blue-600">{theme.results.cac}</div>
+                              <div className="text-xs text-gray-600 font-medium">CAC</div>
+                            </div>
+                            <div className="text-center p-2 bg-white/70 rounded-md shadow-sm">
+                              <div className="text-base font-bold text-purple-600">{theme.results.churn}</div>
+                              <div className="text-xs text-gray-600 font-medium">Churn</div>
                             </div>
                           </div>
                         </div>
                       )}
                     </div>
-
-                    {/* Enhanced Results Section */}
-                    {theme.results && (
-                      <div className="bg-gradient-to-r from-purple-50/50 to-pink-50/50 rounded-xl p-4 border border-purple-100/30">
-                        <h4 className="text-sm font-semibold text-purple-900 mb-3 flex items-center gap-2">
-                          <TrendingUp className="h-4 w-4" />
-                          Expected Results
-                        </h4>
-                        <div className="grid grid-cols-3 gap-3">
-                          <div className="text-center p-2 bg-white/50 rounded-lg">
-                            <div className="text-lg font-bold text-green-600">{theme.results.revenue}</div>
-                            <div className="text-xs text-gray-600 font-medium">Revenue</div>
-                          </div>
-                          <div className="text-center p-2 bg-white/50 rounded-lg">
-                            <div className="text-lg font-bold text-blue-600">{theme.results.cac}</div>
-                            <div className="text-xs text-gray-600 font-medium">CAC</div>
-                          </div>
-                          <div className="text-center p-2 bg-white/50 rounded-lg">
-                            <div className="text-lg font-bold text-purple-600">{theme.results.churn}</div>
-                            <div className="text-xs text-gray-600 font-medium">Churn</div>
-                          </div>
-                        </div>
-                      </div>
-                    )}
                   </div>
 
-                  {/* Enhanced Interactive Button */}
-                  <div className="mt-6 pt-4 border-t border-gray-200/30">
+                  {/* Professional footer with improved button */}
+                  <div className="px-6 py-4 bg-gray-50/50 border-t border-gray-200/40">
                     <Button
                       onClick={() => handlePreview(theme)}
-                      className="w-full ripple bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-300 group-hover:shadow-lg group-hover:shadow-blue-500/25"
+                      className="w-full ripple bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-medium py-2.5 rounded-lg transition-all duration-300 group-hover:shadow-md"
                     >
                       <div className="flex items-center justify-center gap-2">
-                        <Eye className="h-4 w-4 group-hover:scale-110 transition-transform duration-200" />
+                        <Eye className="h-4 w-4" />
                         <span>Preview Theme</span>
                         <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform duration-200" />
                       </div>
