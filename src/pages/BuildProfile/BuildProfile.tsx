@@ -41,7 +41,6 @@ const BuildProfile: React.FC = () => {
   const [successModal, setSuccessModal] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
   const [generatedPostForModal, setGeneratedPostForModal] = useState(''); // For success modal display
-  const [linkedInPostId, setLinkedInPostId] = useState<string | null>(null); // Store LinkedIn post ID for direct linking
 
   const [currentStage, setCurrentStage] = useState<PostStage>(PostStage.Idle);
   
@@ -173,16 +172,11 @@ const BuildProfile: React.FC = () => {
       }
 
       console.log('LinkedIn post generation successful:', data);
-      setGeneratedPostForModal(data.content || 'Your LinkedIn post has been published successfully!');
+      const postContent = data.content || 'Your LinkedIn post has been published successfully!';
+      setGeneratedPostForModal(postContent);
       
-      // Store LinkedIn post ID for direct linking if available
-      if (data.linkedinPostId) {
-        setLinkedInPostId(data.linkedinPostId);
-        console.log('LinkedIn post ID stored:', data.linkedinPostId);
-      } else {
-        setLinkedInPostId(null);
-        console.log('No LinkedIn post ID available in response');
-      }
+      // Store the post content in session storage for the success page
+      sessionStorage.setItem('successful_linkedin_post', postContent);
       
       const updatedPosts = await linkedinService.getPosts();
       setPosts(updatedPosts);
@@ -324,65 +318,29 @@ const BuildProfile: React.FC = () => {
         if (!isOpen) {
             setCurrentStage(PostStage.Idle);
             setPostContent('');
-            setSelectedThemeId('');
-            setSelectedTone('');
-            setLinkedInPostId(null);
         }
       }}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-2xl">
-              <Check className="h-6 w-6 text-green-600" />
-              Success!
-            </DialogTitle>
-            <DialogDescription className="text-base">
+            <DialogTitle>Success!</DialogTitle>
+            <DialogDescription>
               {successMessage}
             </DialogDescription>
           </DialogHeader>
-          <div className="flex flex-col items-center py-4">
-            <div className="relative mb-6">
-              <div className="absolute inset-0 bg-gradient-to-r from-blue-500/20 to-purple-500/20 rounded-full blur-xl"></div>
-              <div className="relative flex h-24 w-24 items-center justify-center rounded-full bg-gradient-to-r from-blue-500 to-purple-600 shadow-xl">
-                <Linkedin className="h-12 w-12 text-white" />
-              </div>
+          <div className="flex justify-center py-4">
+            <div className="flex h-20 w-20 items-center justify-center rounded-full bg-green-100">
+              <Check className="h-10 w-10 text-green-600" />
             </div>
-            <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-100 mb-2">Post Published!</h3>
-            <p className="text-center text-gray-600 dark:text-gray-400 mb-4">
-              Your content has been successfully published to your LinkedIn profile
-            </p>
           </div>
-          
           {generatedPostForModal && (
-            <div className="mt-2 p-5 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm">
-              <div className="flex items-start gap-3 mb-3">
-                <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
-                  <Linkedin className="h-5 w-5 text-blue-600" />
-                </div>
-                <div>
-                  <h4 className="font-semibold text-gray-900 dark:text-gray-100">Your LinkedIn Post</h4>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">Just now</p>
-                </div>
-              </div>
-              <div className="pl-12">
-                <p className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-line leading-relaxed">{generatedPostForModal}</p>
-              </div>
+            <div className="mt-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+              <p className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-line">{generatedPostForModal}</p>
             </div>
           )}
-          
-          <div className="flex flex-col gap-3 pt-4">
-            <a 
-              href={linkedInPostId ? `https://www.linkedin.com/feed/update/${linkedInPostId}` : "https://www.linkedin.com/feed/"} 
-              target="_blank" 
-              rel="noopener noreferrer" 
-              className="flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white py-2.5 px-4 rounded-lg font-medium transition-colors duration-200"
-            >
-              <Linkedin className="h-5 w-5" />
-              {linkedInPostId ? "View Your Post on LinkedIn" : "Go to LinkedIn Feed"}
-            </a>
+          <div className="flex justify-center pt-4">
             <Button 
               onClick={() => setSuccessModal(false)}
-              variant="outline"
-              className="border-gray-300 hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-800 transition-all duration-200"
+              className="bg-primary hover:bg-primary/90 transition-all duration-200 hover:shadow-md w-full"
             >
               Close
             </Button>
