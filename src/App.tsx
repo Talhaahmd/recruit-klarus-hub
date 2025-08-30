@@ -36,6 +36,7 @@ import Candidates from "./pages/Candidates/Candidates";
 import CandidateProfile from "./pages/Candidates/CandidateProfile";
 import Calendar from "./pages/Calendar/Calendar";
 import BuildProfile from "./pages/BuildProfile/BuildProfile";
+import PostSuccess from "./pages/BuildProfile/PostSuccess";
 import Theme from "./pages/Theme/Theme";
 import Settings from "./pages/Settings/Settings";
 import BillingPage from "./pages/Settings/BillingPage";
@@ -97,6 +98,7 @@ const App = () => (
                 <Route path="calendar" element={<Calendar />} />
                 <Route path="themes" element={<Theme />} />
                 <Route path="ideas" element={<BuildProfile />} />
+                <Route path="build-profile/success" element={<PostSuccess />} />
                 <Route path="leads" element={<Leads />} />
                 <Route path="settings" element={<Settings />} />
                 <Route path="settings/billing" element={<BillingPage />} />

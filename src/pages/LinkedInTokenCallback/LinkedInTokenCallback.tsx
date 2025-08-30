@@ -31,7 +31,7 @@ const LinkedInTokenCallback: React.FC = () => {
         // Map sources to redirect paths
         switch (source) {
           case 'BuildProfile':
-            redirectPath = '/build-profile';
+            redirectPath = '/build-profile/success';
             break;
           case 'Jobs':
           default:
@@ -103,20 +103,25 @@ const LinkedInTokenCallback: React.FC = () => {
             // Add delay to ensure token is properly stored
             if (pendingData.source === callbackSource) {
               setTimeout(async () => {
-                if (pendingData.source === 'BuildProfile') {
-                  // Handle BuildProfile post
-                  console.log('Processing BuildProfile post with data:', pendingData.payload);
-                  const { data: linkedInResponse, error } = await supabase.functions.invoke('generate-linkedin-post', {
-                    body: pendingData.payload
-                  });
+                                  if (pendingData.source === 'BuildProfile') {
+                    // Handle BuildProfile post
+                    console.log('Processing BuildProfile post with data:', pendingData.payload);
+                    const { data: linkedInResponse, error } = await supabase.functions.invoke('generate-linkedin-post', {
+                      body: pendingData.payload
+                    });
 
-                  if (error || linkedInResponse?.error) {
-                    console.error('LinkedIn post failed after re-authentication:', error || linkedInResponse?.error);
-                    toast.error('LinkedIn posting failed even after re-authentication. Please try posting manually.');
-                  } else {
-                    console.log('Content posted to LinkedIn successfully after re-authentication');
-                    toast.success('Content posted to LinkedIn successfully!');
-                  }
+                    if (error || linkedInResponse?.error) {
+                      console.error('LinkedIn post failed after re-authentication:', error || linkedInResponse?.error);
+                      toast.error('LinkedIn posting failed even after re-authentication. Please try posting manually.');
+                    } else {
+                      console.log('Content posted to LinkedIn successfully after re-authentication');
+                      toast.success('Content posted to LinkedIn successfully!');
+                      
+                      // Store the post content in session storage for the success page
+                      if (linkedInResponse?.content) {
+                        sessionStorage.setItem('successful_linkedin_post', linkedInResponse.content);
+                      }
+                    }
                 } else if (pendingData.source === 'Jobs' && pendingData.payload.jobId) {
                   // Handle Jobs post
                   console.log('Processing Jobs post for job:', pendingData.payload.jobId);
