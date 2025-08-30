@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Header } from '@/components/Layout/MainLayout';
 import { Eye, Plus, Target, Users, Zap, TrendingUp, Sparkles, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/UI/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/UI/card';
+import { CardTitle } from '@/components/UI/card';
 import { Badge } from '@/components/UI/badge';
 import ThemeDetailModal from '@/components/UI/ThemeDetailModal';
 import CreateThemeModal from '@/components/UI/CreateThemeModal';
@@ -124,9 +124,9 @@ const ThemePage: React.FC = () => {
                   <button
                     key={category.id}
                     onClick={() => setSelectedCategory(category.id)}
-                    className={`p-4 rounded-xl border-2 transition-all duration-200 text-left ${
+                    className={`theme-card-liquid ripple p-4 transition-all duration-200 text-left ${
                       selectedCategory === category.id
-                        ? 'border-blue-500 bg-blue-50 shadow-md'
+                        ? 'border-blue-500 bg-blue-50/80 shadow-md'
                         : 'border-gray-200 hover:border-gray-300 hover:shadow-sm'
                     }`}
                   >
@@ -171,77 +171,108 @@ const ThemePage: React.FC = () => {
           </div>
 
           {/* Themes Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {filteredThemes.map((theme) => (
-              <Card key={theme.id} className="group hover:shadow-xl transition-all duration-300 border-0 bg-white/80 backdrop-blur-sm">
-                <CardHeader className="pb-4">
-                  <div className={`h-2 w-full bg-gradient-to-r ${getCategoryGradient(theme.category)} rounded-full mb-4`} />
-                  
-                                     <div className="flex items-start justify-between mb-3">
-                     <CardTitle className="text-xl font-bold text-gray-900 group-hover:text-blue-600 transition-colors">
-                       {theme.title}
-                     </CardTitle>
-                     <Badge className={`border-2 px-3 py-1 text-xs font-semibold ${getComplexityColor(theme.complexity || 'Beginner')} float-animation`}>
-                       {theme.complexity || 'Beginner'}
-                     </Badge>
-                   </div>
-                   
-                   <div className="flex items-center gap-3 mb-3">
-                     <Badge variant="secondary" className="px-3 py-1 text-xs font-medium bg-gray-100/80 text-gray-700 border-gray-200/50 backdrop-blur-sm float-animation-delayed">
-                       {theme.category}
-                     </Badge>
-                   </div>
-                </CardHeader>
-                
-                <CardContent className="space-y-4">
-                  <p className="text-gray-600 leading-relaxed">{theme.description}</p>
-                  
-                  <div className="space-y-3">
-                    <div className="flex items-center text-sm text-gray-600">
-                      <Target className="h-4 w-4 mr-2 text-blue-500" />
-                      <span className="font-medium">Focus:</span>
-                      <span className="ml-1">{theme.audience}</span>
+              <div key={theme.id} className="theme-glow group">
+                <div className="theme-card-liquid p-6 h-full flex flex-col">
+                  {/* Enhanced Header with Floating Elements */}
+                  <div className="flex items-start justify-between mb-6">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-3 mb-3">
+                        <Badge className={`border-2 px-3 py-1 text-xs font-semibold ${getComplexityColor(theme.complexity || 'Beginner')} float-animation`}>
+                          {theme.complexity || 'Beginner'}
+                        </Badge>
+                        <Badge variant="secondary" className="px-3 py-1 text-xs font-medium bg-gray-100/80 text-gray-700 border-gray-200/50 backdrop-blur-sm float-animation-delayed">
+                          {theme.category}
+                        </Badge>
+                      </div>
+
+                      <CardTitle className="text-2xl font-bold text-gray-900 group-hover:text-blue-600 transition-colors duration-300 leading-tight mb-4">
+                        {theme.title}
+                      </CardTitle>
                     </div>
-                    
-                    {theme.objectives && theme.objectives.length > 0 && (
-                      <div className="flex items-center text-sm text-gray-600">
-                        <Users className="h-4 w-4 mr-2 text-green-500" />
-                        <span className="font-medium">Objective:</span>
-                        <span className="ml-1">{theme.objectives[0]}</span>
+                  </div>
+
+                  {/* Enhanced Content Layout */}
+                  <div className="flex-1 space-y-6">
+                    {/* Description with better typography */}
+                    <div className="space-y-4">
+                      <p className="text-gray-700 leading-relaxed text-base font-medium">
+                        {theme.description}
+                      </p>
+                    </div>
+
+                    {/* Enhanced Information Sections */}
+                    <div className="space-y-4">
+                      {/* Target Audience */}
+                      <div className="bg-gradient-to-r from-blue-50/50 to-indigo-50/50 rounded-xl p-4 border border-blue-100/30">
+                        <div className="flex items-start gap-3">
+                          <div className="p-2 bg-blue-100/50 rounded-lg">
+                            <Target className="h-4 w-4 text-blue-600" />
+                          </div>
+                          <div className="flex-1">
+                            <h4 className="text-sm font-semibold text-blue-900 mb-1">Target Audience</h4>
+                            <p className="text-sm text-blue-700 leading-relaxed">{theme.audience}</p>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Objectives */}
+                      {theme.objectives && theme.objectives.length > 0 && (
+                        <div className="bg-gradient-to-r from-green-50/50 to-emerald-50/50 rounded-xl p-4 border border-green-100/30">
+                          <div className="flex items-start gap-3">
+                            <div className="p-2 bg-green-100/50 rounded-lg">
+                              <Users className="h-4 w-4 text-green-600" />
+                            </div>
+                            <div className="flex-1">
+                              <h4 className="text-sm font-semibold text-green-900 mb-1">Objective</h4>
+                              <p className="text-sm text-green-700 leading-relaxed">{theme.objectives[0]}</p>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Enhanced Results Section */}
+                    {theme.results && (
+                      <div className="bg-gradient-to-r from-purple-50/50 to-pink-50/50 rounded-xl p-4 border border-purple-100/30">
+                        <h4 className="text-sm font-semibold text-purple-900 mb-3 flex items-center gap-2">
+                          <TrendingUp className="h-4 w-4" />
+                          Expected Results
+                        </h4>
+                        <div className="grid grid-cols-3 gap-3">
+                          <div className="text-center p-2 bg-white/50 rounded-lg">
+                            <div className="text-lg font-bold text-green-600">{theme.results.revenue}</div>
+                            <div className="text-xs text-gray-600 font-medium">Revenue</div>
+                          </div>
+                          <div className="text-center p-2 bg-white/50 rounded-lg">
+                            <div className="text-lg font-bold text-blue-600">{theme.results.cac}</div>
+                            <div className="text-xs text-gray-600 font-medium">CAC</div>
+                          </div>
+                          <div className="text-center p-2 bg-white/50 rounded-lg">
+                            <div className="text-lg font-bold text-purple-600">{theme.results.churn}</div>
+                            <div className="text-xs text-gray-600 font-medium">Churn</div>
+                          </div>
+                        </div>
                       </div>
                     )}
                   </div>
 
-                  {theme.results && (
-                    <div className="bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg p-4">
-                      <h4 className="text-sm font-semibold text-gray-700 mb-2">Expected Results:</h4>
-                      <div className="grid grid-cols-3 gap-2 text-xs">
-                        <div className="text-center">
-                          <div className="font-bold text-green-600">{theme.results.revenue}</div>
-                          <div className="text-gray-500">Revenue</div>
-                        </div>
-                        <div className="text-center">
-                          <div className="font-bold text-blue-600">{theme.results.cac}</div>
-                          <div className="text-gray-500">CAC</div>
-                        </div>
-                        <div className="text-center">
-                          <div className="font-bold text-purple-600">{theme.results.churn}</div>
-                          <div className="text-gray-500">Churn</div>
-                        </div>
+                  {/* Enhanced Interactive Button */}
+                  <div className="mt-6 pt-4 border-t border-gray-200/30">
+                    <Button
+                      onClick={() => handlePreview(theme)}
+                      className="w-full ripple bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-300 group-hover:shadow-lg group-hover:shadow-blue-500/25"
+                    >
+                      <div className="flex items-center justify-center gap-2">
+                        <Eye className="h-4 w-4 group-hover:scale-110 transition-transform duration-200" />
+                        <span>Preview Theme</span>
+                        <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform duration-200" />
                       </div>
-                    </div>
-                  )}
-                  
-                  <Button 
-                    onClick={() => handlePreview(theme)}
-                    className="w-full bg-blue-600 hover:bg-blue-700 text-white group-hover:bg-blue-700 transition-all duration-200"
-                  >
-                    <Eye className="h-4 w-4 mr-2" />
-                    Preview Theme
-                    <ArrowRight className="h-4 w-4 ml-2 group-hover:translate-x-1 transition-transform" />
-                  </Button>
-                </CardContent>
-              </Card>
+                    </Button>
+                  </div>
+                </div>
+              </div>
             ))}
           </div>
 
