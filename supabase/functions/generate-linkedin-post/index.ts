@@ -282,10 +282,14 @@ Deno.serve(async (req) => {
         posted_at: new Date().toISOString()
       });
 
+      // Generate a LinkedIn post URL
+      const postUrl = `https://www.linkedin.com/feed/update/${postResponseData.id}`;
+      
       return new Response(JSON.stringify({ 
         message: 'Post created successfully on LinkedIn!', 
         content: finalPostText, 
-        linkedinPostId: postResponseData.id 
+        linkedinPostId: postResponseData.id,
+        postUrl: postUrl
       }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }, 
         status: 200
