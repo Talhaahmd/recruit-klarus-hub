@@ -116,13 +116,6 @@ const LinkedInTokenCallback: React.FC = () => {
                   } else {
                     console.log('Content posted to LinkedIn successfully after re-authentication');
                     toast.success('Content posted to LinkedIn successfully!');
-                    
-                    // Store post data in sessionStorage for preview modal
-                    const postPreviewData = {
-                      content: linkedInResponse.content,
-                      postUrl: linkedInResponse.postUrl || 'https://www.linkedin.com/feed/'
-                    };
-                    sessionStorage.setItem('linkedin_post_preview', JSON.stringify(postPreviewData));
                   }
                 } else if (pendingData.source === 'Jobs' && pendingData.payload.jobId) {
                   // Handle Jobs post
