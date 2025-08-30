@@ -98,7 +98,6 @@ const App = () => (
                 <Route path="calendar" element={<Calendar />} />
                 <Route path="themes" element={<Theme />} />
                 <Route path="ideas" element={<BuildProfile />} />
-                <Route path="build-profile" element={<BuildProfile />} />
                 <Route path="build-profile/success" element={<PostSuccess />} />
                 <Route path="leads" element={<Leads />} />
                 <Route path="settings" element={<Settings />} />
