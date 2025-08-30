@@ -41,6 +41,7 @@ const BuildProfile: React.FC = () => {
   const [successModal, setSuccessModal] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
   const [generatedPostForModal, setGeneratedPostForModal] = useState(''); // For success modal display
+  const [linkedInPostUrl, setLinkedInPostUrl] = useState(''); // For LinkedIn post URL
 
   const [currentStage, setCurrentStage] = useState<PostStage>(PostStage.Idle);
   
@@ -67,6 +68,33 @@ const BuildProfile: React.FC = () => {
     
     if (linkedInConnected === 'true') {
       window.history.replaceState({}, document.title, window.location.pathname);
+      
+      // Check for post preview data first (from the new flow)
+      const postPreviewString = sessionStorage.getItem('linkedin_post_preview');
+      if (postPreviewString) {
+        try {
+          const postPreviewData = JSON.parse(postPreviewString);
+          sessionStorage.removeItem('linkedin_post_preview');
+          
+          // Set the success modal data
+          setGeneratedPostForModal(postPreviewData.content || 'Your LinkedIn post has been published successfully!');
+          setLinkedInPostUrl(postPreviewData.postUrl || 'https://www.linkedin.com/feed/');
+          setSuccessMessage('Your LinkedIn post has been published successfully!');
+          setSuccessModal(true);
+          setCurrentStage(PostStage.PostSuccessful);
+          
+          // Refresh posts list
+          linkedinService.getPosts().then(updatedPosts => {
+            setPosts(updatedPosts);
+          });
+          
+          return;
+        } catch (error) {
+          console.error('Error parsing post preview data:', error);
+        }
+      }
+      
+      // Fall back to the old flow if no preview data
       const pendingPostDataString = sessionStorage.getItem('pending_post_data');
       if (pendingPostDataString) {
         try {
@@ -173,6 +201,14 @@ const BuildProfile: React.FC = () => {
 
       console.log('LinkedIn post generation successful:', data);
       setGeneratedPostForModal(data.content || 'Your LinkedIn post has been published successfully!');
+      
+      // Store the LinkedIn post URL if available
+      if (data.postUrl) {
+        setLinkedInPostUrl(data.postUrl);
+      } else {
+        // If no direct URL is available, create a generic LinkedIn profile URL
+        setLinkedInPostUrl('https://www.linkedin.com/feed/');
+      }
       
       const updatedPosts = await linkedinService.getPosts();
       setPosts(updatedPosts);
@@ -333,6 +369,27 @@ const BuildProfile: React.FC = () => {
               <p className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-line">{generatedPostForModal}</p>
             </div>
           )}
+          
+          {linkedInPostUrl && (
+            <div className="mt-4">
+              <div className="flex items-center justify-between p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-100 dark:border-blue-800">
+                <div className="flex items-center gap-2">
+                  <Linkedin className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                  <span className="text-sm font-medium text-blue-700 dark:text-blue-300">View your post on LinkedIn</span>
+                </div>
+                <a 
+                  href={linkedInPostUrl} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 text-xs font-medium px-3 py-1.5 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+                >
+                  Open Post
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-3.5 w-3.5"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+                </a>
+              </div>
+            </div>
+          )}
+          
           <div className="flex justify-center pt-4">
             <Button 
               onClick={() => setSuccessModal(false)}
