@@ -121,6 +121,11 @@ const LinkedInTokenCallback: React.FC = () => {
                       if (linkedInResponse?.content) {
                         sessionStorage.setItem('successful_linkedin_post', linkedInResponse.content);
                       }
+                      
+                      // Store LinkedIn profile URL if available
+                      if (linkedInResponse?.profileUrl) {
+                        sessionStorage.setItem('linkedin_profile_url', linkedInResponse.profileUrl);
+                      }
                     }
                 } else if (pendingData.source === 'Jobs' && pendingData.payload.jobId) {
                   // Handle Jobs post
