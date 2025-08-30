@@ -178,6 +178,11 @@ const BuildProfile: React.FC = () => {
       // Store the post content in session storage for the success page
       sessionStorage.setItem('successful_linkedin_post', postContent);
       
+      // Store LinkedIn profile URL if available
+      if (data?.profileUrl) {
+        sessionStorage.setItem('linkedin_profile_url', data.profileUrl);
+      }
+      
       const updatedPosts = await linkedinService.getPosts();
       setPosts(updatedPosts);
       
