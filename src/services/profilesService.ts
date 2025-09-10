@@ -8,6 +8,12 @@ export type Profile = {
   avatar_url: string | null;
   phone: string | null;
   company_contact: string | null;
+  // Onboarding fields (optional to maintain backward compatibility)
+  role?: 'personal' | 'hr' | null;
+  plan_tier?: 'free' | 'basic' | 'premium' | null;
+  trial_started_at?: string | null;
+  trial_ends_at?: string | null;
+  onboarding_completed?: boolean | null;
   updated_at: string | null;
 };
 
@@ -29,14 +35,14 @@ export const profilesService = {
       // RLS will ensure users can only access their own profile
       const { data, error } = await supabase
         .from('profiles')
-        .select('id, full_name, company, avatar_url, phone, company_contact, updated_at')
+        .select('id, full_name, company, avatar_url, phone, company_contact, role, plan_tier, trial_started_at, trial_ends_at, onboarding_completed, updated_at')
         .eq('id', user.id)
         .single();
         
       if (error) {
         console.error('Error fetching profile:', error);
         // Don't throw error since the profile might not exist yet
-        if (error.code !== 'PGRST116') { // PGRST116 is "no rows returned" error code
+        if ((error as any).code !== 'PGRST116') { // PGRST116 is "no rows returned" error code
           toast.error('Failed to load profile');
         }
         return null;
@@ -65,7 +71,7 @@ export const profilesService = {
         id: user.id, // Profile id is the user's auth id
         ...profileData,
         updated_at: new Date().toISOString()
-      };
+      } as any;
       
       // Check if profile exists first
       const { data: existingProfile } = await supabase
@@ -82,14 +88,14 @@ export const profilesService = {
           .from('profiles')
           .update(updatedData)
           .eq('id', user.id)
-          .select('id, full_name, company, avatar_url, phone, company_contact, updated_at')
+          .select('id, full_name, company, avatar_url, phone, company_contact, role, plan_tier, trial_started_at, trial_ends_at, onboarding_completed, updated_at')
           .single();
       } else {
         // Insert new profile
         result = await supabase
           .from('profiles')
           .insert(updatedData)
-          .select('id, full_name, company, avatar_url, phone, company_contact, updated_at')
+          .select('id, full_name, company, avatar_url, phone, company_contact, role, plan_tier, trial_started_at, trial_ends_at, onboarding_completed, updated_at')
           .single();
       }
       
@@ -101,8 +107,8 @@ export const profilesService = {
       // Also update user metadata to keep it in sync
       await supabase.auth.updateUser({
         data: { 
-          full_name: profileData.full_name,
-          avatar_url: profileData.avatar_url
+          full_name: (profileData as any).full_name,
+          avatar_url: (profileData as any).avatar_url
         }
       });
       
@@ -128,7 +134,7 @@ export const profilesService = {
       // The RLS policy will determine if the user has access to this profile
       const { data, error } = await supabase
         .from('profiles')
-        .select('id, full_name, company, avatar_url, phone, company_contact, updated_at')
+        .select('id, full_name, company, avatar_url, phone, company_contact, role, plan_tier, trial_started_at, trial_ends_at, onboarding_completed, updated_at')
         .eq('id', id)
         .single();
         

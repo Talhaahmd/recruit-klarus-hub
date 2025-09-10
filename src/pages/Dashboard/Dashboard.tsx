@@ -5,6 +5,7 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/UI/card';
 import { Button } from '@/components/UI/button';
 import { Slider } from '@/components/UI/slider';
 import { Badge } from '@/components/UI/badge';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/UI/dialog';
 import { 
   Users, 
   Briefcase, 
@@ -13,11 +14,14 @@ import {
   Mail, 
   UserPlus,
   Clock,
-  CheckCircle
+  CheckCircle,
+  Settings
 } from 'lucide-react';
 import { leadsService } from '@/services/leadsService';
+import { profilesService } from '@/services/profilesService';
 import { supabase } from '@/lib/supabase';
 import { formatDistanceToNow } from 'date-fns';
+import { toast } from 'sonner';
 
 // Define a type for our activity items for better type safety
 type Activity = {
@@ -39,6 +43,23 @@ const Dashboard: React.FC = () => {
   });
   const [recentActivity, setRecentActivity] = useState<Activity[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showRoleModal, setShowRoleModal] = useState(false);
+  const [submittingRole, setSubmittingRole] = useState(false);
+
+  const handleRoleSelect = async (role: 'personal' | 'hr') => {
+    if (submittingRole) return;
+    setSubmittingRole(true);
+    try {
+      const updated = await profilesService.updateProfile({ role } as any);
+      if (!updated) throw new Error('Failed to save role');
+      toast.success('Role saved successfully!');
+      setShowRoleModal(false);
+    } catch (e: any) {
+      toast.error(e.message || 'Failed to save role');
+    } finally {
+      setSubmittingRole(false);
+    }
+  };
 
   const fetchInitialActivity = async () => {
     try {
@@ -219,6 +240,25 @@ const Dashboard: React.FC = () => {
         )}
       </div>
 
+      {/* Testing Controls */}
+      <Card className="border-yellow-200 bg-yellow-50 dark:bg-yellow-900/20">
+        <CardHeader>
+          <CardTitle className="text-yellow-800 dark:text-yellow-200 flex items-center gap-2">
+            <Settings className="w-5 h-5" />
+            Testing Controls
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Button 
+            onClick={() => setShowRoleModal(true)}
+            variant="outline"
+            className="border-yellow-300 text-yellow-700 hover:bg-yellow-100"
+          >
+            Open Role Selector Modal
+          </Button>
+        </CardContent>
+      </Card>
+
       {/* Quick Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {quickStats.map((stat, index) => (
@@ -337,6 +377,58 @@ const Dashboard: React.FC = () => {
           </CardContent>
         </Card>
       </div>
+
+      {/* Role Selector Modal */}
+      <Dialog open={showRoleModal} onOpenChange={setShowRoleModal}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Choose Your Role</DialogTitle>
+          </DialogHeader>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+            <Card 
+              className="border border-gray-200 dark:border-gray-800 hover:border-primary transition-colors cursor-pointer"
+              onClick={() => handleRoleSelect('personal')}
+            >
+              <CardHeader>
+                <CardTitle>Personal</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground mb-4">
+                  I'm here for personal branding or a job search.
+                </p>
+                <Button 
+                  disabled={submittingRole} 
+                  className="w-full"
+                  variant="outline"
+                >
+                  Choose Personal
+                </Button>
+              </CardContent>
+            </Card>
+
+            <Card 
+              className="border border-gray-200 dark:border-gray-800 hover:border-primary transition-colors cursor-pointer"
+              onClick={() => handleRoleSelect('hr')}
+            >
+              <CardHeader>
+                <CardTitle>HR</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground mb-4">
+                  I'm hiring or managing candidates.
+                </p>
+                <Button 
+                  disabled={submittingRole} 
+                  className="w-full"
+                  variant="outline"
+                >
+                  Choose HR
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
