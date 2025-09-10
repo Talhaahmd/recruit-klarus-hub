@@ -43,6 +43,10 @@ import BillingPage from "./pages/Settings/BillingPage";
 import NotFound from "./pages/NotFound";
 import Leads from "./pages/Leads/Leads";
 
+// Onboarding Pages
+import OnboardingRole from "./pages/Onboarding/OnboardingRole";
+import OnboardingPlan from "./pages/Onboarding/OnboardingPlan";
+
 const queryClient = new QueryClient();
 
 const ProtectedRouteHandler = ({ children }: { children: React.ReactNode }) => {
@@ -62,7 +66,7 @@ const ProtectedRouteHandler = ({ children }: { children: React.ReactNode }) => {
     );
   }
 
-  return <>{children}</>;
+  return <>{children}</>; 
 };
 
 const App = () => (
@@ -91,6 +95,10 @@ const App = () => (
                   </ProtectedRouteHandler>
                 }
               >
+                {/* Onboarding routes */}
+                <Route path="onboarding/role" element={<OnboardingRole />} />
+                <Route path="onboarding/plan" element={<OnboardingPlan />} />
+
                 <Route path="dashboard" element={<Dashboard />} />
                 <Route path="jobs" element={<Jobs />} />
                 <Route path="candidates" element={<Candidates />} />

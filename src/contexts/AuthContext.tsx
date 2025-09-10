@@ -28,7 +28,7 @@ export const useAuth = () => {
   return context;
 };
 
-const REDIRECT_TO = `${window.location.protocol}//${window.location.host}/dashboard`;
+const REDIRECT_TO = `${window.location.protocol}//${window.location.host}/onboarding/role`;
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
@@ -135,19 +135,42 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     if (!authReady || isLoading) return;
 
-    const isPublicRoute = location.pathname === '/' || 
-                         location.pathname === '/login' || 
-                         location.pathname === '/signup' ||
-                         location.pathname.startsWith('/apply/');
+    const pathname = location.pathname;
+    const isPublicRoute = pathname === '/' || 
+                         pathname === '/login' || 
+                         pathname === '/signup' ||
+                         pathname.startsWith('/apply/');
 
-    if (user && isPublicRoute && location.pathname !== '/') {
-      console.log('Authenticated user on auth page, redirecting to dashboard');
-      navigate('/dashboard', { replace: true });
-    } else if (!user && !isPublicRoute) {
-      console.log('Unauthenticated user on protected route, redirecting to login');
-      navigate('/login', { replace: true });
+    const isOnboardingRoute = pathname.startsWith('/onboarding/');
+
+    // Helper: decide next onboarding step based on profile fields
+    const needsRole = user && (!profile || (profile as any).role === undefined || (profile as any).role === null);
+    const needsPlan = user && !needsRole && (!profile || (profile as any).plan_tier === undefined || (profile as any).plan_tier === null);
+    const onboardingCompleted = user && !needsRole && !needsPlan && (profile ? (profile as any).onboarding_completed === true : false);
+
+    if (user) {
+      // TEMPORARILY DISABLED FOR TESTING - If user is authenticated, route them into onboarding until complete
+      // if (!onboardingCompleted) {
+      //   const target = needsRole ? '/onboarding/role' : '/onboarding/plan';
+      //   if (pathname !== target && !isOnboardingRoute) {
+      //     navigate(target, { replace: true });
+      //     return;
+      //   }
+      // }
+
+      // If onboarding completed and user is on public auth pages, send to dashboard
+      if (isPublicRoute && pathname !== '/') {
+        navigate('/dashboard', { replace: true });
+        return;
+      }
+    } else {
+      // Unauthenticated trying to access protected (including onboarding) -> go to login
+      if (!isPublicRoute && !isOnboardingRoute) {
+        navigate('/login', { replace: true });
+        return;
+      }
     }
-  }, [user, authReady, isLoading, location.pathname, navigate]);
+  }, [user, profile, authReady, isLoading, location.pathname, navigate]);
 
   const login = async (email: string, password: string) => {
     setIsLoading(true);
