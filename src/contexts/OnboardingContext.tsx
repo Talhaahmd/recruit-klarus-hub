@@ -111,6 +111,12 @@ export const OnboardingProvider: React.FC<OnboardingProviderProps> = ({ children
     }
   };
 
+  const getUserRole = (): UserRole | null => {
+    return onboardingData?.role || null;
+  };
+
+  const hasCompletedOnboarding = onboardingData?.onboardingCompleted || false;
+
   const value: OnboardingContextType = {
     currentStep,
     selectedRole,
@@ -125,7 +131,9 @@ export const OnboardingProvider: React.FC<OnboardingProviderProps> = ({ children
     closeOnboarding,
     completeOnboarding,
     nextStep,
-    previousStep
+    previousStep,
+    getUserRole,
+    hasCompletedOnboarding
   };
 
   return (

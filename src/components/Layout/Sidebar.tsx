@@ -16,7 +16,9 @@ import {
   Pin,
   PinOff,
   UserPlus,
-  Play
+  Play,
+  User,
+  ToggleLeft
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useOnboarding } from '@/contexts/OnboardingContext';
@@ -41,7 +43,7 @@ const Sidebar: React.FC<SidebarProps> = ({
   isExpanded
 }) => {
   const { logout } = useAuth();
-  const { openOnboarding } = useOnboarding();
+  const { openOnboarding, getUserRole } = useOnboarding();
 
   const sidebarSections = [
     {
@@ -80,6 +82,18 @@ const Sidebar: React.FC<SidebarProps> = ({
           name: 'Test Onboarding', 
           path: '#', 
           onClick: openOnboarding,
+          isButton: true 
+        },
+        { 
+          icon: ToggleLeft, 
+          name: 'Test Role Switch', 
+          path: '#', 
+          onClick: () => {
+            const currentRole = getUserRole();
+            const newRole = currentRole === 'personal' ? 'hr' : 'personal';
+            // This will be handled by the dashboard component
+            window.location.href = `/dashboard?role=${newRole}`;
+          },
           isButton: true 
         },
       ]
