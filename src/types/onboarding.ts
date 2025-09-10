@@ -49,4 +49,6 @@ export interface OnboardingContextType {
   completeOnboarding: (data: OnboardingData) => Promise<void>;
   nextStep: () => void;
   previousStep: () => void;
+  getUserRole: () => UserRole | null;
+  hasCompletedOnboarding: boolean;
 }
