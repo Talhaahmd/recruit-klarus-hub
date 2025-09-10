@@ -5,6 +5,8 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 import { profilesService, type Profile as ProfileType } from '@/services/profilesService';
+import { onboardingService } from '@/services/onboardingService';
+import type { OnboardingData } from '@/types/onboarding';
 
 type AuthContextType = {
   user: User | null;
@@ -13,12 +15,15 @@ type AuthContextType = {
   isAuthenticated: boolean;
   isLoading: boolean;
   authReady: boolean;
+  onboardingData: OnboardingData | null;
+  hasCompletedOnboarding: boolean;
   login: (email: string, password: string) => Promise<void>;
   signup: (name: string, email: string, password: string) => Promise<void>;
   loginWithGoogle: () => Promise<void>;
   loginWithLinkedIn: () => Promise<void>;
   logout: () => Promise<void>;
   updateProfile: (data: Partial<ProfileType>) => Promise<void>;
+  refreshOnboardingData: () => Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -36,6 +41,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [authReady, setAuthReady] = useState<boolean>(false);
+  const [onboardingData, setOnboardingData] = useState<OnboardingData | null>(null);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -65,6 +71,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const fetchOnboardingData = async (userId: string) => {
+    try {
+      const data = await onboardingService.getOnboardingStatus(userId);
+      setOnboardingData(data);
+    } catch (error) {
+      console.error('Error fetching onboarding data:', error);
+    }
+  };
+
+  const refreshOnboardingData = async () => {
+    if (user) {
+      await fetchOnboardingData(user.id);
+    }
+  };
+
   useEffect(() => {
     let mounted = true;
     
@@ -82,6 +103,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             setUser(initialSession.user);
             // Don't await this to prevent blocking
             fetchProfile(initialSession.user.id);
+            fetchOnboardingData(initialSession.user.id);
           } else {
             console.log('❌ No existing session');
           }
@@ -111,8 +133,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           console.log('✅ User signed in');
           // Don't await this to prevent blocking
           fetchProfile(currentSession.user.id);
+          fetchOnboardingData(currentSession.user.id);
         } else if (!currentSession) {
           setProfile(null);
+          setOnboardingData(null);
           if (event === 'SIGNED_OUT') {
             console.log('👋 User signed out');
           }
@@ -249,12 +273,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         isAuthenticated: !!user,
         isLoading,
         authReady,
+        onboardingData,
+        hasCompletedOnboarding: onboardingData?.onboardingCompleted || false,
         login,
         signup,
         loginWithGoogle,
         loginWithLinkedIn,
         logout,
         updateProfile,
+        refreshOnboardingData,
       }}
     >
       {children}

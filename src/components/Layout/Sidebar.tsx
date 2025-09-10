@@ -15,9 +15,11 @@ import {
   CreditCard,
   Pin,
   PinOff,
-  UserPlus
+  UserPlus,
+  Play
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useOnboarding } from '@/contexts/OnboardingContext';
 
 interface SidebarProps {
   isMobileMenuOpen: boolean;
@@ -39,6 +41,7 @@ const Sidebar: React.FC<SidebarProps> = ({
   isExpanded
 }) => {
   const { logout } = useAuth();
+  const { openOnboarding } = useOnboarding();
 
   const sidebarSections = [
     {
@@ -67,6 +70,18 @@ const Sidebar: React.FC<SidebarProps> = ({
       items: [
         { icon: Settings, name: 'Profile settings', path: '/settings' },
         { icon: CreditCard, name: 'Billings', path: '/settings/billing' },
+      ]
+    },
+    {
+      title: 'Development',
+      items: [
+        { 
+          icon: Play, 
+          name: 'Test Onboarding', 
+          path: '#', 
+          onClick: openOnboarding,
+          isButton: true 
+        },
       ]
     }
   ];
@@ -142,20 +157,39 @@ const Sidebar: React.FC<SidebarProps> = ({
                     {section.title}
                   </h3>
                 )}
-                {section.items.map((item) => (
-                  <NavLink
-                    key={item.path}
-                    to={item.path}
-                    onClick={!isDesktop ? closeMobileMenu : undefined}
-                    title={item.name}
-                    className={({ isActive }) => 
-                      `sidebar-item ${isActive ? 'active' : ''} glow ${(!isExpanded && isDesktop) ? 'justify-center px-2' : 'px-3'}`
-                    }
-                  >
-                    <item.icon size={(!isExpanded && isDesktop) ? 20 : 18} />
-                    {(isExpanded || !isDesktop) && <span className="text-sm sm:text-base">{item.name}</span>}
-                  </NavLink>
-                ))}
+                {section.items.map((item) => {
+                  if (item.isButton) {
+                    return (
+                      <button
+                        key={item.name}
+                        onClick={() => {
+                          item.onClick?.();
+                          if (!isDesktop) closeMobileMenu();
+                        }}
+                        title={item.name}
+                        className={`sidebar-item glow ${(!isExpanded && isDesktop) ? 'justify-center px-2' : 'px-3'}`}
+                      >
+                        <item.icon size={(!isExpanded && isDesktop) ? 20 : 18} />
+                        {(isExpanded || !isDesktop) && <span className="text-sm sm:text-base">{item.name}</span>}
+                      </button>
+                    );
+                  }
+                  
+                  return (
+                    <NavLink
+                      key={item.path}
+                      to={item.path}
+                      onClick={!isDesktop ? closeMobileMenu : undefined}
+                      title={item.name}
+                      className={({ isActive }) => 
+                        `sidebar-item ${isActive ? 'active' : ''} glow ${(!isExpanded && isDesktop) ? 'justify-center px-2' : 'px-3'}`
+                      }
+                    >
+                      <item.icon size={(!isExpanded && isDesktop) ? 20 : 18} />
+                      {(isExpanded || !isDesktop) && <span className="text-sm sm:text-base">{item.name}</span>}
+                    </NavLink>
+                  );
+                })}
               </div>
             ))}
           </nav>

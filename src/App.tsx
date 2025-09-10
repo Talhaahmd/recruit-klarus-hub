@@ -14,6 +14,7 @@ import {
 } from "react-router-dom";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import { ThemeProvider } from "./contexts/ThemeContext";
+import { OnboardingProvider } from "./contexts/OnboardingContext";
 
 // Layout
 import MainLayout from "./components/Layout/MainLayout";
@@ -42,6 +43,9 @@ import Settings from "./pages/Settings/Settings";
 import BillingPage from "./pages/Settings/BillingPage";
 import NotFound from "./pages/NotFound";
 import Leads from "./pages/Leads/Leads";
+
+// Onboarding
+import OnboardingModal from "./components/UI/OnboardingModal";
 
 const queryClient = new QueryClient();
 
@@ -73,7 +77,8 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <AuthProvider>
-            <Routes>
+            <OnboardingProvider>
+              <Routes>
               {/* Public routes */}
               <Route path="/" element={<Home />} />
               <Route path="/login" element={<Login />} />
@@ -107,6 +112,10 @@ const App = () => (
               <Route path="/index" element={<Navigate to="/dashboard" />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
+            
+            {/* Global Onboarding Modal */}
+            <OnboardingModal />
+            </OnboardingProvider>
           </AuthProvider>
         </BrowserRouter>
       </TooltipProvider>

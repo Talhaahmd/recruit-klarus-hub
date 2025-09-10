@@ -124,7 +124,8 @@ const Signup: React.FC = () => {
     try {
       await signup(name, email, password);
       toast.success('Account created! Check your email to verify.');
-      navigate(`/login?from=${encodeURIComponent(from)}`, { replace: true });
+      // Redirect to login with onboarding flag
+      navigate(`/login?from=${encodeURIComponent('/onboarding')}`, { replace: true });
     } catch (error) {
       console.error('❌ Signup failed');
     } finally {
