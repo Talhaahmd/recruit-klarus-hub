@@ -15,7 +15,9 @@ import {
   Star,
   MapPin,
   DollarSign,
-  BarChart3
+  BarChart3,
+  FileText,
+  User
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 
