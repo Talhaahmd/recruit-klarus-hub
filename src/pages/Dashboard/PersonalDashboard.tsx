@@ -11,13 +11,16 @@ import {
   Clock,
   ThumbsUp,
   MessageSquare,
-  Eye
+  Eye,
+  Share2,
+  Users
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { Link } from 'react-router-dom';
 
 // Mock data for LinkedIn growth dashboard
 const mockGrowthData = {
+  postsPublished: 18,
   drafts: [
     {
       id: 1,
@@ -44,7 +47,17 @@ const mockGrowthData = {
       scheduledFor: new Date('2025-06-28T08:00:00')
     }
   ],
-  metrics: { engagementRate: 3.2, avgLikes: 56, avgComments: 12, profileViews: 240 }
+  metrics: { engagementRate: 3.2, avgLikes: 56, avgComments: 12, profileViews: 240 },
+  recentPosts: [
+    { id: 1, title: 'Why I post daily', date: new Date('2025-06-20T08:00:00'), likes: 72, comments: 18, shares: 9 },
+    { id: 2, title: 'AI writing workflow (templates inside)', date: new Date('2025-06-18T08:00:00'), likes: 54, comments: 12, shares: 6 },
+    { id: 3, title: '3 mistakes killing your reach', date: new Date('2025-06-15T08:00:00'), likes: 69, comments: 21, shares: 11 }
+  ],
+  connectionGrowth: [
+    { id: 1, label: 'Jun 1 – 7', newConnections: 12, total: 820 },
+    { id: 2, label: 'Jun 8 – 14', newConnections: 19, total: 839 },
+    { id: 3, label: 'Jun 15 – 21', newConnections: 23, total: 862 }
+  ]
 };
 
 const PersonalDashboard: React.FC = () => {
@@ -73,16 +86,18 @@ const PersonalDashboard: React.FC = () => {
     );
   }
 
+  const totalEngagement = mockGrowthData.recentPosts.reduce((sum, p) => sum + p.likes + p.comments + p.shares, 0);
+
   return (
     <div className="space-y-6">
-      {/* Growth Stats */}
+      {/* LinkedIn Growth Metrics */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card className="hover:shadow-lg transition-shadow">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Drafts</p>
-                <p className="text-2xl font-bold text-gray-900 dark:text-white">{mockGrowthData.drafts.length}</p>
+                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Posts Published</p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-white">{mockGrowthData.postsPublished}</p>
               </div>
               <div className="p-3 rounded-full bg-blue-100 dark:bg-blue-900">
                 <PenSquare className="w-6 h-6 text-blue-600 dark:text-blue-400" />
@@ -95,11 +110,11 @@ const PersonalDashboard: React.FC = () => {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Scheduled Posts</p>
-                <p className="text-2xl font-bold text-gray-900 dark:text-white">{mockGrowthData.scheduled.length}</p>
+                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Profile Views</p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-white">{mockGrowthData.metrics.profileViews}</p>
               </div>
               <div className="p-3 rounded-full bg-green-100 dark:bg-green-900">
-                <CalendarDays className="w-6 h-6 text-green-600 dark:text-green-400" />
+                <Eye className="w-6 h-6 text-green-600 dark:text-green-400" />
               </div>
             </div>
           </CardContent>
@@ -109,11 +124,11 @@ const PersonalDashboard: React.FC = () => {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Ideas Queue</p>
-                <p className="text-2xl font-bold text-gray-900 dark:text-white">{mockGrowthData.ideas.length}</p>
+                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">New Connections</p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-white">{mockGrowthData.connectionGrowth.at(-1)?.newConnections ?? 0}</p>
               </div>
               <div className="p-3 rounded-full bg-purple-100 dark:bg-purple-900">
-                <Hash className="w-6 h-6 text-purple-600 dark:text-purple-400" />
+                <Users className="w-6 h-6 text-purple-600 dark:text-purple-400" />
               </div>
             </div>
           </CardContent>
@@ -123,8 +138,8 @@ const PersonalDashboard: React.FC = () => {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Engagement Rate</p>
-                <p className="text-2xl font-bold text-gray-900 dark:text-white">{formatPercent(mockGrowthData.metrics.engagementRate)}</p>
+                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Engagement</p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-white">{totalEngagement}</p>
               </div>
               <div className="p-3 rounded-full bg-orange-100 dark:bg-orange-900">
                 <BarChart3 className="w-6 h-6 text-orange-600 dark:text-orange-400" />
@@ -204,30 +219,48 @@ const PersonalDashboard: React.FC = () => {
         </Card>
       </div>
 
-      {/* Ideas & Performance */}
+      {/* Engagement Tracker & Performance */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Engagement Tracker */}
         <Card className="shadow-lg">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Sparkles className="w-5 h-5" />
-              Top Topic Ideas
+              <Share2 className="w-5 h-5" />
+              Engagement Tracker (recent posts)
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              {mockGrowthData.ideas.map((idea) => (
-                <div key={idea.id} className="flex items-center justify-between p-3 border border-gray-200 dark:border-gray-700 rounded-lg">
-                  <div className="space-y-1">
-                    <p className="font-medium text-gray-900 dark:text-white">{idea.topic}</p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">Relevance score: {idea.score}</p>
+              {mockGrowthData.recentPosts.map((p) => (
+                <div key={p.id} className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
+                  <div className="flex items-center justify-between mb-2">
+                    <div>
+                      <p className="font-semibold text-gray-900 dark:text-white">{p.title}</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">{p.date.toLocaleDateString()}</p>
+                    </div>
+                    <Badge className="bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200">Post</Badge>
                   </div>
-                  <Button size="sm" variant="outline">Draft</Button>
+                  <div className="grid grid-cols-3 gap-2 text-center">
+                    <div className="p-2 border border-gray-200 dark:border-gray-700 rounded-md">
+                      <div className="text-xs text-gray-500 dark:text-gray-400">Likes</div>
+                      <div className="text-lg font-bold">{p.likes}</div>
+                    </div>
+                    <div className="p-2 border border-gray-200 dark:border-gray-700 rounded-md">
+                      <div className="text-xs text-gray-500 dark:text-gray-400">Comments</div>
+                      <div className="text-lg font-bold">{p.comments}</div>
+                    </div>
+                    <div className="p-2 border border-gray-200 dark:border-gray-700 rounded-md">
+                      <div className="text-xs text-gray-500 dark:text-gray-400">Shares</div>
+                      <div className="text-lg font-bold">{p.shares}</div>
+                    </div>
+                  </div>
                 </div>
               ))}
             </div>
           </CardContent>
         </Card>
 
+        {/* Performance Overview */}
         <Card className="shadow-lg">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -252,19 +285,68 @@ const PersonalDashboard: React.FC = () => {
                 <p className="text-xs text-gray-500 dark:text-gray-400">Avg Comments</p>
               </div>
               <div className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg text-center">
+                <div className="mx-auto mb-2 p-2 rounded-full bg-purple-100 dark:bg-purple-900 w-10 h-10 flex items-center justify-center">
+                  <Share2 className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+                </div>
+                <p className="text-2xl font-bold text-gray-900 dark:text-white">{Math.round((mockGrowthData.recentPosts.reduce((s, p) => s + p.shares, 0)) / Math.max(mockGrowthData.recentPosts.length, 1))}</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">Avg Shares</p>
+              </div>
+              <div className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg text-center">
                 <div className="mx-auto mb-2 p-2 rounded-full bg-orange-100 dark:bg-orange-900 w-10 h-10 flex items-center justify-center">
                   <Eye className="w-5 h-5 text-orange-600 dark:text-orange-400" />
                 </div>
                 <p className="text-2xl font-bold text-gray-900 dark:text-white">{mockGrowthData.metrics.profileViews}</p>
                 <p className="text-xs text-gray-500 dark:text-gray-400">Profile Views</p>
               </div>
-              <div className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg text-center">
-                <div className="mx-auto mb-2 p-2 rounded-full bg-purple-100 dark:bg-purple-900 w-10 h-10 flex items-center justify-center">
-                  <BarChart3 className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Connections Growth & Ideas */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Connection Growth Insights */}
+        <Card className="shadow-lg">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Users className="w-5 h-5" />
+              Connection Growth Insights
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {mockGrowthData.connectionGrowth.map((cg) => (
+                <div key={cg.id} className="flex items-center justify-between p-3 border border-gray-200 dark:border-gray-700 rounded-lg">
+                  <div>
+                    <p className="font-medium text-gray-900 dark:text-white">{cg.label}</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">Total: {cg.total}</p>
+                  </div>
+                  <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">+{cg.newConnections}</Badge>
                 </div>
-                <p className="text-2xl font-bold text-gray-900 dark:text-white">{formatPercent(mockGrowthData.metrics.engagementRate)}</p>
-                <p className="text-xs text-gray-500 dark:text-gray-400">Engagement</p>
-              </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Top Topic Ideas */}
+        <Card className="shadow-lg">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Sparkles className="w-5 h-5" />
+              Top Topic Ideas
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {mockGrowthData.ideas.map((idea) => (
+                <div key={idea.id} className="flex items-center justify-between p-3 border border-gray-200 dark:border-gray-700 rounded-lg">
+                  <div className="space-y-1">
+                    <p className="font-medium text-gray-900 dark:text-white">{idea.topic}</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">Relevance score: {idea.score}</p>
+                  </div>
+                  <Button size="sm" variant="outline">Draft</Button>
+                </div>
+              ))}
             </div>
           </CardContent>
         </Card>
