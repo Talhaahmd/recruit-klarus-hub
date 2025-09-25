@@ -24,14 +24,17 @@ const HeroSection: React.FC = () => {
 
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mt-8 lg:mt-12">
               <Link
-                to="/signup"
+                to="/dashboard?role=personal"
                 className="inline-flex items-center justify-center w-full sm:w-auto px-8 py-4 text-lg font-semibold text-primary-foreground bg-primary border-2 border-transparent rounded-xl hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary shadow-lg hover:shadow-xl transition-all duration-200"
               >
-                Get Started Free
+                Grow your LinkedIn presence
               </Link>
-              <button className="inline-flex items-center justify-center w-full sm:w-auto px-8 py-4 text-lg font-semibold text-foreground bg-background border-2 border-border rounded-xl hover:bg-muted focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-border transition-all duration-200">
-                Watch Demo
-              </button>
+              <Link
+                to="/dashboard?role=hr"
+                className="inline-flex items-center justify-center w-full sm:w-auto px-8 py-4 text-lg font-semibold text-foreground bg-background border-2 border-border rounded-xl hover:bg-muted focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-border transition-all duration-200"
+              >
+                Manage hiring & recruitment
+              </Link>
             </div>
 
             <p className="mt-6 sm:mt-8 text-sm sm:text-base text-muted-foreground">

@@ -2,79 +2,49 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/UI/card';
 import { Button } from '@/components/UI/button';
 import { Badge } from '@/components/UI/badge';
-import { 
-  Briefcase, 
-  FileText, 
-  Calendar, 
-  TrendingUp, 
-  User,
+import {
+  PenSquare,
+  CalendarDays,
+  Sparkles,
+  Hash,
+  BarChart3,
   Clock,
-  CheckCircle,
-  Star,
-  MapPin,
-  DollarSign
+  ThumbsUp,
+  MessageSquare,
+  Eye
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
+import { Link } from 'react-router-dom';
 
-// Mock data for personal dashboard
-const mockPersonalData = {
-  applications: [
+// Mock data for LinkedIn growth dashboard
+const mockGrowthData = {
+  drafts: [
     {
       id: 1,
-      jobTitle: 'Frontend Developer',
-      company: 'TechCorp Inc.',
-      status: 'Under Review',
-      appliedDate: new Date('2024-01-15'),
-      location: 'San Francisco, CA',
-      salary: '$80,000 - $100,000'
+      title: '5 lessons from shipping a side project to 1k users',
+      createdAt: new Date('2025-06-01T09:00:00'),
+      hashtags: ['#buildinpublic', '#react', '#startups']
     },
     {
       id: 2,
-      jobTitle: 'React Developer',
-      company: 'StartupXYZ',
-      status: 'Interview Scheduled',
-      appliedDate: new Date('2024-01-10'),
-      location: 'Remote',
-      salary: '$70,000 - $90,000'
-    },
-    {
-      id: 3,
-      jobTitle: 'UI/UX Designer',
-      company: 'DesignStudio',
-      status: 'Rejected',
-      appliedDate: new Date('2024-01-05'),
-      location: 'New York, NY',
-      salary: '$60,000 - $80,000'
+      title: 'My framework for writing posts that people actually read',
+      createdAt: new Date('2025-06-02T10:30:00'),
+      hashtags: ['#content', '#writing', '#growth']
     }
   ],
-  savedJobs: [
+  ideas: [
+    { id: 1, topic: 'How I use AI to draft posts in 5 minutes', score: 86 },
+    { id: 2, topic: 'Things I wish I knew before my first PM role', score: 78 },
+    { id: 3, topic: 'A simple system for consistent posting (with templates)', score: 82 }
+  ],
+  scheduled: [
     {
       id: 1,
-      title: 'Senior Frontend Developer',
-      company: 'BigTech Corp',
-      location: 'Seattle, WA',
-      salary: '$100,000 - $130,000',
-      postedDate: new Date('2024-01-20')
-    },
-    {
-      id: 2,
-      title: 'Full Stack Developer',
-      company: 'Innovation Labs',
-      location: 'Austin, TX',
-      salary: '$85,000 - $110,000',
-      postedDate: new Date('2024-01-18')
+      title: 'What 30 days of daily posting taught me',
+      scheduledFor: new Date('2025-06-28T08:00:00')
     }
   ],
-  upcomingInterviews: [
-    {
-      id: 1,
-      company: 'StartupXYZ',
-      position: 'React Developer',
-      date: new Date('2024-01-25T14:00:00'),
-      type: 'Technical Interview',
-      location: 'Video Call'
-    }
-  ]
+  metrics: { engagementRate: 3.2, avgLikes: 56, avgComments: 12, profileViews: 240 }
 };
 
 const PersonalDashboard: React.FC = () => {
@@ -86,18 +56,7 @@ const PersonalDashboard: React.FC = () => {
     return () => clearTimeout(timer);
   }, []);
 
-  const getStatusColor = (status: string) => {
-    switch (status.toLowerCase()) {
-      case 'under review':
-        return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200';
-      case 'interview scheduled':
-        return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200';
-      case 'rejected':
-        return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200';
-      default:
-        return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200';
-    }
-  };
+  const formatPercent = (value: number) => `${value.toFixed(1)}%`;
 
   if (loading) {
     return (
@@ -116,21 +75,17 @@ const PersonalDashboard: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      {/* Personal Stats */}
+      {/* Growth Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card className="hover:shadow-lg transition-shadow">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                  Applications Sent
-                </p>
-                <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                  {mockPersonalData.applications.length}
-                </p>
+                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Drafts</p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-white">{mockGrowthData.drafts.length}</p>
               </div>
               <div className="p-3 rounded-full bg-blue-100 dark:bg-blue-900">
-                <FileText className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+                <PenSquare className="w-6 h-6 text-blue-600 dark:text-blue-400" />
               </div>
             </div>
           </CardContent>
@@ -140,15 +95,11 @@ const PersonalDashboard: React.FC = () => {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                  Interviews Scheduled
-                </p>
-                <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                  {mockPersonalData.upcomingInterviews.length}
-                </p>
+                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Scheduled Posts</p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-white">{mockGrowthData.scheduled.length}</p>
               </div>
               <div className="p-3 rounded-full bg-green-100 dark:bg-green-900">
-                <Calendar className="w-6 h-6 text-green-600 dark:text-green-400" />
+                <CalendarDays className="w-6 h-6 text-green-600 dark:text-green-400" />
               </div>
             </div>
           </CardContent>
@@ -158,15 +109,11 @@ const PersonalDashboard: React.FC = () => {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                  Saved Jobs
-                </p>
-                <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                  {mockPersonalData.savedJobs.length}
-                </p>
+                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Ideas Queue</p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-white">{mockGrowthData.ideas.length}</p>
               </div>
               <div className="p-3 rounded-full bg-purple-100 dark:bg-purple-900">
-                <Star className="w-6 h-6 text-purple-600 dark:text-purple-400" />
+                <Hash className="w-6 h-6 text-purple-600 dark:text-purple-400" />
               </div>
             </div>
           </CardContent>
@@ -176,15 +123,11 @@ const PersonalDashboard: React.FC = () => {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                  Profile Views
-                </p>
-                <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                  24
-                </p>
+                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Engagement Rate</p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-white">{formatPercent(mockGrowthData.metrics.engagementRate)}</p>
               </div>
               <div className="p-3 rounded-full bg-orange-100 dark:bg-orange-900">
-                <TrendingUp className="w-6 h-6 text-orange-600 dark:text-orange-400" />
+                <BarChart3 className="w-6 h-6 text-orange-600 dark:text-orange-400" />
               </div>
             </div>
           </CardContent>
@@ -192,155 +135,140 @@ const PersonalDashboard: React.FC = () => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Recent Applications */}
+        {/* Recent Drafts */}
         <Card className="shadow-lg">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <FileText className="w-5 h-5" />
-              Recent Applications
+              <PenSquare className="w-5 h-5" />
+              Recent Drafts
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {mockPersonalData.applications.map((application) => (
-                <div key={application.id} className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+              {mockGrowthData.drafts.map((draft) => (
+                <div key={draft.id} className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
                   <div className="flex justify-between items-start mb-2">
                     <div>
-                      <h4 className="font-semibold text-gray-900 dark:text-white">{application.jobTitle}</h4>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">{application.company}</p>
+                      <h4 className="font-semibold text-gray-900 dark:text-white">{draft.title}</h4>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">Created {formatDistanceToNow(draft.createdAt, { addSuffix: true })}</p>
                     </div>
-                    <Badge className={getStatusColor(application.status)}>
-                      {application.status}
-                    </Badge>
+                    <Badge className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">Draft</Badge>
                   </div>
-                  <div className="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
-                    <div className="flex items-center gap-1">
-                      <MapPin size={14} />
-                      {application.location}
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <DollarSign size={14} />
-                      {application.salary}
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <Clock size={14} />
-                      {formatDistanceToNow(application.appliedDate, { addSuffix: true })}
-                    </div>
+                  <div className="flex flex-wrap items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
+                    {draft.hashtags.map((tag) => (
+                      <span key={tag} className="px-2 py-1 rounded-md bg-gray-100 dark:bg-gray-900">{tag}</span>
+                    ))}
                   </div>
                 </div>
               ))}
             </div>
+            <div className="mt-4">
+              <Link to="/themes">
+                <Button variant="default">Open Content Studio</Button>
+              </Link>
+            </div>
           </CardContent>
         </Card>
 
-        {/* Upcoming Interviews */}
+        {/* Scheduled Posts */}
         <Card className="shadow-lg">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Calendar className="w-5 h-5" />
-              Upcoming Interviews
+              <CalendarDays className="w-5 h-5" />
+              Scheduled Posts
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {mockPersonalData.upcomingInterviews.map((interview) => (
-                <div key={interview.id} className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+              {mockGrowthData.scheduled.map((post) => (
+                <div key={post.id} className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
                   <div className="flex justify-between items-start mb-2">
                     <div>
-                      <h4 className="font-semibold text-gray-900 dark:text-white">{interview.position}</h4>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">{interview.company}</p>
+                      <h4 className="font-semibold text-gray-900 dark:text-white">{post.title}</h4>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">Scheduled for {post.scheduledFor.toLocaleDateString()} at {post.scheduledFor.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
                     </div>
-                    <Badge className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
-                      {interview.type}
-                    </Badge>
-                  </div>
-                  <div className="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
-                    <div className="flex items-center gap-1">
-                      <Clock size={14} />
-                      {interview.date.toLocaleDateString()} at {interview.date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <MapPin size={14} />
-                      {interview.location}
-                    </div>
+                    <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">Scheduled</Badge>
                   </div>
                 </div>
               ))}
+              {mockGrowthData.scheduled.length === 0 && (
+                <div className="text-sm text-gray-500 dark:text-gray-400">No posts scheduled. Plan your next post to stay consistent.</div>
+              )}
+            </div>
+            <div className="mt-4">
+              <Link to="/ideas">
+                <Button variant="outline">Create New Post</Button>
+              </Link>
             </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Saved Jobs */}
-      <Card className="shadow-lg">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Star className="w-5 h-5" />
-            Saved Jobs
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {mockPersonalData.savedJobs.map((job) => (
-              <div key={job.id} className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
-                <div className="flex justify-between items-start mb-2">
-                  <div>
-                    <h4 className="font-semibold text-gray-900 dark:text-white">{job.title}</h4>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">{job.company}</p>
+      {/* Ideas & Performance */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <Card className="shadow-lg">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Sparkles className="w-5 h-5" />
+              Top Topic Ideas
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {mockGrowthData.ideas.map((idea) => (
+                <div key={idea.id} className="flex items-center justify-between p-3 border border-gray-200 dark:border-gray-700 rounded-lg">
+                  <div className="space-y-1">
+                    <p className="font-medium text-gray-900 dark:text-white">{idea.topic}</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">Relevance score: {idea.score}</p>
                   </div>
-                  <Button size="sm" variant="outline">
-                    Apply Now
-                  </Button>
+                  <Button size="sm" variant="outline">Draft</Button>
                 </div>
-                <div className="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
-                  <div className="flex items-center gap-1">
-                    <MapPin size={14} />
-                    {job.location}
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <DollarSign size={14} />
-                    {job.salary}
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <Clock size={14} />
-                    {formatDistanceToNow(job.postedDate, { addSuffix: true })}
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
 
-      {/* Quick Actions */}
-      <Card className="shadow-lg">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <CheckCircle className="w-5 h-5" />
-            Quick Actions
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-            <Button className="w-full justify-start" variant="outline">
-              <Briefcase className="w-4 h-4 mr-2" />
-              Browse Jobs
-            </Button>
-            <Button className="w-full justify-start" variant="outline">
-              <User className="w-4 h-4 mr-2" />
-              Update Profile
-            </Button>
-            <Button className="w-full justify-start" variant="outline">
-              <FileText className="w-4 h-4 mr-2" />
-              Upload Resume
-            </Button>
-            <Button className="w-full justify-start" variant="outline">
-              <Calendar className="w-4 h-4 mr-2" />
-              Schedule Interview
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+        <Card className="shadow-lg">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <BarChart3 className="w-5 h-5" />
+              Performance Overview (avg last 5 posts)
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+              <div className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg text-center">
+                <div className="mx-auto mb-2 p-2 rounded-full bg-blue-100 dark:bg-blue-900 w-10 h-10 flex items-center justify-center">
+                  <ThumbsUp className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                </div>
+                <p className="text-2xl font-bold text-gray-900 dark:text-white">{mockGrowthData.metrics.avgLikes}</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">Avg Likes</p>
+              </div>
+              <div className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg text-center">
+                <div className="mx-auto mb-2 p-2 rounded-full bg-green-100 dark:bg-green-900 w-10 h-10 flex items-center justify-center">
+                  <MessageSquare className="w-5 h-5 text-green-600 dark:text-green-400" />
+                </div>
+                <p className="text-2xl font-bold text-gray-900 dark:text-white">{mockGrowthData.metrics.avgComments}</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">Avg Comments</p>
+              </div>
+              <div className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg text-center">
+                <div className="mx-auto mb-2 p-2 rounded-full bg-orange-100 dark:bg-orange-900 w-10 h-10 flex items-center justify-center">
+                  <Eye className="w-5 h-5 text-orange-600 dark:text-orange-400" />
+                </div>
+                <p className="text-2xl font-bold text-gray-900 dark:text-white">{mockGrowthData.metrics.profileViews}</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">Profile Views</p>
+              </div>
+              <div className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg text-center">
+                <div className="mx-auto mb-2 p-2 rounded-full bg-purple-100 dark:bg-purple-900 w-10 h-10 flex items-center justify-center">
+                  <BarChart3 className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+                </div>
+                <p className="text-2xl font-bold text-gray-900 dark:text-white">{formatPercent(mockGrowthData.metrics.engagementRate)}</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">Engagement</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 };
