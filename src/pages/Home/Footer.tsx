@@ -10,9 +10,11 @@ const Footer: React.FC = () => {
           {/* Logo + Description */}
           <div>
             <Link to="/" className="flex items-center mb-6">
-              <div className="text-foreground font-bold text-xl tracking-wider">
-                Klarus HR
-              </div>
+              <img 
+                src="/imgs/WhatsApp Image 2025-10-01 at 16.10.12.jpeg" 
+                alt="Klarus HR Logo" 
+                className="h-8 w-auto object-contain"
+              />
             </Link>
             <p className="text-muted-foreground mb-6 leading-relaxed text-sm">
               Everything for rapid growth on LinkedIn, hiring and recruitment with AI chatbots and gamification

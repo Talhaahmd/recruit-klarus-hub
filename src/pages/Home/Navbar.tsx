@@ -29,16 +29,29 @@ const Navbar: React.FC = () => {
     >
       <nav className="max-w-7xl mx-auto flex justify-between items-center px-4 sm:px-6 py-4 relative">
         {/* Logo */}
-        <Link to="/" className="text-foreground font-bold text-xl sm:text-2xl tracking-wider">
-          Klarus HR
+        <Link to="/" className="flex items-center">
+          <img 
+            src="/imgs/WhatsApp Image 2025-10-01 at 16.10.12.jpeg" 
+            alt="Klarus HR Logo" 
+            className="h-8 sm:h-10 w-auto object-contain"
+          />
         </Link>
 
         {/* Desktop Nav */}
         <div className="hidden md:flex items-center gap-8 lg:gap-12">
           <div className="flex gap-8 lg:gap-12 items-center text-base lg:text-lg font-medium text-foreground">
-            <a href="#solutions" className="hover:text-primary transition-colors">Solutions</a>
-            <a href="#pricing" className="hover:text-primary transition-colors">Pricing</a>
-            <a href="#resources" className="hover:text-primary transition-colors">Resources</a>
+            {[
+              { href: '#solutions', label: 'Solutions' },
+              { href: '#platforms', label: 'Platforms' },
+              { href: '#metrics', label: 'Metrics' },
+              { href: '#success', label: 'Success' },
+              { href: '#resources', label: 'Resources' }
+            ].map((item, idx) => (
+              <a key={idx} href={item.href} className="relative hover:text-primary transition-colors">
+                <span>{item.label}</span>
+                <span className="absolute left-0 -bottom-1 h-[2px] w-0 bg-primary transition-all duration-300 group-hover:w-full" />
+              </a>
+            ))}
           </div>
           
           <Link 
