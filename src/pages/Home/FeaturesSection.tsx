@@ -1,98 +1,229 @@
-
 import React from 'react';
-import { ChevronDown } from 'lucide-react';
-import { Link } from 'react-router-dom';
-import { motion, useScroll, useTransform, useSpring } from 'framer-motion';
+import { motion } from 'framer-motion';
+import { Bot, Users, Zap, Mail, Database, Link as LinkIcon } from 'lucide-react';
+
+const features = [
+  {
+    icon: Bot,
+    title: "AI-Powered Chatbots",
+    description: "Keep in touch with candidates 24/7 and never miss a promising lead with intelligent conversation flows"
+  },
+  {
+    icon: Users,
+    title: "Referral System", 
+    description: "Bring in new talent through employee and partner referrals with automated tracking and rewards"
+  },
+  {
+    icon: Zap,
+    title: "Gamification and Loyalty programs",
+    description: "Use our automated gamification system to reward candidates with points for engagement and applications"
+  },
+  {
+    icon: Mail,
+    title: "Broadcasts and Hiring funnels",
+    description: "Maintain candidate flow and re-engage talent with tailored email sequences and nurture campaigns"
+  },
+  {
+    icon: Database,
+    title: "CRM solution",
+    description: "Easily segment candidates and assign recruiters for personalized support—all from one interface"
+  },
+  {
+    icon: LinkIcon,
+    title: "Seamless integrations",
+    description: "Export your data to ATS systems, Google sheets, and other third-party services on the go"
+  }
+];
+
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.1
+    }
+  }
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: { 
+    opacity: 1, 
+    y: 0,
+    transition: {
+      duration: 0.6
+    }
+  }
+};
 
 const FeaturesSection: React.FC = () => {
-  const { scrollYProgress } = useScroll();
-  const translateY = useSpring(useTransform(scrollYProgress, [0, 1], [0, 100]), {
-    stiffness: 60,
-    damping: 20
-  });
-
   return (
-    <section id="features" className="bg-background py-16 sm:py-24 lg:py-32 px-4 sm:px-6">
-      <motion.div
-        style={{ y: translateY }}
-        className="max-w-7xl mx-auto"
-      >
+    <section className="py-20 lg:py-32 bg-background">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        
         {/* Header */}
-        <div className="text-center mb-16">
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-foreground mb-6">
-            Why Choose Klarus HR?
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.8 }}
+          className="text-center mb-16 lg:mb-20"
+        >
+          <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-foreground mb-6">
+            Grow your talent pipeline
           </h2>
-          <p className="text-lg sm:text-xl text-muted-foreground max-w-3xl mx-auto">
-            We are <strong className="text-foreground">Klarus</strong> — the first-of-its-kind, multi-modal platform engineered to transform how professionals manage their presence on{' '}
-            <strong className="text-primary font-semibold">LinkedIn</strong>. Klarus empowers you with strategic content planning, real-time lead and application tracking, intelligent hiring assessment tools, and access to high-impact trending topics.
+          <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
+            Easy-to-use solutions to drive recruitment growth with AI chatbots and gamification
           </p>
-        </div>
+        </motion.div>
 
-        {/* Dual Audience Highlights */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-16">
-          {/* Individuals */}
-          <div className="p-6 rounded-2xl bg-card border border-border h-full">
-            <h3 className="text-2xl font-bold text-foreground mb-2">Grow your LinkedIn presence</h3>
-            <p className="text-muted-foreground mb-6">For individuals and creators who want consistency, reach, and credibility.</p>
-            <ul className="space-y-3 text-foreground/90">
-              <li className="flex gap-2"><span className="text-primary">•</span> AI-curated, Google-aware topics tailored to your niche</li>
-              <li className="flex gap-2"><span className="text-primary">•</span> Draft, refine, and schedule posts with one-click</li>
-              <li className="flex gap-2"><span className="text-primary">•</span> Track engagement trends and iterate faster</li>
-              <li className="flex gap-2"><span className="text-primary">•</span> Build a portfolio of ideas and finished posts</li>
-            </ul>
-            <div className="mt-6">
-              <Link
-                to="/dashboard?role=personal"
-                className="inline-flex items-center px-6 py-3 rounded-xl bg-primary text-primary-foreground font-semibold hover:bg-primary/90 transition-colors"
+        {/* Features Grid */}
+        <motion.div
+          variants={containerVariants}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true }}
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
+        >
+          {features.map((feature, index) => {
+            const Icon = feature.icon;
+            return (
+              <motion.div
+                key={index}
+                variants={itemVariants}
+                className="group p-8 rounded-2xl bg-card border border-border hover:border-primary/20 transition-all duration-300 hover:shadow-lg"
               >
-                Start growing on LinkedIn
-              </Link>
-            </div>
+                <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mb-6 group-hover:bg-primary/20 transition-colors">
+                  <Icon className="w-6 h-6 text-primary" />
+                </div>
+                <h3 className="text-xl font-semibold text-foreground mb-4">
+                  {feature.title}
+                </h3>
+                <p className="text-muted-foreground leading-relaxed">
+                  {feature.description}
+                </p>
+              </motion.div>
+            );
+          })}
+        </motion.div>
+
+        {/* Engage and Drive Sales Section */}
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.8, delay: 0.2 }}
+          className="mt-20 lg:mt-32"
+        >
+          <div className="text-center mb-16">
+            <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-foreground mb-6">
+              Engage and hire effortlessly
+            </h2>
+            <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
+              Automate communication and streamline your hiring process
+            </p>
           </div>
 
-          {/* HR/Companies */}
-          <div className="p-6 rounded-2xl bg-card border border-border h-full">
-            <h3 className="text-2xl font-bold text-foreground mb-2">Manage hiring & recruitment</h3>
-            <p className="text-muted-foreground mb-6">For HR teams and companies that need structure and scale.</p>
-            <ul className="space-y-3 text-foreground/90">
-              <li className="flex gap-2"><span className="text-primary">•</span> Centralize job postings and candidate pipelines</li>
-              <li className="flex gap-2"><span className="text-primary">•</span> AI-assisted screening, shortlisting, and notes</li>
-              <li className="flex gap-2"><span className="text-primary">•</span> Automated outreach and follow-ups via templates</li>
-              <li className="flex gap-2"><span className="text-primary">•</span> Schedule interviews and sync with your calendar</li>
-            </ul>
-            <div className="mt-6">
-              <Link
-                to="/dashboard?role=hr"
-                className="inline-flex items-center px-6 py-3 rounded-xl border border-border bg-background text-foreground font-semibold hover:bg-muted transition-colors"
-              >
-                Streamline your hiring
-              </Link>
-            </div>
-          </div>
-        </div>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <motion.div
+              initial={{ opacity: 0, x: -30 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.8 }}
+              className="p-8 rounded-2xl bg-gradient-to-br from-primary/5 to-primary/10 border border-primary/20"
+            >
+              <div className="w-16 h-16 rounded-2xl bg-primary/20 flex items-center justify-center mb-6">
+                <Zap className="w-8 h-8 text-primary" />
+              </div>
+              <h3 className="text-2xl font-bold text-foreground mb-4">
+                Gamification and Loyalty programs
+              </h3>
+              <p className="text-muted-foreground mb-6 leading-relaxed">
+                Use our automated gamification system to reward your candidates with points every time they engage with your job postings and complete application steps
+              </p>
+              <button className="text-primary font-semibold hover:text-primary/80 transition-colors">
+                Learn more →
+              </button>
+            </motion.div>
 
-        {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
-          <div className="text-center p-6 rounded-2xl bg-card border border-border">
-            <h3 className="text-4xl sm:text-5xl font-bold text-primary mb-2">88+</h3>
-            <p className="text-muted-foreground font-medium">Happy Clients</p>
+            <motion.div
+              initial={{ opacity: 0, x: 30 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.8 }}
+              className="p-8 rounded-2xl bg-gradient-to-br from-muted/50 to-muted/80 border border-border"
+            >
+              <div className="w-16 h-16 rounded-2xl bg-foreground/10 flex items-center justify-center mb-6">
+                <Mail className="w-8 h-8 text-foreground" />
+              </div>
+              <h3 className="text-2xl font-bold text-foreground mb-4">
+                Broadcasts and Hiring funnels
+              </h3>
+              <p className="text-muted-foreground mb-6 leading-relaxed">
+                Maintain candidate flow and re-engage talent with tailored broadcasts and automated hiring sequences
+              </p>
+              <button className="text-foreground font-semibold hover:text-foreground/80 transition-colors">
+                Learn more →
+              </button>
+            </motion.div>
           </div>
-          <div className="text-center p-6 rounded-2xl bg-card border border-border">
-            <h3 className="text-4xl sm:text-5xl font-bold text-primary mb-2">3+</h3>
-            <p className="text-muted-foreground font-medium">AI Models</p>
-          </div>
-          <div className="text-center p-6 rounded-2xl bg-card border border-border">
-            <h3 className="text-4xl sm:text-5xl font-bold text-primary mb-2">100%</h3>
-            <p className="text-muted-foreground font-medium">Satisfaction Rate</p>
-          </div>
-        </div>
+        </motion.div>
 
-        {/* Arrow CTA */}
-        <div className="flex flex-col items-center">
-          <p className="text-sm font-medium text-muted-foreground mb-2">Discover our features</p>
-          <ChevronDown className="w-6 h-6 text-primary animate-bounce" />
-        </div>
-      </motion.div>
+        {/* Automate Communication Section */}
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.8, delay: 0.4 }}
+          className="mt-20 lg:mt-32 text-center"
+        >
+          <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-foreground mb-16">
+            Automate communication
+          </h2>
+          
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            {[
+              {
+                icon: Bot,
+                title: "AI-Powered Chatbots",
+                description: "Keep in touch with your candidates 24/7 and never miss a promising lead"
+              },
+              {
+                icon: Database,
+                title: "CRM solution", 
+                description: "Easily segment audiences and assign candidates for personalized support—all from one interface"
+              },
+              {
+                icon: LinkIcon,
+                title: "Seamless integrations",
+                description: "Export your data to ATS systems, Google sheets, and other third-party services on the go"
+              }
+            ].map((item, index) => {
+              const Icon = item.icon;
+              return (
+                <motion.div
+                  key={index}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.6, delay: index * 0.1 }}
+                  className="p-8 rounded-2xl bg-card border border-border hover:border-primary/20 transition-all duration-300 hover:shadow-lg group"
+                >
+                  <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mb-6 mx-auto group-hover:bg-primary/20 transition-colors">
+                    <Icon className="w-8 h-8 text-primary" />
+                  </div>
+                  <h3 className="text-xl font-semibold text-foreground mb-4">
+                    {item.title}
+                  </h3>
+                  <p className="text-muted-foreground leading-relaxed">
+                    {item.description}
+                  </p>
+                </motion.div>
+              );
+            })}
+          </div>
+        </motion.div>
+      </div>
     </section>
   );
 };

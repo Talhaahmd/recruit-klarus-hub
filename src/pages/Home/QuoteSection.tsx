@@ -1,115 +1,139 @@
-import React, { useEffect, useRef } from 'react';
+import React from 'react';
+import { motion } from 'framer-motion';
+import { ArrowRight } from 'lucide-react';
 
-const quotes = [
+const successResults = [
   {
-    text: "AI doesn't replace recruiters, it empowers them to find the right talent faster and make better hiring decisions.",
-    author: "Alex Johnson",
-    title: "CEO & Founder"
+    metric: "x2",
+    description: "hiring speed boost and +213 qualified candidates in 25 days",
+    company: "TechCorp Solutions",
+    details: "More details"
   },
   {
-    text: "The future of recruitment isn't about reviewing more resumes, it's about matching the right people to the right roles.",
-    author: "Sarah Williams",
-    title: "CTO"
+    metric: "+150",
+    description: "hires from scratch in 1.5 months using AI-powered sourcing",
+    company: "StartupFlow Inc", 
+    details: "More details"
   },
   {
-    text: "AI in recruiting isn't just a technological advancement, it's a fundamental shift in how we connect talent with opportunity.",
-    author: "David Chen",
-    title: "Head of Product"
+    metric: "x5",
+    description: "job post reach and 500+ interview bookings through gamification",
+    company: "InnovateHR Ltd",
+    details: "More details"
   }
 ];
 
 const QuoteSection: React.FC = () => {
-  const [currentQuote, setCurrentQuote] = React.useState(0);
-  const sectionRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrentQuote(prev => (prev + 1) % quotes.length);
-    }, 8000);
-    return () => clearInterval(timer);
-  }, []);
-
-  useEffect(() => {
-    const handleScroll = () => {
-      const section = sectionRef.current;
-      if (!section) return;
-      const sectionTop = section.getBoundingClientRect().top;
-      const windowHeight = window.innerHeight;
-      if (sectionTop < windowHeight * 0.75) {
-        section.classList.add('opacity-100');
-        section.classList.remove('opacity-0', 'translate-y-10');
-      }
-    };
-
-    window.addEventListener('scroll', handleScroll);
-    handleScroll();
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
   return (
-    <section
-      ref={sectionRef}
-      className="py-24 bg-muted/50 transition-all duration-1000 transform opacity-0 translate-y-10"
-    >
-      <div className="container mx-auto px-4">
-        <div className="max-w-4xl mx-auto text-center">
-          <div className="mb-8">
-            <h2 className="text-3xl sm:text-4xl font-bold text-foreground mb-4">
-              What Our Clients Say
-            </h2>
-            <p className="text-muted-foreground">
-              Real feedback from industry professionals who trust Klarus HR
-            </p>
-          </div>
+    <section className="py-20 lg:py-32 bg-muted/30">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        
+        {/* Header */}
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.8 }}
+          className="text-center mb-16 lg:mb-20"
+        >
+          <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-foreground mb-6">
+            Customer success results
+          </h2>
+          <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
+            Real results from companies that transformed their hiring with Klarus HR
+          </p>
+        </motion.div>
 
-          <div className="relative h-64">
-            {quotes.map((quote, index) => (
-              <div
-                key={index}
-                className={`absolute inset-0 transition-all duration-1000 ease-in-out ${
-                  index === currentQuote
-                    ? 'opacity-100 translate-y-0'
-                    : 'opacity-0 translate-y-10 pointer-events-none'
-                }`}
-              >
-                <div className="bg-card border border-border rounded-2xl p-8 shadow-lg">
-                  <span className="inline-block mb-6 text-primary">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-8 w-8"
-                      fill="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z" />
-                    </svg>
-                  </span>
-                  <p className="text-xl md:text-2xl text-foreground font-medium leading-relaxed max-w-2xl mx-auto mb-6">
-                    "{quote.text}"
-                  </p>
-                  <div>
-                    <p className="text-foreground font-semibold">{quote.author}</p>
-                    <p className="text-sm text-muted-foreground">{quote.title}</p>
-                  </div>
+        {/* Success Cards */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-16">
+          {successResults.map((result, index) => (
+            <motion.div
+              key={index}
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.8, delay: index * 0.2 }}
+              className="group p-8 rounded-2xl bg-card border border-border hover:border-primary/20 transition-all duration-300 hover:shadow-xl"
+            >
+              {/* Metric */}
+              <div className="text-center mb-6">
+                <div className="text-5xl sm:text-6xl font-bold text-primary mb-2">
+                  {result.metric}
                 </div>
+                <p className="text-lg text-foreground font-medium leading-relaxed">
+                  {result.description}
+                </p>
               </div>
-            ))}
-          </div>
 
-          {/* Quote navigation dots */}
-          <div className="flex justify-center mt-8 space-x-2">
-            {quotes.map((_, index) => (
-              <button
-                key={index}
-                className={`h-2 rounded-full transition-all duration-300 ${
-                  index === currentQuote
-                    ? 'bg-primary w-6'
-                    : 'bg-muted-foreground/30 w-2'
-                }`}
-                onClick={() => setCurrentQuote(index)}
-                aria-label={`Go to quote ${index + 1}`}
-              />
-            ))}
-          </div>
+              {/* Company */}
+              <div className="text-center mb-6">
+                <p className="text-sm text-muted-foreground font-medium">
+                  {result.company}
+                </p>
+              </div>
+
+              {/* CTA */}
+              <div className="text-center">
+                <button className="inline-flex items-center text-primary font-semibold hover:text-primary/80 transition-colors group-hover:translate-x-1 transform duration-300">
+                  {result.details}
+                  <ArrowRight className="ml-2 w-4 h-4" />
+                </button>
+              </div>
+            </motion.div>
+          ))}
+        </div>
+
+        {/* Additional Testimonials */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <motion.div
+            initial={{ opacity: 0, x: -30 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.8 }}
+            className="p-8 rounded-2xl bg-card border border-border"
+          >
+            <div className="mb-6">
+              <svg
+                className="h-8 w-8 text-primary mb-4"
+                fill="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z" />
+              </svg>
+            </div>
+            <p className="text-lg text-foreground font-medium mb-6 leading-relaxed">
+              "Klarus HR transformed our hiring process completely. We went from posting jobs and hoping for the best to having a systematic approach that actually works. The AI chatbot handles initial screening while we focus on the best candidates."
+            </p>
+            <div>
+              <p className="text-foreground font-semibold">Sarah Johnson</p>
+              <p className="text-sm text-muted-foreground">Head of Talent Acquisition, TechFlow</p>
+            </div>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, x: 30 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.8 }}
+            className="p-8 rounded-2xl bg-card border border-border"
+          >
+            <div className="mb-6">
+              <svg
+                className="h-8 w-8 text-primary mb-4"
+                fill="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z" />
+              </svg>
+            </div>
+            <p className="text-lg text-foreground font-medium mb-6 leading-relaxed">
+              "The gamification features are incredible. Candidates actually enjoy the application process now, and we're seeing 3x more completed applications. Plus, the quality of candidates has improved significantly."
+            </p>
+            <div>
+              <p className="text-foreground font-semibold">Michael Chen</p>
+              <p className="text-sm text-muted-foreground">Recruiting Manager, InnovateCorp</p>
+            </div>
+          </motion.div>
         </div>
       </div>
     </section>
