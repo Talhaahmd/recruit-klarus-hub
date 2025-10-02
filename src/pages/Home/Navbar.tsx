@@ -1,7 +1,7 @@
-
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Menu, X } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 const Navbar: React.FC = () => {
   const [scrolled, setScrolled] = useState(false);
@@ -9,7 +9,7 @@ const Navbar: React.FC = () => {
 
   useEffect(() => {
     const handleScroll = () => {
-      setScrolled(window.scrollY > 10);
+      setScrolled(window.scrollY > 20);
     };
 
     window.addEventListener('scroll', handleScroll);
@@ -17,20 +17,33 @@ const Navbar: React.FC = () => {
   }, []);
 
   return (
-    <header className="fixed top-0 left-0 w-full z-50 bg-background/95 backdrop-blur-sm border-b border-border transition-all duration-300">
-      <nav className="max-w-7xl mx-auto flex justify-between items-center px-4 sm:px-6 py-3 sm:py-4 relative">
+    <motion.header
+      initial={{ y: -100 }}
+      animate={{ y: 0 }}
+      transition={{ duration: 0.6 }}
+      className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 ${
+        scrolled 
+          ? 'bg-background/80 backdrop-blur-md border-b border-border/50 shadow-sm' 
+          : 'bg-transparent'
+      }`}
+    >
+      <nav className="max-w-7xl mx-auto flex justify-between items-center px-4 sm:px-6 py-4 relative">
         {/* Logo */}
-        <div className="text-foreground font-bold text-xl sm:text-2xl tracking-wider">
+        <Link to="/" className="text-foreground font-bold text-xl sm:text-2xl tracking-wider">
           Klarus HR
-        </div>
+        </Link>
 
         {/* Desktop Nav */}
-        <div className="hidden md:flex gap-8 lg:gap-12 items-center text-base lg:text-lg font-medium text-foreground">
-          <Link to="/" className="hover:text-primary transition">Home</Link>
-          <a href="#features" className="hover:text-primary transition">Features</a>
+        <div className="hidden md:flex items-center gap-8 lg:gap-12">
+          <div className="flex gap-8 lg:gap-12 items-center text-base lg:text-lg font-medium text-foreground">
+            <a href="#solutions" className="hover:text-primary transition-colors">Solutions</a>
+            <a href="#pricing" className="hover:text-primary transition-colors">Pricing</a>
+            <a href="#resources" className="hover:text-primary transition-colors">Resources</a>
+          </div>
+          
           <Link 
             to="/signup" 
-            className="bg-primary text-primary-foreground px-6 py-2 rounded-lg hover:bg-primary/90 transition font-semibold"
+            className="bg-primary text-primary-foreground px-6 py-2.5 rounded-lg hover:bg-primary/90 transition-all duration-300 font-semibold shadow-lg hover:shadow-xl hover:scale-105"
           >
             Get Started
           </Link>
@@ -48,20 +61,27 @@ const Navbar: React.FC = () => {
 
         {/* Mobile Menu */}
         {menuOpen && (
-          <div className="absolute top-full left-0 w-full bg-background/95 backdrop-blur-sm shadow-lg border-b border-border py-4 flex flex-col items-center gap-4 text-foreground text-base font-medium md:hidden">
-            <Link to="/" onClick={() => setMenuOpen(false)} className="py-2 hover:text-primary transition">Home</Link>
-            <a href="#features" onClick={() => setMenuOpen(false)} className="py-2 hover:text-primary transition">Features</a>
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: 0.2 }}
+            className="absolute top-full left-0 w-full bg-background/95 backdrop-blur-md shadow-lg border-b border-border py-6 flex flex-col items-center gap-6 text-foreground text-base font-medium md:hidden"
+          >
+            <a href="#solutions" onClick={() => setMenuOpen(false)} className="py-2 hover:text-primary transition-colors">Solutions</a>
+            <a href="#pricing" onClick={() => setMenuOpen(false)} className="py-2 hover:text-primary transition-colors">Pricing</a>
+            <a href="#resources" onClick={() => setMenuOpen(false)} className="py-2 hover:text-primary transition-colors">Resources</a>
             <Link 
               to="/signup" 
               onClick={() => setMenuOpen(false)} 
-              className="bg-primary text-primary-foreground px-6 py-2 rounded-lg hover:bg-primary/90 transition font-semibold"
+              className="bg-primary text-primary-foreground px-6 py-2.5 rounded-lg hover:bg-primary/90 transition-all duration-300 font-semibold"
             >
               Get Started
             </Link>
-          </div>
+          </motion.div>
         )}
       </nav>
-    </header>
+    </motion.header>
   );
 };
 

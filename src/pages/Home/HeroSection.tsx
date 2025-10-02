@@ -1,52 +1,92 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import { ArrowRight, Sparkles } from 'lucide-react';
 
 const HeroSection: React.FC = () => {
   return (
-    <div className="overflow-x-hidden bg-background min-h-screen relative pt-16">
-      <section className="pt-16 sm:pt-20 lg:pt-24 pb-16 sm:pb-20 lg:pb-24 relative z-10">
-        <div className="px-4 sm:px-6 lg:px-8 mx-auto max-w-7xl">
-          <div className="max-w-4xl mx-auto text-center">
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-bold leading-tight text-foreground">
-              Your Full Stack
-              <span className="relative inline-flex ml-2 sm:ml-3">
-                <span className="relative text-primary">
-                  LinkedIn
-                </span>
-              </span>{' '}
-              Developer
-            </h1>
+    <div className="relative min-h-screen bg-gradient-to-br from-background via-background to-muted/20 overflow-hidden">
+      {/* Background decoration */}
+      <div className="absolute inset-0 bg-grid-pattern opacity-5"></div>
+      
+      <section className="relative pt-32 pb-20 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center max-w-4xl mx-auto">
+            
+            {/* Animated Badge */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6 }}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 text-primary text-sm font-medium mb-8"
+            >
+              <Sparkles className="w-4 h-4" />
+              🚀 New AI-powered hiring automations are here →
+            </motion.div>
 
-            <p className="mt-6 sm:mt-8 text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto">
-              Revolutionize your LinkedIn presence with AI-powered content creation, 
-              smart lead tracking, and intelligent hiring tools.
-            </p>
+            {/* Main Headline */}
+            <motion.h1
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.2 }}
+              className="text-5xl sm:text-6xl lg:text-7xl font-bold text-foreground leading-tight mb-8"
+            >
+              Everything for rapid growth on{' '}
+              <span className="text-primary">LinkedIn</span>, hiring and{' '}
+              <span className="text-primary">recruitment</span>
+            </motion.h1>
 
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mt-8 lg:mt-12">
+            {/* Subheadline */}
+            <motion.p
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.4 }}
+              className="text-xl sm:text-2xl text-muted-foreground max-w-3xl mx-auto mb-12 leading-relaxed"
+            >
+              Easy-to-use solutions to drive career and business growth with AI chatbots, automated hiring workflows, and intelligent candidate engagement
+            </motion.p>
+
+            {/* CTA Buttons */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.6 }}
+              className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16"
+            >
               <Link
-                to="/dashboard?role=personal"
-                className="inline-flex items-center justify-center w-full sm:w-auto px-8 py-4 text-lg font-semibold text-primary-foreground bg-primary border-2 border-transparent rounded-xl hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary shadow-lg hover:shadow-xl transition-all duration-200"
+                to="/signup"
+                className="group inline-flex items-center justify-center px-8 py-4 text-lg font-semibold text-primary-foreground bg-primary rounded-xl hover:bg-primary/90 transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105"
               >
-                Grow your LinkedIn presence
+                Get Started Free
+                <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
               </Link>
               <Link
-                to="/dashboard?role=hr"
-                className="inline-flex items-center justify-center w-full sm:w-auto px-8 py-4 text-lg font-semibold text-foreground bg-background border-2 border-border rounded-xl hover:bg-muted focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-border transition-all duration-200"
+                to="/demo"
+                className="inline-flex items-center justify-center px-8 py-4 text-lg font-semibold text-foreground bg-background border-2 border-border rounded-xl hover:bg-muted transition-all duration-300"
               >
-                Manage hiring & recruitment
+                Book a Demo
               </Link>
-            </div>
+            </motion.div>
 
-            <p className="mt-6 sm:mt-8 text-sm sm:text-base text-muted-foreground">
-              14 days free trial · No credit card required
-            </p>
+            {/* Trust indicators */}
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.8, delay: 0.8 }}
+              className="text-muted-foreground text-sm mb-16"
+            >
+              14-day free trial • No credit card required • Setup in 2 minutes
+            </motion.p>
           </div>
-        </div>
 
-        {/* Dashboard Preview */}
-        <div className="mt-16 sm:mt-20 lg:mt-24 px-4 sm:px-6 lg:px-8 mx-auto w-full max-w-6xl">
-          <div className="relative mx-auto">
-            <div className="relative bg-background rounded-2xl p-4 shadow-2xl border border-border">
+          {/* Dashboard Preview */}
+          <motion.div
+            initial={{ opacity: 0, y: 40 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 1, delay: 1 }}
+            className="relative max-w-6xl mx-auto"
+          >
+            <div className="relative bg-background rounded-2xl p-6 shadow-2xl border border-border">
               <div className="aspect-video bg-muted rounded-xl overflow-hidden">
                 <img
                   src="https://res.cloudinary.com/dt93sahp2/image/upload/v1748548888/Screenshot_2025-05-30_010106_hdqfk2.png"
@@ -55,7 +95,19 @@ const HeroSection: React.FC = () => {
                 />
               </div>
             </div>
-          </div>
+            
+            {/* Floating elements */}
+            <motion.div
+              animate={{ y: [0, -10, 0] }}
+              transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+              className="absolute -top-4 -left-4 w-20 h-20 bg-primary/20 rounded-full blur-xl"
+            />
+            <motion.div
+              animate={{ y: [0, 10, 0] }}
+              transition={{ duration: 4, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+              className="absolute -bottom-4 -right-4 w-32 h-32 bg-primary/10 rounded-full blur-xl"
+            />
+          </motion.div>
         </div>
       </section>
     </div>
