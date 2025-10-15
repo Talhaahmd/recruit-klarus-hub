@@ -18,7 +18,7 @@ const AboutSection: React.FC = () => {
                 <div className="col-xl-6 col-lg-6 col-md-6">
                   <div className="about-one__img-box">
                     <div className="about-one__img">
-                      <img src="https://res.cloudinary.com/dt93sahp2/image/upload/v1748548888/Screenshot_2025-05-30_010106_hdqfk2.png" alt="Klarus Platform" />
+                      <img src="/screenshots/Video conference mockup design (5).jpeg" alt="Klarus Platform" />
                     </div>
                   </div>
                   <div className="about-one__awards-box">
@@ -48,7 +48,7 @@ const AboutSection: React.FC = () => {
                   </div>
                   <div className="about-one__img-box-2">
                     <div className="about-one__img-2">
-                      <img src="https://res.cloudinary.com/dt93sahp2/image/upload/v1748548888/Screenshot_2025-05-30_010106_hdqfk2.png" alt="Klarus Analytics" />
+                      <img src="/screenshots/Video conference mockup design (6).jpeg" alt="Klarus Analytics" />
                     </div>
                     <div className="about-one__img-shape-1 float-bob-y">
                       <img src="/fistudy-assets/images/shapes/about-one-img-shape-1.png" alt="" />

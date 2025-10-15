@@ -48,7 +48,7 @@ const BannerSection: React.FC = () => {
             <div className="banner-one__right">
               <div className="banner-one__img-box">
                 <div className="banner-one__img">
-                  <img src="https://res.cloudinary.com/dt93sahp2/image/upload/v1748548888/Screenshot_2025-05-30_010106_hdqfk2.png" alt="Klarus HR Dashboard" />
+                  <img src="/screenshots/Video conference laptop mockup (1).jpeg" alt="Klarus HR Dashboard" />
                   <div className="banner-one__img-shape-box rotate-me">
                     <div className="banner-one__img-shape-1">
                       <div className="banner-one__img-shape-2"></div>

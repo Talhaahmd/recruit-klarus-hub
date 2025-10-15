@@ -153,7 +153,7 @@ const CategorySection: React.FC = () => {
           <div className="col-xl-6 col-lg-5 wow slideInRight" data-wow-delay="100ms" data-wow-duration="2500ms">
             <div className="category-one__right">
               <div className="category-one__img">
-                <img src="https://res.cloudinary.com/dt93sahp2/image/upload/v1748548888/Screenshot_2025-05-30_010106_hdqfk2.png" alt="Klarus Solutions" />
+                <img src="/screenshots/Video conference laptop mockup (2).jpeg" alt="Klarus Solutions" />
               </div>
             </div>
           </div>
