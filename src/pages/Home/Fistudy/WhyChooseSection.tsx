@@ -15,10 +15,10 @@ const WhyChooseSection: React.FC = () => {
             <div className="why-choose-one__left wow slideInLeft" data-wow-delay="100ms" data-wow-duration="2500ms">
               <div className="why-choose-one__img-box">
                 <div className="why-choose-one__img">
-                  <img src="https://res.cloudinary.com/dt93sahp2/image/upload/v1748548888/Screenshot_2025-05-30_010106_hdqfk2.png" alt="Klarus Dashboard" />
+                  <img src="/screenshots/Video conference laptop mockup (3).jpeg" alt="Klarus Dashboard" />
                 </div>
                 <div className="why-choose-one__img-2">
-                  <img src="https://res.cloudinary.com/dt93sahp2/image/upload/v1748548888/Screenshot_2025-05-30_010106_hdqfk2.png" alt="Klarus Analytics" />
+                  <img src="/screenshots/Video conference mockup design (7).jpeg" alt="Klarus Analytics" />
                 </div>
                 <div className="why-choose-one__shape-1 float-bob-y">
                   <img src="/fistudy-assets/images/shapes/why-choose-one-shape-1.png" alt="" />

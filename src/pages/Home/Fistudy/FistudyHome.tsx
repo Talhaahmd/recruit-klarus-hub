@@ -5,7 +5,6 @@ import BannerSection from './BannerSection';
 import SlidingTextSection from './SlidingTextSection';
 import CategorySection from './CategorySection';
 import AboutSection from './AboutSection';
-import FeaturesSection from './FeaturesSection';
 import WhyChooseSection from './WhyChooseSection';
 import CounterSection from './CounterSection';
 import TestimonialSection from './TestimonialSection';
@@ -36,8 +35,6 @@ const FistudyHome: React.FC = () => {
       {/* About Section */}
       <AboutSection />
       
-      {/* Features/Platforms */}
-      <FeaturesSection />
       
       {/* Why Choose Us */}
       <WhyChooseSection />
