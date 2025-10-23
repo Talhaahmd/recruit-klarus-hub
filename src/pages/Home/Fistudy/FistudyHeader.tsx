@@ -35,7 +35,7 @@ const FistudyHeader: React.FC = () => {
               <div className="main-menu__left">
                 <div className="main-menu__logo">
                   <Link to="/">
-                    <img src="/klarus-logo.jpeg" alt="Klarus HR" style={{height: '50px', width: 'auto'}} />
+                    <img src="/klarus-logo-freepik.png" alt="Klarus HR" style={{height: '150px', width: 'auto'}} />
                   </Link>
                 </div>
               </div>
