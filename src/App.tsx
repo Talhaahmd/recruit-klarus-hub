@@ -25,7 +25,6 @@ import Signup from "./pages/Auth/Signup";
 
 // Public Pages
 import Home from "./pages/Home/Home";
-import PozeHome from "./pages/Home/PozeHome";
 import Apply from "./pages/Apply/Apply";
 import NewApply from "./pages/Apply/NewApply";
 import LinkedInTokenCallback from "./pages/LinkedInTokenCallback/LinkedInTokenCallback";
@@ -81,7 +80,6 @@ const App = () => (
             <OnboardingProvider>
               <Routes>
               {/* Public routes */}
-              <Route path="/" element={<PozeHome />} />
               <Route path="/login" element={<Login />} />
               <Route path="/signup" element={<Signup />} />
               <Route path="/apply/:jobId" element={<NewApply />} />
@@ -90,7 +88,7 @@ const App = () => (
 
               {/* Protected routes with MainLayout */}
               <Route
-                path="/*"
+                path="/app/*"
                 element={
                   <ProtectedRouteHandler>
                     <MainLayout />
@@ -110,7 +108,20 @@ const App = () => (
                 <Route path="settings/billing" element={<BillingPage />} />
               </Route>
 
-              <Route path="/index" element={<Navigate to="/dashboard" />} />
+              {/* Redirect old routes to new app routes */}
+              <Route path="/dashboard" element={<Navigate to="/app/dashboard" />} />
+              <Route path="/jobs" element={<Navigate to="/app/jobs" />} />
+              <Route path="/candidates" element={<Navigate to="/app/candidates" />} />
+              <Route path="/candidates/:id" element={<Navigate to="/app/candidates/:id" />} />
+              <Route path="/calendar" element={<Navigate to="/app/calendar" />} />
+              <Route path="/themes" element={<Navigate to="/app/themes" />} />
+              <Route path="/ideas" element={<Navigate to="/app/ideas" />} />
+              <Route path="/build-profile/success" element={<Navigate to="/app/build-profile/success" />} />
+              <Route path="/leads" element={<Navigate to="/app/leads" />} />
+              <Route path="/settings" element={<Navigate to="/app/settings" />} />
+              <Route path="/settings/billing" element={<Navigate to="/app/settings/billing" />} />
+
+              <Route path="/index" element={<Navigate to="/app/dashboard" />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
             
