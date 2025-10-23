@@ -25,7 +25,7 @@ import Signup from "./pages/Auth/Signup";
 
 // Public Pages
 import Home from "./pages/Home/Home";
-import FistudyHome from "./pages/Home/Fistudy/FistudyHome";
+import PozeHome from "./pages/Home/PozeHome";
 import Apply from "./pages/Apply/Apply";
 import NewApply from "./pages/Apply/NewApply";
 import LinkedInTokenCallback from "./pages/LinkedInTokenCallback/LinkedInTokenCallback";
@@ -81,7 +81,7 @@ const App = () => (
             <OnboardingProvider>
               <Routes>
               {/* Public routes */}
-              <Route path="/" element={<FistudyHome />} />
+              <Route path="/" element={<PozeHome />} />
               <Route path="/login" element={<Login />} />
               <Route path="/signup" element={<Signup />} />
               <Route path="/apply/:jobId" element={<NewApply />} />
