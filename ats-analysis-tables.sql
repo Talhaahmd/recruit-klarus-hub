@@ -1,5 +1,5 @@
--- ATS Analysis Tables Migration
--- This migration creates tables for ATS (Applicant Tracking System) analysis functionality
+-- ATS Analysis Tables - Direct SQL for Supabase Editor
+-- Run this script in the Supabase SQL Editor to create the required tables
 
 -- Enable necessary extensions
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
@@ -55,12 +55,6 @@ ALTER TABLE public.ats_analyses ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.ats_feedback_items ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.job_descriptions ENABLE ROW LEVEL SECURITY;
 
--- Drop existing policies if they exist to avoid conflicts
-DROP POLICY IF EXISTS "Users can view their own ATS analyses" ON public.ats_analyses;
-DROP POLICY IF EXISTS "Users can insert their own ATS analyses" ON public.ats_analyses;
-DROP POLICY IF EXISTS "Users can update their own ATS analyses" ON public.ats_analyses;
-DROP POLICY IF EXISTS "Users can delete their own ATS analyses" ON public.ats_analyses;
-
 -- RLS Policies for ats_analyses
 CREATE POLICY "Users can view their own ATS analyses"
     ON public.ats_analyses FOR SELECT
@@ -77,12 +71,6 @@ CREATE POLICY "Users can update their own ATS analyses"
 CREATE POLICY "Users can delete their own ATS analyses"
     ON public.ats_analyses FOR DELETE
     USING (auth.uid() = user_id);
-
--- Drop existing policies for ats_feedback_items if they exist
-DROP POLICY IF EXISTS "Users can view feedback for their analyses" ON public.ats_feedback_items;
-DROP POLICY IF EXISTS "Users can insert feedback for their analyses" ON public.ats_feedback_items;
-DROP POLICY IF EXISTS "Users can update feedback for their analyses" ON public.ats_feedback_items;
-DROP POLICY IF EXISTS "Users can delete feedback for their analyses" ON public.ats_feedback_items;
 
 -- RLS Policies for ats_feedback_items
 CREATE POLICY "Users can view feedback for their analyses"
@@ -113,12 +101,6 @@ CREATE POLICY "Users can delete feedback for their analyses"
         WHERE id = analysis_id AND user_id = auth.uid()
     ));
 
--- Drop existing policies for job_descriptions if they exist
-DROP POLICY IF EXISTS "Users can view their own job descriptions" ON public.job_descriptions;
-DROP POLICY IF EXISTS "Users can insert their own job descriptions" ON public.job_descriptions;
-DROP POLICY IF EXISTS "Users can update their own job descriptions" ON public.job_descriptions;
-DROP POLICY IF EXISTS "Users can delete their own job descriptions" ON public.job_descriptions;
-
 -- RLS Policies for job_descriptions
 CREATE POLICY "Users can view their own job descriptions"
     ON public.job_descriptions FOR SELECT
@@ -137,14 +119,14 @@ CREATE POLICY "Users can delete their own job descriptions"
     USING (auth.uid() = user_id);
 
 -- Create indexes for better performance
-CREATE INDEX idx_ats_analyses_user_id ON public.ats_analyses(user_id);
-CREATE INDEX idx_ats_analyses_created_at ON public.ats_analyses(created_at);
-CREATE INDEX idx_ats_analyses_industry ON public.ats_analyses(industry);
-CREATE INDEX idx_ats_feedback_items_analysis_id ON public.ats_feedback_items(analysis_id);
-CREATE INDEX idx_ats_feedback_items_category ON public.ats_feedback_items(category);
-CREATE INDEX idx_ats_feedback_items_severity ON public.ats_feedback_items(severity);
-CREATE INDEX idx_job_descriptions_user_id ON public.job_descriptions(user_id);
-CREATE INDEX idx_job_descriptions_industry ON public.job_descriptions(industry);
+CREATE INDEX IF NOT EXISTS idx_ats_analyses_user_id ON public.ats_analyses(user_id);
+CREATE INDEX IF NOT EXISTS idx_ats_analyses_created_at ON public.ats_analyses(created_at);
+CREATE INDEX IF NOT EXISTS idx_ats_analyses_industry ON public.ats_analyses(industry);
+CREATE INDEX IF NOT EXISTS idx_ats_feedback_items_analysis_id ON public.ats_feedback_items(analysis_id);
+CREATE INDEX IF NOT EXISTS idx_ats_feedback_items_category ON public.ats_feedback_items(category);
+CREATE INDEX IF NOT EXISTS idx_ats_feedback_items_severity ON public.ats_feedback_items(severity);
+CREATE INDEX IF NOT EXISTS idx_job_descriptions_user_id ON public.job_descriptions(user_id);
+CREATE INDEX IF NOT EXISTS idx_job_descriptions_industry ON public.job_descriptions(industry);
 
 -- Create function to update updated_at timestamp
 CREATE OR REPLACE FUNCTION update_updated_at_column()
@@ -163,3 +145,7 @@ CREATE TRIGGER update_ats_analyses_updated_at
 CREATE TRIGGER update_job_descriptions_updated_at 
     BEFORE UPDATE ON public.job_descriptions 
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+-- Verify tables were created
+SELECT 'Tables created successfully!' as status;
+SELECT table_name FROM information_schema.tables WHERE table_schema = 'public' AND table_name IN ('ats_analyses', 'ats_feedback_items', 'job_descriptions');
