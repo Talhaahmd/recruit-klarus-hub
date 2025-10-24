@@ -145,20 +145,21 @@ const Signup: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-black">
-        <Loader2 className="h-6 w-6 animate-spin text-white" />
+      <div className="min-h-screen flex items-center justify-center bg-white">
+        <Loader2 className="h-6 w-6 animate-spin text-black" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-black text-white flex">
+    <div className="min-h-screen bg-white text-black flex">
       {/* Logo */}
       <div className="absolute top-8 left-8 z-20">
         <Link to="/" className="flex items-center">
           <img 
-            className="w-auto h-9" 
-            src="/lovable-uploads/67d45eae-154d-4a02-a7a5-1f115188b97b.png" 
+            className="w-auto"
+            style={{ height: '100px' }} 
+            src="https://res.cloudinary.com/dt93sahp2/image/upload/v1761244578/freepik__background__64708_1_ilskfj.png" 
             alt="Klarus HR Logo" 
           />
         </Link>
@@ -171,7 +172,7 @@ const Signup: React.FC = () => {
             <h1 className="text-3xl font-bold bg-gradient-to-r from-cyan-500 to-purple-500 bg-clip-text text-transparent">
               Create your account
             </h1>
-            <p className="text-gray-400 mt-2">Enter your email and create a password, getting started is easy!</p>
+            <p className="text-gray-600 mt-2">Enter your email and create a password, getting started is easy!</p>
           </div>
 
           <div className="grid grid-cols-3 gap-3 mb-6">
@@ -179,7 +180,7 @@ const Signup: React.FC = () => {
               variant="outline" 
               type="button" 
               onClick={handleGoogleLogin}
-              className="bg-gray-900 border-gray-700 text-white hover:bg-gray-800 flex items-center justify-center"
+              className="bg-gray-100 border-gray-300 text-black hover:bg-gray-200 flex items-center justify-center"
             >
               <FcGoogle className="h-5 w-5" />
             </Button>
@@ -187,14 +188,14 @@ const Signup: React.FC = () => {
               variant="outline" 
               type="button" 
               onClick={handleLinkedInLogin}
-              className="bg-gray-900 border-gray-700 text-white hover:bg-gray-800 flex items-center justify-center"
+              className="bg-gray-100 border-gray-300 text-black hover:bg-gray-200 flex items-center justify-center"
             >
               <FaLinkedin className="h-5 w-5 text-blue-500" />
             </Button>
             <Button 
               variant="outline" 
               type="button"
-              className="bg-gray-900 border-gray-700 text-white hover:bg-gray-800 flex items-center justify-center"
+              className="bg-gray-100 border-gray-300 text-black hover:bg-gray-200 flex items-center justify-center"
             >
               <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -207,16 +208,16 @@ const Signup: React.FC = () => {
 
           <div className="relative my-6">
             <div className="absolute inset-0 flex items-center">
-              <span className="w-full border-t border-gray-700" />
+              <span className="w-full border-t border-gray-300" />
             </div>
             <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-black px-2 text-gray-500">Or sign up with</span>
+              <span className="bg-white px-2 text-gray-500">Or sign up with</span>
             </div>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label htmlFor="name" className="block text-sm font-medium text-gray-300 mb-2">
+              <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
                 Full Name
               </label>
               <Input
@@ -225,13 +226,13 @@ const Signup: React.FC = () => {
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="Your full name"
-                className="bg-gray-900 border-gray-700 text-white placeholder-gray-500 focus:border-cyan-500"
+                className="bg-white border-gray-300 text-black placeholder-gray-500 focus:border-cyan-500"
                 required
               />
             </div>
 
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-300 mb-2">
+              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
                 Email
               </label>
               <Input
@@ -240,13 +241,13 @@ const Signup: React.FC = () => {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="Your email address"
-                className="bg-gray-900 border-gray-700 text-white placeholder-gray-500 focus:border-cyan-500"
+                className="bg-white border-gray-300 text-black placeholder-gray-500 focus:border-cyan-500"
                 required
               />
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-300 mb-2">
+              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
                 Password
               </label>
               <Input
@@ -255,13 +256,13 @@ const Signup: React.FC = () => {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Your password"
-                className="bg-gray-900 border-gray-700 text-white placeholder-gray-500 focus:border-cyan-500"
+                className="bg-white border-gray-300 text-black placeholder-gray-500 focus:border-cyan-500"
                 required
               />
             </div>
 
             <div>
-              <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-300 mb-2">
+              <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-2">
                 Confirm Password
               </label>
               <Input
@@ -270,7 +271,7 @@ const Signup: React.FC = () => {
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 placeholder="Confirm your password"
-                className="bg-gray-900 border-gray-700 text-white placeholder-gray-500 focus:border-cyan-500"
+                className="bg-white border-gray-300 text-black placeholder-gray-500 focus:border-cyan-500"
                 required
               />
             </div>
@@ -285,7 +286,7 @@ const Signup: React.FC = () => {
             </Button>
           </form>
 
-          <p className="text-center text-sm text-gray-400 mt-6">
+          <p className="text-center text-sm text-gray-600 mt-6">
             Already have an account?{' '}
             <Link
               to={`/login?from=${encodeURIComponent(from)}`}
@@ -298,15 +299,15 @@ const Signup: React.FC = () => {
       </div>
 
       {/* Right Side - Client Reviews */}
-      <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-gray-900 to-black relative overflow-hidden">
+      <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-gray-100 to-gray-200 relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/10 to-purple-500/10" />
         
         <div className="flex flex-col items-center justify-center w-full p-12 relative z-10">
           <div className="text-center mb-8">
-            <h2 className="text-2xl font-bold text-white mb-2">
+            <h2 className="text-2xl font-bold text-gray-800 mb-2">
               What Our Clients Say
             </h2>
-            <p className="text-gray-400">
+            <p className="text-gray-600">
               Trusted by companies worldwide
             </p>
           </div>
@@ -322,7 +323,7 @@ const Signup: React.FC = () => {
                       : 'opacity-0 translate-y-10'
                   }`}
                 >
-                  <div className="backdrop-blur-xl bg-white/10 border border-white/20 rounded-2xl p-6 h-full flex flex-col">
+                  <div className="backdrop-blur-xl bg-white/80 border border-gray-200 rounded-2xl p-6 h-full flex flex-col">
                     <div className="flex items-center mb-4">
                       <img 
                         src={testimonial.image} 
@@ -330,8 +331,8 @@ const Signup: React.FC = () => {
                         className="w-16 h-16 rounded-full object-cover mr-4"
                       />
                       <div>
-                        <p className="text-white font-semibold text-lg">{testimonial.author}</p>
-                        <p className="text-gray-400 text-sm">{testimonial.role}</p>
+                        <p className="text-gray-800 font-semibold text-lg">{testimonial.author}</p>
+                        <p className="text-gray-600 text-sm">{testimonial.role}</p>
                       </div>
                     </div>
                     
@@ -340,7 +341,7 @@ const Signup: React.FC = () => {
                         <svg className="h-6 w-6 text-cyan-400 mb-3" fill="currentColor" viewBox="0 0 24 24">
                           <path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z" />
                         </svg>
-                        <p className="text-white text-base leading-relaxed">
+                        <p className="text-gray-800 text-base leading-relaxed">
                           {testimonial.content}
                         </p>
                       </div>
