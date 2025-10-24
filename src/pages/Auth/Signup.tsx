@@ -226,7 +226,7 @@ const Signup: React.FC = () => {
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="Your full name"
-                className="bg-white border-gray-300 text-black placeholder-gray-500 focus:border-cyan-500"
+                className="bg-white border-gray-300 text-black placeholder-gray-500 focus:border-cyan-500 force-white-input"
                 style={{ backgroundColor: 'white !important', color: 'black !important', borderColor: '#d1d5db !important' }}
                 required
               />
@@ -242,7 +242,7 @@ const Signup: React.FC = () => {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="Your email address"
-                className="bg-white border-gray-300 text-black placeholder-gray-500 focus:border-cyan-500"
+                className="bg-white border-gray-300 text-black placeholder-gray-500 focus:border-cyan-500 force-white-input"
                 style={{ backgroundColor: 'white !important', color: 'black !important', borderColor: '#d1d5db !important' }}
                 required
               />
@@ -258,7 +258,7 @@ const Signup: React.FC = () => {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Your password"
-                className="bg-white border-gray-300 text-black placeholder-gray-500 focus:border-cyan-500"
+                className="bg-white border-gray-300 text-black placeholder-gray-500 focus:border-cyan-500 force-white-input"
                 style={{ backgroundColor: 'white !important', color: 'black !important', borderColor: '#d1d5db !important' }}
                 required
               />
@@ -274,7 +274,7 @@ const Signup: React.FC = () => {
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 placeholder="Confirm your password"
-                className="bg-white border-gray-300 text-black placeholder-gray-500 focus:border-cyan-500"
+                className="bg-white border-gray-300 text-black placeholder-gray-500 focus:border-cyan-500 force-white-input"
                 style={{ backgroundColor: 'white !important', color: 'black !important', borderColor: '#d1d5db !important' }}
                 required
               />

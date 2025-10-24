@@ -374,3 +374,46 @@
     -webkit-overflow-scrolling: touch;
   }
 }
+
+/* Force input field styling for login/signup pages */
+input[type="email"], 
+input[type="password"], 
+input[type="text"] {
+  background-color: white !important;
+  color: black !important;
+  border-color: #d1d5db !important;
+}
+
+input[type="email"]:focus, 
+input[type="password"]:focus, 
+input[type="text"]:focus {
+  background-color: white !important;
+  color: black !important;
+  border-color: #06b6d4 !important;
+  outline: none !important;
+}
+
+input[type="email"]::placeholder, 
+input[type="password"]::placeholder, 
+input[type="text"]::placeholder {
+  color: #6b7280 !important;
+}
+
+/* Force white input styling with custom class */
+.force-white-input {
+  background-color: white !important;
+  color: black !important;
+  border-color: #d1d5db !important;
+}
+
+.force-white-input:focus {
+  background-color: white !important;
+  color: black !important;
+  border-color: #06b6d4 !important;
+  outline: none !important;
+  box-shadow: 0 0 0 1px #06b6d4 !important;
+}
+
+.force-white-input::placeholder {
+  color: #6b7280 !important;
+}
