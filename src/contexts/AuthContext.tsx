@@ -17,6 +17,7 @@ type AuthContextType = {
   authReady: boolean;
   onboardingData: OnboardingData | null;
   hasCompletedOnboarding: boolean;
+  isRecruitmentRestricted: boolean;
   login: (email: string, password: string) => Promise<void>;
   signup: (name: string, email: string, password: string) => Promise<void>;
   loginWithGoogle: () => Promise<void>;
@@ -44,6 +45,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [onboardingData, setOnboardingData] = useState<OnboardingData | null>(null);
   const navigate = useNavigate();
   const location = useLocation();
+
+  // Recruitment restriction feature flag - set to true to restrict access
+  const isRecruitmentRestricted = true;
 
   const fetchProfile = async (userId: string) => {
     try {
@@ -275,6 +279,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         authReady,
         onboardingData,
         hasCompletedOnboarding: onboardingData?.onboardingCompleted || false,
+        isRecruitmentRestricted,
         login,
         signup,
         loginWithGoogle,

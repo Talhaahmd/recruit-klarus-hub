@@ -46,7 +46,7 @@ const Sidebar: React.FC<SidebarProps> = ({
   closeMobileMenu,
   isExpanded
 }) => {
-  const { logout } = useAuth();
+  const { logout, isRecruitmentRestricted } = useAuth();
   const { openOnboarding, getUserRole } = useOnboarding();
 
   const sidebarSections = [
@@ -72,14 +72,15 @@ const Sidebar: React.FC<SidebarProps> = ({
         { icon: MessageSquare, name: 'Interview Prep', path: '/interview-prep' },
       ]
     },
-    {
+    // Only show recruitment section if not restricted
+    ...(isRecruitmentRestricted ? [] : [{
       title: 'Recruitment',
       items: [
         { icon: Users, name: 'Candidates', path: '/candidates' },
         { icon: Briefcase, name: 'Active Jobs', path: '/jobs' },
         { icon: UserPlus, name: 'Leads', path: '/leads' },
       ]
-    },
+    }]),
     {
       title: 'Settings',
       items: [
