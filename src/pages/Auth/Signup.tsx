@@ -227,6 +227,7 @@ const Signup: React.FC = () => {
                 onChange={(e) => setName(e.target.value)}
                 placeholder="Your full name"
                 className="bg-white border-gray-300 text-black placeholder-gray-500 focus:border-cyan-500"
+                style={{ backgroundColor: 'white !important', color: 'black !important', borderColor: '#d1d5db !important' }}
                 required
               />
             </div>
@@ -242,6 +243,7 @@ const Signup: React.FC = () => {
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="Your email address"
                 className="bg-white border-gray-300 text-black placeholder-gray-500 focus:border-cyan-500"
+                style={{ backgroundColor: 'white !important', color: 'black !important', borderColor: '#d1d5db !important' }}
                 required
               />
             </div>
@@ -257,6 +259,7 @@ const Signup: React.FC = () => {
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Your password"
                 className="bg-white border-gray-300 text-black placeholder-gray-500 focus:border-cyan-500"
+                style={{ backgroundColor: 'white !important', color: 'black !important', borderColor: '#d1d5db !important' }}
                 required
               />
             </div>
@@ -272,6 +275,7 @@ const Signup: React.FC = () => {
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 placeholder="Confirm your password"
                 className="bg-white border-gray-300 text-black placeholder-gray-500 focus:border-cyan-500"
+                style={{ backgroundColor: 'white !important', color: 'black !important', borderColor: '#d1d5db !important' }}
                 required
               />
             </div>

@@ -159,6 +159,16 @@ body {
   color: black !important;
 }
 
+/* Force header logo size */
+.cs_site_branding img,
+.cs_site_branding img[src*="freepik"],
+.cs_main_header_left img {
+  height: 150px !important;
+  width: auto !important;
+  max-height: 150px !important;
+  min-height: 150px !important;
+}
+
 /* Override any white text that should be black */
 .cs_text_white {
   color: black !important;

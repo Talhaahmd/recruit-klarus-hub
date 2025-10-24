@@ -200,6 +200,7 @@ const Login: React.FC = () => {
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="Enter your email"
                   className="bg-white border-gray-300 text-black placeholder-gray-500 focus:border-cyan-500 pl-10"
+                  style={{ backgroundColor: 'white !important', color: 'black !important', borderColor: '#d1d5db !important' }}
                   required
                 />
               </div>
@@ -218,6 +219,7 @@ const Login: React.FC = () => {
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Enter your password"
                   className="bg-white border-gray-300 text-black placeholder-gray-500 focus:border-cyan-500 pl-10 pr-10"
+                  style={{ backgroundColor: 'white !important', color: 'black !important', borderColor: '#d1d5db !important' }}
                   required
                 />
                 <button

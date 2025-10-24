@@ -16,7 +16,16 @@ const PozeHeader: React.FC = () => {
           <div className="cs_main_header_in" style={{ backgroundColor: 'white !important', background: 'white !important' }}>
             <div className="cs_main_header_left">
               <Link className="cs_site_branding" to="/" aria-label="Home page link">
-                <img src="https://res.cloudinary.com/dt93sahp2/image/upload/v1761244578/freepik__background__64708_1_ilskfj.png" alt="Klarus HR Logo" style={{ height: '100px !important', width: 'auto !important' }} />
+                <img 
+                  src="https://res.cloudinary.com/dt93sahp2/image/upload/v1761244578/freepik__background__64708_1_ilskfj.png" 
+                  alt="Klarus HR Logo" 
+                  style={{ 
+                    height: '150px !important', 
+                    width: 'auto !important',
+                    maxHeight: '150px !important',
+                    minHeight: '150px !important'
+                  }} 
+                />
               </Link>
             </div>
             <div className="cs_main_header_center">
