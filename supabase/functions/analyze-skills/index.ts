@@ -1,7 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { corsHeaders } from '../_shared/cors.ts';
-import { OpenAI } from "https://deno.land/x/openai@v4.33.0/mod.ts";
 
 interface SkillAnalysisRequest {
   cv_text: string;
@@ -94,43 +93,42 @@ serve(async (req) => {
       .from('skill_maps')
       .select('*');
 
-    // Initialize OpenAI
-    const openai = new OpenAI({
-      apiKey: Deno.env.get('OPENAI_API_KEY'),
-    });
+    console.log('Database queries completed');
+
+    // Get OpenAI API key
+    const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
+    if (!openAIApiKey) {
+      throw new Error('OpenAI API key not configured');
+    }
 
     // Create the analysis prompt
-    const systemPrompt = `You are an expert career analyst specializing in skill assessment and employee archetype classification. 
-    
-    Your task is to analyze a CV and provide:
-    1. Skill scores (0-100) for different categories
-    2. Employee archetype classification
-    3. Detailed skill analysis with evidence
-    4. Personality indicators from tone and content
-    
-    Available skill categories: ${skillCategories?.map(c => c.name).join(', ')}
-    Available skills: ${skills?.map(s => s.name).join(', ')}
-    Available archetypes: ${archetypes?.map(a => a.name).join(', ')}
-    
-    Return your analysis as a JSON object with the exact structure specified.`;
+    const analysisPrompt = `You are an expert career analyst specializing in skill assessment and employee archetype classification.
 
-    const userPrompt = `Analyze this CV for skill assessment and archetype classification:
+Analyze the following CV for skill assessment and archetype classification:
 
-CV Text: ${cv_text}
+CV Text:
+"""
+${cv_text}
+"""
+
 ${job_title ? `Target Job Title: ${job_title}` : ''}
 ${industry ? `Industry: ${industry}` : ''}
 ${target_role ? `Target Role: ${target_role}` : ''}
 
+Available skill categories: ${skillCategories?.map(c => c.name).join(', ')}
+Available skills: ${skills?.map(s => s.name).join(', ')}
+Available archetypes: ${archetypes?.map(a => `${a.name} (${a.id})`).join(', ')}
+
 Please provide:
 1. Skill scores (0-100) for: technical_skills, soft_skills, leadership, creativity, analytical
 2. Overall skill score and skill balance score
-3. Primary and secondary archetype classification with confidence
+3. Primary and secondary archetype classification with confidence (use archetype IDs from the list above)
 4. Top 10 identified skills with evidence
 5. Top 5 missing/weak skills
 6. Detailed skill analysis items with proficiency levels
 7. Personality indicators from tone and content
 
-Return as JSON with this exact structure:
+Return ONLY a valid JSON object with this exact structure:
 {
   "technical_skills_score": number,
   "soft_skills_score": number,
@@ -160,18 +158,61 @@ Return as JSON with this exact structure:
   ]
 }`;
 
-    // Call OpenAI API
-    const completion = await openai.chat.completions.create({
-      model: "gpt-4",
-      messages: [
-        { role: "system", content: systemPrompt },
-        { role: "user", content: userPrompt }
-      ],
-      temperature: 0.3,
-      max_tokens: 4000,
+    console.log('Calling OpenAI for skill analysis...');
+    
+    // Call OpenAI API using fetch
+    const openAIResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${openAIApiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'gpt-4o-mini',
+        messages: [
+          { 
+            role: 'system', 
+            content: 'You are an expert career analyst and skill assessor. Provide detailed, accurate skill analysis. Always return valid JSON in the exact format requested.'
+          },
+          { role: 'user', content: analysisPrompt }
+        ],
+        temperature: 0.3,
+        max_tokens: 3000,
+      }),
     });
 
-    const analysisResult: SkillAnalysisResult = JSON.parse(completion.choices[0].message.content || '{}');
+    if (!openAIResponse.ok) {
+      const errorText = await openAIResponse.text();
+      console.error('OpenAI API error:', errorText);
+      throw new Error(`OpenAI API error: ${errorText}`);
+    }
+
+    const openAIData = await openAIResponse.json();
+    const analysisText = openAIData.choices[0]?.message?.content;
+
+    if (!analysisText) {
+      throw new Error('No analysis received from OpenAI');
+    }
+
+    console.log('OpenAI analysis received, parsing...');
+
+    // Parse the JSON response
+    let analysisResult: SkillAnalysisResult;
+    try {
+      // Clean the response to extract JSON
+      const jsonMatch = analysisText.match(/\{[\s\S]*\}/);
+      if (!jsonMatch) {
+        throw new Error('No JSON found in OpenAI response');
+      }
+      
+      analysisResult = JSON.parse(jsonMatch[0]);
+    } catch (parseError) {
+      console.error('Error parsing OpenAI response:', parseError);
+      console.error('Raw response:', analysisText);
+      throw new Error('Failed to parse analysis result');
+    }
+
+    console.log('Analysis parsed successfully');
 
     // Validate and clean the result
     const validatedResult = {
@@ -193,15 +234,17 @@ Return as JSON with this exact structure:
       skill_analysis_items: analysisResult.skill_analysis_items || []
     };
 
-    // Insert the skill analysis into the database
+    // Store analysis in database
+    console.log('Storing analysis in database for user:', user.id);
+    
     const { data: skillAnalysis, error: analysisError } = await supabase
       .from('skill_analyses')
       .insert({
         user_id: user.id,
         cv_text,
-        job_title,
-        industry,
-        target_role,
+        job_title: job_title || null,
+        industry: industry || null,
+        target_role: target_role || null,
         technical_skills_score: validatedResult.technical_skills_score,
         soft_skills_score: validatedResult.soft_skills_score,
         leadership_score: validatedResult.leadership_score,
@@ -222,18 +265,14 @@ Return as JSON with this exact structure:
       .single();
 
     if (analysisError) {
-      console.error('Error inserting skill analysis:', analysisError);
-      return new Response(
-        JSON.stringify({ error: 'Failed to save analysis' }),
-        { 
-          status: 500, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-        }
-      );
+      console.error('Error storing analysis:', analysisError);
+      throw new Error('Failed to store analysis: ' + analysisError.message);
     }
 
-    // Insert skill analysis items
-    if (validatedResult.skill_analysis_items.length > 0) {
+    console.log('Analysis stored with ID:', skillAnalysis.id);
+
+    // Store skill analysis items
+    if (validatedResult.skill_analysis_items && validatedResult.skill_analysis_items.length > 0) {
       const skillItems = validatedResult.skill_analysis_items.map(item => ({
         analysis_id: skillAnalysis.id,
         skill_name: item.skill_name,
@@ -250,9 +289,14 @@ Return as JSON with this exact structure:
         .insert(skillItems);
 
       if (itemsError) {
-        console.error('Error inserting skill analysis items:', itemsError);
+        console.error('Error storing skill analysis items:', itemsError);
+        // Don't throw error here, analysis is still valid
+      } else {
+        console.log('Skill analysis items stored successfully');
       }
     }
+
+    console.log('=== Skill Analysis Completed Successfully ===');
 
     return new Response(
       JSON.stringify({
