@@ -281,7 +281,7 @@ Return ONLY a valid JSON object with this exact structure:
         skill_balance_score: validatedResult.skill_balance_score,
         primary_archetype_id: validatedResult.primary_archetype_id,
         secondary_archetype_id: validatedResult.secondary_archetype_id,
-        archetype_confidence: Math.round(validatedResult.archetype_confidence * 100), // Convert to integer (0-100)
+        archetype_confidence: validatedResult.archetype_confidence, // Keep as decimal (0.0 - 1.0)
         top_skills: validatedResult.top_skills,
         missing_skills: validatedResult.missing_skills,
         skill_gaps: validatedResult.skill_gaps,
