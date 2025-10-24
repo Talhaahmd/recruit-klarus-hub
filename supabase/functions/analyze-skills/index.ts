@@ -77,23 +77,36 @@ serve(async (req) => {
     }
 
     // Get skill categories, skills, and archetypes from database
-    const { data: skillCategories } = await supabase
+    console.log('Fetching reference data from database...');
+    
+    const { data: skillCategories, error: skillCategoriesError } = await supabase
       .from('skill_categories')
       .select('*');
 
-    const { data: skills } = await supabase
+    const { data: skills, error: skillsError } = await supabase
       .from('skills')
       .select('*');
 
-    const { data: archetypes } = await supabase
+    const { data: archetypes, error: archetypesError } = await supabase
       .from('employee_archetypes')
       .select('*');
 
-    const { data: skillMaps } = await supabase
+    const { data: skillMaps, error: skillMapsError } = await supabase
       .from('skill_maps')
       .select('*');
 
-    console.log('Database queries completed');
+    console.log('Database query results:', {
+      skillCategoriesCount: skillCategories?.length || 0,
+      skillsCount: skills?.length || 0,
+      archetypesCount: archetypes?.length || 0,
+      skillMapsCount: skillMaps?.length || 0,
+      errors: {
+        skillCategories: skillCategoriesError?.message,
+        skills: skillsError?.message,
+        archetypes: archetypesError?.message,
+        skillMaps: skillMapsError?.message
+      }
+    });
 
     // Get OpenAI API key
     const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
@@ -115,9 +128,9 @@ ${job_title ? `Target Job Title: ${job_title}` : ''}
 ${industry ? `Industry: ${industry}` : ''}
 ${target_role ? `Target Role: ${target_role}` : ''}
 
-Available skill categories: ${skillCategories?.map(c => c.name).join(', ')}
-Available skills: ${skills?.map(s => s.name).join(', ')}
-Available archetypes: ${archetypes?.map(a => `${a.name} (${a.id})`).join(', ')}
+Available skill categories: ${skillCategories && skillCategories.length > 0 ? skillCategories.map(c => c.name).join(', ') : 'None'}
+Available skills: ${skills && skills.length > 0 ? skills.slice(0, 20).map(s => s.name).join(', ') : 'None'}
+Available archetypes: ${archetypes && archetypes.length > 0 ? archetypes.map(a => `${a.name} (ID: ${a.id})`).join(', ') : 'None'}
 
 Please provide:
 1. Skill scores (0-100) for: technical_skills, soft_skills, leadership, creativity, analytical
@@ -223,16 +236,30 @@ Return ONLY a valid JSON object with this exact structure:
       analytical_score: Math.max(0, Math.min(100, analysisResult.analytical_score || 0)),
       overall_skill_score: Math.max(0, Math.min(100, analysisResult.overall_skill_score || 0)),
       skill_balance_score: Math.max(0, Math.min(100, analysisResult.skill_balance_score || 0)),
-      primary_archetype_id: analysisResult.primary_archetype_id || archetypes?.[0]?.id,
-      secondary_archetype_id: analysisResult.secondary_archetype_id,
+      primary_archetype_id: analysisResult.primary_archetype_id || (archetypes && archetypes.length > 0 ? archetypes[0].id : null),
+      secondary_archetype_id: analysisResult.secondary_archetype_id || null,
       archetype_confidence: Math.max(0, Math.min(1, analysisResult.archetype_confidence || 0.5)),
-      top_skills: analysisResult.top_skills || [],
-      missing_skills: analysisResult.missing_skills || [],
+      top_skills: Array.isArray(analysisResult.top_skills) ? analysisResult.top_skills : [],
+      missing_skills: Array.isArray(analysisResult.missing_skills) ? analysisResult.missing_skills : [],
       skill_gaps: analysisResult.skill_gaps || {},
       personality_indicators: analysisResult.personality_indicators || {},
       ai_analysis: analysisResult.ai_analysis || {},
-      skill_analysis_items: analysisResult.skill_analysis_items || []
+      skill_analysis_items: Array.isArray(analysisResult.skill_analysis_items) ? analysisResult.skill_analysis_items : []
     };
+
+    console.log('Validated result:', {
+      scores: {
+        technical: validatedResult.technical_skills_score,
+        soft: validatedResult.soft_skills_score,
+        leadership: validatedResult.leadership_score,
+        creativity: validatedResult.creativity_score,
+        analytical: validatedResult.analytical_score,
+        overall: validatedResult.overall_skill_score
+      },
+      primary_archetype_id: validatedResult.primary_archetype_id,
+      top_skills_count: validatedResult.top_skills.length,
+      skill_items_count: validatedResult.skill_analysis_items.length
+    });
 
     // Store analysis in database
     console.log('Storing analysis in database for user:', user.id);
@@ -254,7 +281,7 @@ Return ONLY a valid JSON object with this exact structure:
         skill_balance_score: validatedResult.skill_balance_score,
         primary_archetype_id: validatedResult.primary_archetype_id,
         secondary_archetype_id: validatedResult.secondary_archetype_id,
-        archetype_confidence: validatedResult.archetype_confidence,
+        archetype_confidence: Math.round(validatedResult.archetype_confidence * 100), // Convert to integer (0-100)
         top_skills: validatedResult.top_skills,
         missing_skills: validatedResult.missing_skills,
         skill_gaps: validatedResult.skill_gaps,
