@@ -24,10 +24,7 @@ import Login from "./pages/Auth/Login";
 import Signup from "./pages/Auth/Signup";
 
 // Public Pages
-import Home from "./pages/Home/Home";
-import FistudyHome from "./pages/Home/Fistudy/FistudyHome";
 import PozeHome from "./pages/Home/Poze/PozeHome";
-import Apply from "./pages/Apply/Apply";
 import NewApply from "./pages/Apply/NewApply";
 import LinkedInTokenCallback from "./pages/LinkedInTokenCallback/LinkedInTokenCallback";
 import LinkedInCallback from "./pages/LinkedInCallback/LinkedInCallback";
