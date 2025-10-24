@@ -20,6 +20,11 @@ CREATE TABLE IF NOT EXISTS linkedin_profiles (
 -- Enable Row Level Security (RLS)
 ALTER TABLE linkedin_profiles ENABLE ROW LEVEL SECURITY;
 
+-- Drop existing policies if they exist to avoid conflicts
+DROP POLICY IF EXISTS "Users can view their own LinkedIn profile" ON linkedin_profiles;
+DROP POLICY IF EXISTS "Users can insert their own LinkedIn profile" ON linkedin_profiles;
+DROP POLICY IF EXISTS "Users can update their own LinkedIn profile" ON linkedin_profiles;
+
 -- Create policies
 CREATE POLICY "Users can view their own LinkedIn profile"
     ON linkedin_profiles FOR SELECT
