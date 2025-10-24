@@ -18,7 +18,11 @@ import {
   UserPlus,
   Play,
   User,
-  ToggleLeft
+  ToggleLeft,
+  FileCheck,
+  Brain,
+  BookOpen,
+  MessageSquare
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useOnboarding } from '@/contexts/OnboardingContext';
@@ -57,6 +61,15 @@ const Sidebar: React.FC<SidebarProps> = ({
       items: [
         { icon: Palette, name: 'Theme', path: '/themes' },
         { icon: Lightbulb, name: 'Ideas', path: '/ideas' },
+      ]
+    },
+    {
+      title: 'Career Tools',
+      items: [
+        { icon: FileCheck, name: 'ATS Analysis', path: '/ats-analysis' },
+        { icon: Brain, name: 'Skill DNA', path: '/skill-dna' },
+        { icon: BookOpen, name: 'Learning Path', path: '/learning-path' },
+        { icon: MessageSquare, name: 'Interview Prep', path: '/interview-prep' },
       ]
     },
     {

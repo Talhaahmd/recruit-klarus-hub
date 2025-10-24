@@ -44,6 +44,9 @@ import BillingPage from "./pages/Settings/BillingPage";
 import NotFound from "./pages/NotFound";
 import Leads from "./pages/Leads/Leads";
 
+// Career Tools
+import ATSAnalysis from "./pages/ATSAnalysis/ATSAnalysis";
+
 // Onboarding
 import OnboardingModal from "./components/UI/OnboardingModal";
 
@@ -106,6 +109,7 @@ const App = () => (
                 <Route path="ideas" element={<BuildProfile />} />
                 <Route path="build-profile/success" element={<PostSuccess />} />
                 <Route path="leads" element={<Leads />} />
+                <Route path="ats-analysis" element={<ATSAnalysis />} />
                 <Route path="settings" element={<Settings />} />
                 <Route path="settings/billing" element={<BillingPage />} />
               </Route>
