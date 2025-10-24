@@ -101,6 +101,42 @@ const PozeHome: React.FC = () => {
       .cs_text_white {
         color: black !important;
       }
+      
+      /* Hide any sidebar on PozeHome page */
+      .cs_sidebar,
+      .cs_mobile_sidebar,
+      .cs_offcanvas,
+      .cs_mobile_offcanvas,
+      .cs_sidebar_menu,
+      .cs_mobile_menu,
+      .cs_nav_sidebar,
+      .cs_mobile_nav,
+      .cs_sidebar_overlay,
+      .cs_mobile_overlay {
+        display: none !important;
+        visibility: hidden !important;
+        opacity: 0 !important;
+        transform: translateX(-100%) !important;
+        position: absolute !important;
+        left: -9999px !important;
+      }
+      
+      /* Ensure content takes full width */
+      .cs_content,
+      .cs_main_content,
+      body {
+        margin-left: 0 !important;
+        padding-left: 0 !important;
+        width: 100% !important;
+      }
+      
+      /* Hide any sidebar toggle buttons */
+      .cs_sidebar_toggle,
+      .cs_mobile_toggle,
+      .cs_hamburger,
+      .cs_menu_toggle {
+        display: none !important;
+      }
     `;
     document.head.appendChild(style);
 
