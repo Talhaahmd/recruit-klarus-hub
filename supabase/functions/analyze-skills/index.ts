@@ -241,15 +241,15 @@ Return ONLY a valid JSON object with this exact structure:
 
     console.log('Analysis parsed successfully');
 
-    // Validate and clean the result
+    // Validate and clean the result - ENSURE ALL SCORES ARE INTEGERS
     const validatedResult = {
-      technical_skills_score: Math.max(0, Math.min(100, analysisResult.technical_skills_score || 0)),
-      soft_skills_score: Math.max(0, Math.min(100, analysisResult.soft_skills_score || 0)),
-      leadership_score: Math.max(0, Math.min(100, analysisResult.leadership_score || 0)),
-      creativity_score: Math.max(0, Math.min(100, analysisResult.creativity_score || 0)),
-      analytical_score: Math.max(0, Math.min(100, analysisResult.analytical_score || 0)),
-      overall_skill_score: Math.max(0, Math.min(100, analysisResult.overall_skill_score || 0)),
-      skill_balance_score: Math.max(0, Math.min(100, analysisResult.skill_balance_score || 0)),
+      technical_skills_score: Math.round(Math.max(0, Math.min(100, analysisResult.technical_skills_score || 0))),
+      soft_skills_score: Math.round(Math.max(0, Math.min(100, analysisResult.soft_skills_score || 0))),
+      leadership_score: Math.round(Math.max(0, Math.min(100, analysisResult.leadership_score || 0))),
+      creativity_score: Math.round(Math.max(0, Math.min(100, analysisResult.creativity_score || 0))),
+      analytical_score: Math.round(Math.max(0, Math.min(100, analysisResult.analytical_score || 0))),
+      overall_skill_score: Math.round(Math.max(0, Math.min(100, analysisResult.overall_skill_score || 0))),
+      skill_balance_score: Math.round(Math.max(0, Math.min(100, analysisResult.skill_balance_score || 0))),
       primary_archetype_id: analysisResult.primary_archetype_id || (archetypes && archetypes.length > 0 ? archetypes[0].id : null),
       secondary_archetype_id: analysisResult.secondary_archetype_id || null,
       archetype_confidence: Math.max(0, Math.min(1, analysisResult.archetype_confidence || 0.5)),
@@ -319,7 +319,7 @@ Return ONLY a valid JSON object with this exact structure:
         skill_name: item.skill_name,
         skill_category: item.skill_category,
         proficiency_level: item.proficiency_level,
-        confidence_score: item.confidence_score,
+        confidence_score: Math.round(item.confidence_score || 0), // Ensure integer
         evidence: item.evidence,
         is_strong_point: item.is_strong_point,
         is_weak_point: item.is_weak_point
