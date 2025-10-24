@@ -114,6 +114,11 @@ serve(async (req) => {
       throw new Error('OpenAI API key not configured');
     }
 
+    // Sanitize inputs to prevent issues
+    const sanitizedJobTitle = job_title ? job_title.replace(/[^\w\s-]/g, '').trim() : '';
+    const sanitizedIndustry = industry ? industry.replace(/[^\w\s-]/g, '').trim() : '';
+    const sanitizedTargetRole = target_role ? target_role.replace(/[^\w\s-]/g, '').trim() : '';
+
     // Create the analysis prompt
     const analysisPrompt = `You are an expert career analyst specializing in skill assessment and employee archetype classification.
 
@@ -124,9 +129,9 @@ CV Text:
 ${cv_text}
 """
 
-${job_title ? `Target Job Title: ${job_title}` : ''}
-${industry ? `Industry: ${industry}` : ''}
-${target_role ? `Target Role: ${target_role}` : ''}
+${sanitizedJobTitle ? `Target Job Title: ${sanitizedJobTitle}` : ''}
+${sanitizedIndustry ? `Industry: ${sanitizedIndustry}` : ''}
+${sanitizedTargetRole ? `Target Role: ${sanitizedTargetRole}` : ''}
 
 Available skill categories: ${skillCategories && skillCategories.length > 0 ? skillCategories.map(c => c.name).join(', ') : 'None'}
 Available skills: ${skills && skills.length > 0 ? skills.slice(0, 20).map(s => s.name).join(', ') : 'None'}
@@ -172,6 +177,8 @@ Return ONLY a valid JSON object with this exact structure:
 }`;
 
     console.log('Calling OpenAI for skill analysis...');
+    console.log('Prompt length:', analysisPrompt.length);
+    console.log('Input parameters:', { job_title, industry, target_role });
     
     // Call OpenAI API using fetch
     const openAIResponse = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -208,6 +215,8 @@ Return ONLY a valid JSON object with this exact structure:
     }
 
     console.log('OpenAI analysis received, parsing...');
+    console.log('Raw response length:', analysisText.length);
+    console.log('Raw response preview:', analysisText.substring(0, 200) + '...');
 
     // Parse the JSON response
     let analysisResult: SkillAnalysisResult;
@@ -215,14 +224,19 @@ Return ONLY a valid JSON object with this exact structure:
       // Clean the response to extract JSON
       const jsonMatch = analysisText.match(/\{[\s\S]*\}/);
       if (!jsonMatch) {
+        console.error('No JSON found in OpenAI response');
+        console.error('Full response:', analysisText);
         throw new Error('No JSON found in OpenAI response');
       }
       
+      console.log('JSON match found, length:', jsonMatch[0].length);
       analysisResult = JSON.parse(jsonMatch[0]);
+      console.log('JSON parsed successfully');
     } catch (parseError) {
       console.error('Error parsing OpenAI response:', parseError);
       console.error('Raw response:', analysisText);
-      throw new Error('Failed to parse analysis result');
+      console.error('JSON match attempt:', analysisText.match(/\{[\s\S]*\}/)?.[0]?.substring(0, 200));
+      throw new Error('Failed to parse analysis result: ' + parseError.message);
     }
 
     console.log('Analysis parsed successfully');
@@ -269,9 +283,9 @@ Return ONLY a valid JSON object with this exact structure:
       .insert({
         user_id: user.id,
         cv_text,
-        job_title: job_title || null,
-        industry: industry || null,
-        target_role: target_role || null,
+        job_title: sanitizedJobTitle || null,
+        industry: sanitizedIndustry || null,
+        target_role: sanitizedTargetRole || null,
         technical_skills_score: validatedResult.technical_skills_score,
         soft_skills_score: validatedResult.soft_skills_score,
         leadership_score: validatedResult.leadership_score,
