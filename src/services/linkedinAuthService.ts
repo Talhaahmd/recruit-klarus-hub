@@ -30,7 +30,7 @@ export const linkedinAuthService = {
             'rw_organization_admin',
             'rw_ads'
           ].join(' '),
-          redirectTo: `${window.location.origin}/linkedin-callback`,
+          redirectTo: `${window.location.origin}/dashboard`,
           queryParams: {
             auth_type: 'reauthenticate'  // Force LinkedIn to show consent screen
           }
