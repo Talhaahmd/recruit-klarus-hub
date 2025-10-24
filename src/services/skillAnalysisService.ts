@@ -34,18 +34,31 @@ export const skillAnalysisService = {
   async analyzeSkills(request: SkillAnalysisRequest): Promise<SkillAnalysis> {
     try {
       console.log('Submitting CV for skill analysis...');
+      console.log('Request:', request);
       
       const { data, error } = await supabase.functions.invoke('analyze-skills', {
         body: request
       });
 
+      console.log('Function response:', { data, error });
+
       if (error) {
         console.error('Skill analysis error:', error);
-        throw new Error(error.message || 'Failed to analyze skills');
+        // Try to get more details from the error
+        const errorMessage = error.message || error.toString() || 'Failed to analyze skills';
+        toast.error('Analysis error: ' + errorMessage);
+        throw new Error(errorMessage);
+      }
+
+      if (!data) {
+        throw new Error('No data received from function');
       }
 
       if (!data.success) {
-        throw new Error(data.error || 'Analysis failed');
+        const errorMsg = data.error || 'Analysis failed';
+        console.error('Analysis not successful:', errorMsg);
+        toast.error('Analysis failed: ' + errorMsg);
+        throw new Error(errorMsg);
       }
 
       console.log('Skill analysis completed successfully');
@@ -54,7 +67,8 @@ export const skillAnalysisService = {
       return data.analysis;
     } catch (error: any) {
       console.error('Error in skill analysis:', error);
-      toast.error('Failed to analyze skills: ' + error.message);
+      console.error('Error details:', JSON.stringify(error, null, 2));
+      toast.error('Failed to analyze skills: ' + (error.message || 'Unknown error'));
       throw error;
     }
   },
