@@ -1,0 +1,227 @@
+/*--------------------------------------------------------------
+  21. Dark
+----------------------------------------------------------------*/
+.cs_dark {
+  background-color: var(--white-color);
+
+  .cs_site_header.cs_style_1 {
+    color: var(--heading-color);
+    box-shadow: 0px 2px 1px 0px rgb(255, 255, 255, 0.1);
+
+    .cs_nav .cs_nav_list ul {
+      background-color: #151515;
+      box-shadow: 0px 1px 2px 0px rgba(2, 0, 181, 0.1);
+
+      &::before {
+        background-color: #151515;
+      }
+    }
+  }
+
+  .cs_hero.cs_style_1 {
+    background-color: #0A0912;
+
+    .cs_hero_title {
+      color: var(--heading-color);
+    }
+
+    .cs_hero_subtitle {
+      color: var(--gray-color);
+    }
+
+    .cs_hero_shape3 {
+      opacity: 0.05;
+    }
+  }
+
+  .cs_bg_white {
+    background-color: var(--heading-color);
+    color: var(--white-color);
+
+    &:hover {
+      color: var(--heading-color);
+    }
+  }
+
+  .cs_btn.cs_bg_accent {
+    color: var(--heading-color);
+
+    &::after {
+      background-color: var(--heading-color);
+    }
+
+    &:hover {
+      color: var(--white-color);
+    }
+  }
+
+  .cs_iconbox.cs_style_1:hover.cs_type_1 {
+    box-shadow: 0px 0px 30px 10px rgba(59, 59, 59, 0.25);
+  }
+
+  #pricing {
+    background: linear-gradient(90deg, #0D0C17 0.81%, rgba(22, 21, 40, 0.30) 100%);
+  }
+
+  .cs_pricing_table.cs_style_1 {
+    box-shadow: 0px 0px 30px 10px rgba(59, 59, 59, 0.25);
+
+    .cs_pricing_icon {
+      border-color: var(--body-color);
+
+      img {
+        transition: inherit;
+        filter: brightness(0) saturate(100%) invert(100%) sepia(0%) saturate(3577%) hue-rotate(139deg) brightness(125%) contrast(110%);
+      }
+    }
+
+    .cs_pricing_btn,
+    .cs_pricing_feature_list li,
+    .cs_price_value,
+    .cs_pricing_head_title,
+    .cs_pricing_head_subtitle,
+    .cs_pricing_badge {
+      color: var(--heading-color);
+    }
+
+    small {
+      color: var(--body-color);
+    }
+
+    .cs_pricing_feature_list i {
+      color: var(--heading-color);
+    }
+
+    &.active,
+    &:hover {
+      .cs_pricing_icon {
+        background-color: var(--heading-color);
+        border-color: var(--heading-color);
+
+        img {
+          filter: brightness(0) saturate(100%) invert(4%) sepia(8%) saturate(4323%) hue-rotate(206deg) brightness(92%) contrast(98%);
+        }
+      }
+
+      .cs_pricing_btn {
+        background-color: var(--heading-color);
+        color: var(--white-color);
+      }
+
+      .cs_pricing_feature_list i,
+      .cs_pricing_seperator {
+        color: var(--white-color);
+        background-color: var(--heading-color);
+      }
+
+      small {
+        color: var(--heading-color);
+      }
+    }
+  }
+
+  .cs_testimonial.cs_style_1 {
+    box-shadow: 0px 0px 30px 10px rgba(59, 59, 59, 0.25);
+  }
+
+  .cs_cta.cs_style_1 {
+    background: #07070D;
+
+    .cs_section_title {
+      color: var(--heading-color);
+    }
+  }
+
+  .cs_accordian {
+    border-color: var(--body-color);
+  }
+
+  .cs_faq_shape1 {
+    border-radius: 50%;
+    background-color: rgba(52, 255, 126, 0.50);
+     filter: blur(90px) blur(90px) blur(90px);
+    top: 15%;
+  }
+
+  .cs_faq_shape2 {
+    border-radius: 50%;
+    background-color: rgba(140, 172, 255, 0.50);
+     filter: blur(90px) blur(90px) blur(90px);
+    top: 50%;
+  }
+
+  .cs_blog {
+    background: linear-gradient(90deg, #0D0C17 0.01%, rgba(22, 21, 40, 0.30) 99.99%);
+  }
+
+  .cs_login_container {
+    box-shadow: 0px 0px 20px 5px rgba(70, 70, 70, 0.25);
+  }
+
+  .cs_post.cs_style_1 {
+    background-color: var(--heading-color);
+    box-shadow: 0px 0px 20px 10px rgba(59, 59, 59, 0.25);
+
+    .cs_posted_by {
+      color: var(--heading-color);
+    }
+
+    .cs_post_title,
+    .cs_text_btn {
+      color: var(--white-color);
+
+      &:hover {
+        color: var(--accent-color);
+      }
+    }
+  }
+
+  .comments_area,
+  .comment_respond,
+  .comment_form input,
+  .comment_form textarea {
+    border-color: var(--body-color);
+    color: var(--gray-color);
+  }
+
+  .cs_contact_form {
+    .cs_form_field {
+      background-color: transparent;
+      border-radius: 20px;
+      border-color: var(--body-color);
+      color: var(--gray-color);
+    }
+  }
+
+  .cs_form_field {
+    color: var(--body-color);
+  }
+
+  .cs_site_footer {
+    background-color: #0A0912;
+    color: var(--heading-color);
+
+    .cs_footer_widget_title {
+      color: var(--heading-color);
+    }
+  }
+
+  #cs_backtotop {
+    color: var(--heading-color);
+  }
+
+  @media (max-width: 1199px) {
+    .cs_site_header.cs_style_1 {
+
+      .cs_nav .cs_nav_list {
+        background-color: var(--white-color);
+        color: var(--heading-color);
+
+        ul {
+          background-color: transparent;
+          box-shadow: none;
+        }
+      }
+    }
+  }
+}

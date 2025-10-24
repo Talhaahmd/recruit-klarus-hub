@@ -1,0 +1,175 @@
+/* Poze Visual Fixes - Enhanced */
+
+/* Force header styling with highest specificity */
+header.cs_site_header,
+.cs_site_header.cs_style_1,
+.cs_site_header.cs_version_5,
+.cs_site_header.cs_sticky_header,
+.cs_site_header.cs_medium {
+  background-color: white !important;
+  background: white !important;
+}
+
+.cs_site_header .cs_nav_list a,
+.cs_site_header .cs_nav_list li a,
+.cs_site_header .cs_nav_list,
+.cs_site_header .cs_nav_list li {
+  color: black !important;
+}
+
+.cs_site_header .cs_header_text_btn {
+  color: black !important;
+}
+
+.cs_main_header {
+  background-color: white !important;
+  background: white !important;
+}
+
+.cs_main_header_in {
+  background-color: white !important;
+  background: white !important;
+}
+
+header {
+  background-color: white !important;
+  background: white !important;
+}
+
+.cs_site_header * {
+  color: black !important;
+}
+
+.cs_site_header a {
+  color: black !important;
+}
+
+/* Fix body text */
+body {
+  background-color: white !important;
+  color: black !important;
+}
+
+/* Fix footer */
+.cs_site_footer {
+  background-color: #f8f9fa !important;
+  color: black !important;
+}
+
+.cs_site_footer * {
+  color: black !important;
+}
+
+/* Fix "Who can use Klarus" section */
+.cs_user_feature {
+  background-color: white !important;
+  color: black !important;
+}
+
+.cs_user_feature .cs_section_title,
+.cs_user_feature .cs_section_subtitle,
+.cs_user_feature .cs_list_text {
+  color: black !important;
+}
+
+.cs_user_feature .cs_list li {
+  color: black !important;
+}
+
+/* Fix testimonial section */
+.cs_testimonial {
+  background-color: white !important;
+  color: black !important;
+}
+
+.cs_testimonial .cs_client_name,
+.cs_testimonial .cs_client_sub-title,
+.cs_testimonial .cs_client_review {
+  color: black !important;
+}
+
+.cs_testimonial h4,
+.cs_testimonial p {
+  color: black !important;
+}
+
+/* Ensure text is readable */
+.cs_hero_title,
+.cs_hero_subtitle,
+.cs_section_title,
+.cs_section_subtitle,
+.cs_iconbox_title,
+.cs_iconbox_subtitle,
+.cs_text_white {
+  color: black !important;
+}
+
+/* Fix button styling */
+.cs_btn {
+  background-color: #2563eb !important;
+  color: white !important;
+  border: none !important;
+  padding: 10px 20px !important;
+  border-radius: 5px !important;
+}
+
+/* Fix navigation links */
+.cs_nav_list a {
+  color: black !important;
+}
+
+/* Fix form elements */
+.cs_form_field {
+  background-color: white !important;
+  color: black !important;
+  border: 1px solid #ddd !important;
+}
+
+/* Fix FAQ text */
+.cs_accordian_title {
+  color: black !important;
+}
+
+.cs_accordian_body {
+  color: black !important;
+}
+
+/* Fix contact section */
+.cs_contact {
+  background-color: white !important;
+  color: black !important;
+}
+
+/* Fix CTA section */
+.cs_cta {
+  background-color: #2563eb !important;
+  color: white !important;
+}
+
+.cs_cta .cs_section_title {
+  color: white !important;
+}
+
+.cs_cta .cs_section_subtitle {
+  color: white !important;
+}
+
+/* Force all text to be readable */
+* {
+  color: black !important;
+}
+
+/* Override any white text that should be black */
+.cs_text_white {
+  color: black !important;
+}
+
+/* Fix any remaining dark backgrounds */
+.cs_hero {
+  background-color: #2563eb !important;
+}
+
+.cs_hero .cs_hero_title,
+.cs_hero .cs_hero_subtitle {
+  color: white !important;
+}
