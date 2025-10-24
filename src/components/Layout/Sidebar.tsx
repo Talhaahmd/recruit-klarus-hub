@@ -125,7 +125,7 @@ const Sidebar: React.FC<SidebarProps> = ({
           {/* Logo */}
           {(isExpanded || !isDesktop) && (
             <img 
-              src="https://media.licdn.com/dms/image/v2/D4D0BAQFDM9EHPi7Ytw/company-logo_200_200/B4DZcS5YkIGYAM-/0/1748368723047/klarushr_logo?e=1753920000&v=beta&t=XHn_4UOG1fh73hgQQ9sxGxyoXACiu8PpgDqsjpgvW9w" 
+              src="https://res.cloudinary.com/dt93sahp2/image/upload/v1761244578/freepik__background__64708_1_ilskfj.png" 
               alt="Klarus HR Logo" 
               className="h-8 sm:h-10 object-contain"
             />

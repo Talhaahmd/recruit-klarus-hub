@@ -11,7 +11,7 @@ const Footer: React.FC = () => {
           <div>
             <Link to="/" className="flex items-center mb-6">
               <img 
-                src="/klarus-logo.jpeg" 
+                src="https://res.cloudinary.com/dt93sahp2/image/upload/v1761244578/freepik__background__64708_1_ilskfj.png" 
                 alt="Klarus HR Logo" 
                 className="h-8 w-auto object-contain"
               />

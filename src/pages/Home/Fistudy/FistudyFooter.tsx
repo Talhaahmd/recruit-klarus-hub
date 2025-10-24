@@ -12,7 +12,7 @@ const FistudyFooter: React.FC = () => {
             <div className="site-footer__logo-box wow fadeInLeft" data-wow-delay="100ms">
               <div className="site-footer__logo">
                 <Link to="/">
-                  <img src="/klarus-logo-freepik.png" alt="Klarus HR" style={{height: '150px', width: 'auto'}} />
+                  <img src="https://res.cloudinary.com/dt93sahp2/image/upload/v1761244578/freepik__background__64708_1_ilskfj.png" alt="Klarus HR Logo" style={{height: '150px', width: 'auto'}} />
                 </Link>
               </div>
               <p className="site-footer__text">Everything for rapid growth on LinkedIn, hiring and <br /> recruitment with AI chatbots and gamification</p>
