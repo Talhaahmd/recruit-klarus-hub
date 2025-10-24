@@ -33,31 +33,28 @@ export const skillAnalysisService = {
    */
   async analyzeSkills(request: SkillAnalysisRequest): Promise<SkillAnalysis> {
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        throw new Error('Authentication required');
-      }
-
-      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/analyze-skills`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session.access_token}`,
-        },
-        body: JSON.stringify(request),
+      console.log('Submitting CV for skill analysis...');
+      
+      const { data, error } = await supabase.functions.invoke('analyze-skills', {
+        body: request
       });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to analyze skills');
+      if (error) {
+        console.error('Skill analysis error:', error);
+        throw new Error(error.message || 'Failed to analyze skills');
       }
 
-      const result = await response.json();
+      if (!data.success) {
+        throw new Error(data.error || 'Analysis failed');
+      }
+
+      console.log('Skill analysis completed successfully');
       toast.success('Skill analysis completed successfully!');
-      return result.analysis;
-    } catch (error) {
-      console.error('Skill analysis error:', error);
-      toast.error(error.message || 'Failed to analyze skills');
+      
+      return data.analysis;
+    } catch (error: any) {
+      console.error('Error in skill analysis:', error);
+      toast.error('Failed to analyze skills: ' + error.message);
       throw error;
     }
   },
