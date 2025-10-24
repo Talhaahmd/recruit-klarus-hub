@@ -29,6 +29,7 @@ import NewApply from "./pages/Apply/NewApply";
 import LinkedInTokenCallback from "./pages/LinkedInTokenCallback/LinkedInTokenCallback";
 import LinkedInCallback from "./pages/LinkedInCallback/LinkedInCallback";
 import CVUpload from "./pages/CVUpload/CVUpload";
+import RestrictedAccess from "./components/UI/RestrictedAccess";
 
 // Dashboard Pages
 import Dashboard from "./pages/Dashboard/Dashboard";
@@ -101,14 +102,14 @@ const App = () => (
                 }
               >
                 <Route path="dashboard" element={<Dashboard />} />
-                <Route path="jobs" element={<Jobs />} />
-                <Route path="candidates" element={<Candidates />} />
-                <Route path="candidates/:id" element={<CandidateProfile />} />
+                <Route path="jobs" element={<RestrictedAccess title="Jobs Access Restricted" message="Job management features are currently unavailable. Please contact support for more information." />} />
+                <Route path="candidates" element={<RestrictedAccess title="Candidates Access Restricted" message="Candidate management features are currently unavailable. Please contact support for more information." />} />
+                <Route path="candidates/:id" element={<RestrictedAccess title="Candidate Profile Restricted" message="Candidate profile access is currently unavailable. Please contact support for more information." />} />
                 <Route path="calendar" element={<Calendar />} />
                 <Route path="themes" element={<Theme />} />
                 <Route path="ideas" element={<BuildProfile />} />
                 <Route path="build-profile/success" element={<PostSuccess />} />
-                <Route path="leads" element={<Leads />} />
+                <Route path="leads" element={<RestrictedAccess title="Leads Access Restricted" message="Lead management features are currently unavailable. Please contact support for more information." />} />
                 <Route path="ats-analysis" element={<ATSAnalysis />} />
                 <Route path="settings" element={<Settings />} />
                 <Route path="settings/billing" element={<BillingPage />} />

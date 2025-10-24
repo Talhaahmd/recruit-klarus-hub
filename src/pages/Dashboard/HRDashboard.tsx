@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/UI/card';
 import { Button } from '@/components/UI/button';
 import { Badge } from '@/components/UI/badge';
+import { useAuth } from '@/contexts/AuthContext';
+import RestrictedAccess from '@/components/UI/RestrictedAccess';
 import { 
   Users, 
   Briefcase, 
@@ -116,6 +118,7 @@ const mockHRData = {
 };
 
 const HRDashboard: React.FC = () => {
+  const { isRecruitmentRestricted } = useAuth();
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -123,6 +126,17 @@ const HRDashboard: React.FC = () => {
     const timer = setTimeout(() => setLoading(false), 1000);
     return () => clearTimeout(timer);
   }, []);
+
+  // Show restricted access message if recruitment is restricted
+  if (isRecruitmentRestricted) {
+    return (
+      <RestrictedAccess 
+        title="HR Dashboard Restricted" 
+        message="HR recruitment features are currently unavailable. Please contact support for more information." 
+        showBackButton={false}
+      />
+    );
+  }
 
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
