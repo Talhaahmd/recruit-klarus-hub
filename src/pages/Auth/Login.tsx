@@ -126,7 +126,8 @@ const Login: React.FC = () => {
       <div className="absolute top-8 left-8 z-20">
         <Link to="/" className="flex items-center">
           <img 
-            className="w-auto h-9" 
+            className="w-auto"
+            style={{ height: '100px' }} 
             src="https://res.cloudinary.com/dt93sahp2/image/upload/v1761244578/freepik__background__64708_1_ilskfj.png" 
             alt="Klarus HR Logo" 
           />

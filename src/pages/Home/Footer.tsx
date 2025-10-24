@@ -13,7 +13,8 @@ const Footer: React.FC = () => {
               <img 
                 src="https://res.cloudinary.com/dt93sahp2/image/upload/v1761244578/freepik__background__64708_1_ilskfj.png" 
                 alt="Klarus HR Logo" 
-                className="h-8 w-auto object-contain"
+                className="w-auto object-contain"
+                style={{ height: '100px' }}
               />
             </Link>
             <p className="text-muted-foreground mb-6 leading-relaxed text-sm">

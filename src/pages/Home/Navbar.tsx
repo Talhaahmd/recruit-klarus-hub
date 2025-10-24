@@ -33,7 +33,8 @@ const Navbar: React.FC = () => {
           <img 
             src="https://res.cloudinary.com/dt93sahp2/image/upload/v1761244578/freepik__background__64708_1_ilskfj.png" 
             alt="Klarus HR Logo" 
-            className="h-8 sm:h-10 w-auto object-contain"
+            className="w-auto object-contain"
+            style={{ height: '100px' }}
           />
         </Link>
 
