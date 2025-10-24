@@ -1,19 +1,47 @@
 
-import { fileUploadService } from './fileUploadService';
-import { cvSubmissionService } from './cvSubmissionService';
 import { interviewService } from './interviewService';
 import { newApplicationService } from './newApplicationService';
+import { supabase } from '@/lib/supabase';
 
 // Re-export all services for backward compatibility
 export const submissionService = {
-  ...fileUploadService,
-  ...cvSubmissionService,
   ...interviewService,
-  ...newApplicationService
+  ...newApplicationService,
+  
+  // Add missing methods that components expect
+  getSubmissionById: async (submissionId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('job_applications')
+        .select('*')
+        .eq('id', submissionId)
+        .single();
+        
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      console.error('Error fetching submission:', error);
+      return null;
+    }
+  },
+  
+  getJobApplicationByCvLinkId: async (cvLinkId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('job_applications')
+        .select('*')
+        .eq('cv_link', cvLinkId)
+        .single();
+        
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      console.error('Error fetching job application:', error);
+      return null;
+    }
+  }
 };
 
 // Export individual services
-export { fileUploadService } from './fileUploadService';
-export { cvSubmissionService } from './cvSubmissionService';
 export { interviewService } from './interviewService';
 export { newApplicationService } from './newApplicationService';
