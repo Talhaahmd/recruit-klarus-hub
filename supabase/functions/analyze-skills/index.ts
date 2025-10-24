@@ -44,7 +44,9 @@ serve(async (req) => {
   }
 
   try {
+    console.log('Skill analysis function called');
     const { cv_text, job_title, industry, target_role }: SkillAnalysisRequest = await req.json();
+    console.log('Request data received:', { cv_text: cv_text?.substring(0, 100) + '...', job_title, industry, target_role });
 
     if (!cv_text) {
       return new Response(
@@ -61,37 +63,18 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Get user from request headers (when called via supabase.functions.invoke)
+    // Get user from Authorization header
     const authHeader = req.headers.get('Authorization');
-    let user;
-    
-    if (authHeader) {
-      const token = authHeader.replace('Bearer ', '');
-      const { data: { user: authUser }, error: authError } = await supabase.auth.getUser(token);
-      
-      if (authError || !authUser) {
-        return new Response(
-          JSON.stringify({ error: 'Invalid authentication' }),
-          { 
-            status: 401, 
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-          }
-        );
-      }
-      user = authUser;
-    } else {
-      // If no auth header, try to get user from the request context
-      const { data: { user: contextUser } } = await supabase.auth.getUser();
-      if (!contextUser) {
-        return new Response(
-          JSON.stringify({ error: 'Authentication required' }),
-          { 
-            status: 401, 
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-          }
-        );
-      }
-      user = contextUser;
+    if (!authHeader) {
+      throw new Error('No authorization header');
+    }
+
+    const { data: { user }, error: userError } = await supabase.auth.getUser(
+      authHeader.replace('Bearer ', '')
+    );
+
+    if (userError || !user) {
+      throw new Error('Invalid user token');
     }
 
     // Get skill categories, skills, and archetypes from database
@@ -284,11 +267,11 @@ Return as JSON with this exact structure:
     );
 
   } catch (error) {
-    console.error('Skill analysis error:', error);
+    console.error('Error in skill analysis:', error);
     return new Response(
       JSON.stringify({ 
-        error: 'Skill analysis failed', 
-        details: error.message 
+        error: error.message,
+        success: false 
       }),
       { 
         status: 500, 
