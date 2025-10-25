@@ -11,7 +11,7 @@ import { Badge } from '@/components/UI/badge';
 import { Progress } from '@/components/UI/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/UI/tabs';
 import { Separator } from '@/components/UI/separator';
-import { BookOpen, Plus, Play, CheckCircle, Clock, Target, TrendingUp, Search, Filter, Star, Award, Users, Calendar, Zap } from 'lucide-react';
+import { BookOpen, Plus, Play, CheckCircle, Clock, Target, TrendingUp, Search, Filter, Star, Award, Users, Calendar, Zap, ExternalLink } from 'lucide-react';
 
 const LearningPath: React.FC = () => {
   const { user } = useAuth();
@@ -165,6 +165,14 @@ const LearningPath: React.FC = () => {
     const matchesCategory = !selectedCategory || course.category_id === selectedCategory;
     return matchesSearch && matchesCategory;
   });
+
+  const handleViewCourse = (course: Course) => {
+    if (course.url) {
+      window.open(course.url, '_blank', 'noopener,noreferrer');
+    } else {
+      toast.error('Course URL not available');
+    }
+  };
 
   return (
     <div className="container mx-auto p-6 space-y-6">
@@ -516,7 +524,7 @@ const LearningPath: React.FC = () => {
               {/* Courses Grid */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {filteredCourses.map((course) => (
-                  <Card key={course.id} className="hover:shadow-md transition-shadow">
+                  <Card key={course.id} className="hover:shadow-lg hover:scale-[1.02] transition-all duration-200 cursor-pointer">
                     <CardContent className="p-4 space-y-3">
                       <div className="flex items-start justify-between">
                         <h4 className="font-medium line-clamp-2">{course.title}</h4>
@@ -544,7 +552,13 @@ const LearningPath: React.FC = () => {
                         <Badge variant={course.is_free ? "default" : "secondary"}>
                           {course.is_free ? "Free" : "Paid"}
                         </Badge>
-                        <Button size="sm" variant="outline">
+                        <Button 
+                          size="sm" 
+                          variant="outline"
+                          onClick={() => handleViewCourse(course)}
+                          className="hover:bg-blue-50 hover:border-blue-300 transition-colors"
+                        >
+                          <ExternalLink className="h-3 w-3 mr-1" />
                           View Course
                         </Button>
                       </div>

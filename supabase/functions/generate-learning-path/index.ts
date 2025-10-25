@@ -145,13 +145,19 @@ Create a comprehensive learning path that:
 4. Progresses logically from foundational to advanced topics
 5. Provides clear learning objectives and outcomes
 
+IMPORTANT: Calculate realistic duration and hours based on:
+- Number of skill gaps to address
+- User's experience level (beginner needs more time)
+- Time commitment per week (${time_commitment} hours)
+- Complexity of the target role
+
 Return ONLY a valid JSON object with this exact structure:
 {
   "title": "Learning Path Title",
   "description": "Detailed description of the learning path",
-  "estimated_duration_weeks": 12,
-  "difficulty_level": "intermediate",
-  "total_hours": 80,
+  "estimated_duration_weeks": [CALCULATE based on skill gaps and time commitment],
+  "difficulty_level": "[beginner/intermediate/advanced/expert based on experience level]",
+  "total_hours": [CALCULATE based on duration and time commitment],
   "learning_path_items": [
     {
       "title": "Course/Resource Title",
@@ -236,17 +242,35 @@ Return ONLY a valid JSON object with this exact structure:
 
     console.log('Learning path parsed successfully');
 
+    // Calculate intelligent fallbacks based on user input
+    const timeCommitmentHours = parseInt(time_commitment.split('-')[0]) || 5; // Get minimum hours from range
+    const skillGapsCount = skill_gaps.length;
+    const isBeginner = experience_level === 'beginner';
+    
+    // Calculate realistic duration based on skill gaps and experience
+    const baseWeeks = Math.max(4, skillGapsCount * (isBeginner ? 3 : 2));
+    const calculatedWeeks = Math.min(52, baseWeeks);
+    const calculatedHours = calculatedWeeks * timeCommitmentHours;
+    
     // Validate and clean the result
     const validatedResult = {
       title: pathResult.title || 'Personalized Learning Path',
       description: pathResult.description || 'A customized learning roadmap',
-      estimated_duration_weeks: Math.max(1, Math.min(52, pathResult.estimated_duration_weeks || 8)),
+      estimated_duration_weeks: Math.max(1, Math.min(52, pathResult.estimated_duration_weeks || calculatedWeeks)),
       difficulty_level: pathResult.difficulty_level || experience_level,
-      total_hours: Math.max(1, Math.min(1000, pathResult.total_hours || 40)),
+      total_hours: Math.max(1, Math.min(1000, pathResult.total_hours || calculatedHours)),
       learning_path_items: Array.isArray(pathResult.learning_path_items) ? pathResult.learning_path_items : [],
       ai_analysis: pathResult.ai_analysis || {}
     };
 
+    console.log('Calculation details:', {
+      timeCommitmentHours,
+      skillGapsCount,
+      isBeginner,
+      calculatedWeeks,
+      calculatedHours
+    });
+    
     console.log('Validated result:', {
       title: validatedResult.title,
       duration_weeks: validatedResult.estimated_duration_weeks,
@@ -285,17 +309,50 @@ Return ONLY a valid JSON object with this exact structure:
 
     // Store learning path items
     if (validatedResult.learning_path_items && validatedResult.learning_path_items.length > 0) {
-      const pathItems = validatedResult.learning_path_items.map((item, index) => ({
-        path_id: learningPath.id,
-        course_id: item.course_id || null,
-        title: item.title,
-        description: item.description,
-        item_type: item.item_type || 'course',
-        order_index: item.order_index || index + 1,
-        estimated_hours: item.estimated_hours || 5,
-        is_required: item.is_required !== false,
-        notes: item.resource_url ? `Resource: ${item.resource_url}` : null
-      }));
+      console.log('Processing learning path items...');
+      
+      // Create a mapping of course titles to UUIDs for matching
+      const courseTitleToId = new Map();
+      if (courses && courses.length > 0) {
+        courses.forEach(course => {
+          courseTitleToId.set(course.title.toLowerCase(), course.id);
+        });
+      }
+      
+      console.log('Available courses for mapping:', courseTitleToId.size);
+      console.log('Available course titles:', Array.from(courseTitleToId.keys()));
+      
+      const pathItems = validatedResult.learning_path_items.map((item, index) => {
+        let courseId = null;
+        
+        // Only try to match course_id if item_type is 'course' and we have a course_id from OpenAI
+        if (item.item_type === 'course' && item.course_id) {
+          // Try to find a matching course by title (case-insensitive)
+          const matchingCourse = courses?.find(course => 
+            course.title.toLowerCase().includes(item.title.toLowerCase()) ||
+            item.title.toLowerCase().includes(course.title.toLowerCase())
+          );
+          
+          if (matchingCourse) {
+            courseId = matchingCourse.id;
+            console.log(`Matched course: "${item.title}" -> ${matchingCourse.id}`);
+          } else {
+            console.log(`No matching course found for: "${item.title}"`);
+          }
+        }
+        
+        return {
+          path_id: learningPath.id,
+          course_id: courseId,
+          title: item.title,
+          description: item.description,
+          item_type: item.item_type || 'course',
+          order_index: item.order_index || index + 1,
+          estimated_hours: item.estimated_hours || 5,
+          is_required: item.is_required !== false,
+          notes: item.resource_url ? `Resource: ${item.resource_url}` : null
+        };
+      });
 
       const { error: itemsError } = await supabase
         .from('learning_path_items')
