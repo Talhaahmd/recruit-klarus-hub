@@ -2,11 +2,15 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { learningPathService, LearningPath, LearningPathItem, Course, CourseCategory, LearningPathStats } from '@/services/learningPathService';
 import { toast } from 'sonner';
-import {
-  Card, CardHeader, CardTitle, CardContent, CardDescription,
-  Button, Input, Label, Textarea, Badge, Progress,
-  Tabs, TabsContent, TabsList, TabsTrigger, Separator
-} from '@/components/UI/index';
+import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/UI/card';
+import { Button } from '@/components/UI/button';
+import { Input } from '@/components/UI/input';
+import { Label } from '@/components/UI/label';
+import { Textarea } from '@/components/UI/textarea';
+import { Badge } from '@/components/UI/badge';
+import { Progress } from '@/components/UI/progress';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/UI/tabs';
+import { Separator } from '@/components/UI/separator';
 import { BookOpen, Plus, Play, CheckCircle, Clock, Target, TrendingUp, Search, Filter, Star, Award, Users, Calendar, Zap } from 'lucide-react';
 
 const LearningPath: React.FC = () => {
