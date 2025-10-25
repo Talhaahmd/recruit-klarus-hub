@@ -212,6 +212,7 @@ Return ONLY a valid JSON object with this exact structure:
 
     console.log('OpenAI learning path received, parsing...');
     console.log('Raw response length:', pathText.length);
+    console.log('Raw OpenAI response:', pathText);
 
     // Parse the JSON response
     let pathResult: LearningPathResult;
@@ -252,6 +253,8 @@ Return ONLY a valid JSON object with this exact structure:
       total_hours: validatedResult.total_hours,
       items_count: validatedResult.learning_path_items.length
     });
+    
+    console.log('Learning path items from OpenAI:', JSON.stringify(validatedResult.learning_path_items, null, 2));
 
     // Store learning path in database
     console.log('Storing learning path in database for user:', user.id);
