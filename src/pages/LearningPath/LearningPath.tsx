@@ -99,7 +99,9 @@ const LearningPath: React.FC = () => {
       setActiveTab('path');
       
       // Load path items
+      console.log('Loading path items for path ID:', path.id);
       const items = await learningPathService.getLearningPathItems(path.id);
+      console.log('Path items loaded:', items);
       setPathItems(items);
       
       // Refresh paths list
@@ -115,7 +117,9 @@ const LearningPath: React.FC = () => {
     setCurrentPath(path);
     setActiveTab('path');
     
+    console.log('Viewing path:', path.id, path.title);
     const items = await learningPathService.getLearningPathItems(path.id);
+    console.log('Path items for viewing:', items);
     setPathItems(items);
   };
 
@@ -404,8 +408,24 @@ const LearningPath: React.FC = () => {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-4">
-                    {pathItems.map((item, index) => (
+                  {pathItems.length === 0 ? (
+                    <div className="text-center py-8">
+                      <BookOpen className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                      <h3 className="text-lg font-semibold mb-2">No Learning Items Found</h3>
+                      <p className="text-muted-foreground">
+                        The learning path items are still being generated. Please refresh the page or try again.
+                      </p>
+                      <Button 
+                        onClick={() => handleViewPath(currentPath)} 
+                        className="mt-4"
+                        variant="outline"
+                      >
+                        Refresh Items
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      {pathItems.map((item, index) => (
                       <div key={index} className="border rounded-lg p-4 space-y-3">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-3">
@@ -435,7 +455,8 @@ const LearningPath: React.FC = () => {
                         )}
                       </div>
                     ))}
-                  </div>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             </div>
