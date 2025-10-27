@@ -49,6 +49,7 @@ import Leads from "./pages/Leads/Leads";
 import ATSAnalysis from "./pages/ATSAnalysis/ATSAnalysis";
 import SkillDNA from "./pages/SkillDNA/SkillDNA";
 import LearningPath from "./pages/LearningPath/LearningPath";
+import InterviewPrep from "./pages/InterviewPrep/InterviewPrep";
 
 // Onboarding
 import OnboardingModal from "./components/UI/OnboardingModal";
@@ -115,6 +116,7 @@ const App = () => (
                 <Route path="ats-analysis" element={<ATSAnalysis />} />
                 <Route path="skill-dna" element={<SkillDNA />} />
                 <Route path="learning-path" element={<LearningPath />} />
+                <Route path="interview-prep" element={<InterviewPrep />} />
                 <Route path="settings" element={<Settings />} />
                 <Route path="settings/billing" element={<BillingPage />} />
               </Route>
