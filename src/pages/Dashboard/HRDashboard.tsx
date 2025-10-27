@@ -19,9 +19,14 @@ import {
   DollarSign,
   BarChart3,
   FileText,
-  User
+  User,
+  Brain,
+  GraduationCap,
+  MessageCircle,
+  Target
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
+import { Link } from 'react-router-dom';
 
 // Mock data for HR dashboard
 const mockHRData = {
@@ -382,6 +387,67 @@ const HRDashboard: React.FC = () => {
                 </div>
               </div>
             ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Career Tools for HR */}
+      <Card className="shadow-lg">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Target className="w-5 h-5" />
+            Career Development Tools
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <Link to="/ats-analysis">
+              <Card className="hover:shadow-lg transition-all duration-200 hover:scale-105 cursor-pointer border-2 hover:border-blue-300">
+                <CardContent className="p-6 text-center">
+                  <div className="mx-auto mb-3 p-3 rounded-full bg-blue-100 dark:bg-blue-900 w-12 h-12 flex items-center justify-center">
+                    <FileText className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+                  </div>
+                  <h3 className="font-semibold text-gray-900 dark:text-white mb-2">ATS Analysis</h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">Analyze candidate CVs for job fit</p>
+                </CardContent>
+              </Card>
+            </Link>
+
+            <Link to="/skill-dna">
+              <Card className="hover:shadow-lg transition-all duration-200 hover:scale-105 cursor-pointer border-2 hover:border-purple-300">
+                <CardContent className="p-6 text-center">
+                  <div className="mx-auto mb-3 p-3 rounded-full bg-purple-100 dark:bg-purple-900 w-12 h-12 flex items-center justify-center">
+                    <Brain className="w-6 h-6 text-purple-600 dark:text-purple-400" />
+                  </div>
+                  <h3 className="font-semibold text-gray-900 dark:text-white mb-2">Skill DNA</h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">Assess candidate skill profiles</p>
+                </CardContent>
+              </Card>
+            </Link>
+
+            <Link to="/learning-path">
+              <Card className="hover:shadow-lg transition-all duration-200 hover:scale-105 cursor-pointer border-2 hover:border-green-300">
+                <CardContent className="p-6 text-center">
+                  <div className="mx-auto mb-3 p-3 rounded-full bg-green-100 dark:bg-green-900 w-12 h-12 flex items-center justify-center">
+                    <GraduationCap className="w-6 h-6 text-green-600 dark:text-green-400" />
+                  </div>
+                  <h3 className="font-semibold text-gray-900 dark:text-white mb-2">Learning Path</h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">Create development roadmaps</p>
+                </CardContent>
+              </Card>
+            </Link>
+
+            <Link to="/interview-prep">
+              <Card className="hover:shadow-lg transition-all duration-200 hover:scale-105 cursor-pointer border-2 hover:border-orange-300">
+                <CardContent className="p-6 text-center">
+                  <div className="mx-auto mb-3 p-3 rounded-full bg-orange-100 dark:bg-orange-900 w-12 h-12 flex items-center justify-center">
+                    <MessageCircle className="w-6 h-6 text-orange-600 dark:text-orange-400" />
+                  </div>
+                  <h3 className="font-semibold text-gray-900 dark:text-white mb-2">Interview Prep</h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">Generate interview questions</p>
+                </CardContent>
+              </Card>
+            </Link>
           </div>
         </CardContent>
       </Card>
