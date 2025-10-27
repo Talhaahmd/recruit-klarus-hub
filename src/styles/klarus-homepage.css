@@ -183,46 +183,28 @@ body {
   color: black !important;
 }
 
-/* Fix any remaining dark backgrounds */
-/* Note: Removed .cs_hero background-color override to allow background image to show */
-
-/* Ensure hero background image is visible */
-.cs_hero.cs_style_1 {
-  background-color: transparent !important; /* Override Poze's background-color */
+/* Hero Section Background Image */
+.cs_hero {
+  background-color: #2563eb !important; /* Fallback color */
+  position: relative !important;
+  overflow: hidden !important;
 }
 
-/* CSS Background Image with Multiple Fallbacks */
-.cs_hero_bg_image {
-  background-image: 
-    /* Fallback 1: Local asset (imported) */
-    url('/poze-assets/img/hero_bg6.jpg'),
-    /* Fallback 2: Gradient */
-    linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
-  background-size: cover !important;
-  background-position: center !important;
-  background-repeat: no-repeat !important;
-  background-attachment: scroll !important;
-}
-
-.cs_hero.cs_style_1 .cs_hero_bg_shape {
-  display: block !important;
-  visibility: visible !important;
-  opacity: 1 !important;
+.cs_hero_bg_shape {
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
   z-index: 1 !important;
 }
 
-.cs_hero.cs_style_1 .cs_hero_bg_shape img {
-  display: block !important;
-  visibility: visible !important;
-  opacity: 1 !important;
+.cs_hero_bg_shape img {
   width: 100% !important;
   height: 100% !important;
   object-fit: cover !important;
-}
-
-.cs_hero .cs_hero_title,
-.cs_hero .cs_hero_subtitle {
-  color: white !important;
+  object-position: center !important;
+  display: block !important;
 }
 
 /* Ensure hero content appears above background image */
@@ -236,6 +218,11 @@ body {
 .cs_hero .cs_hero_img {
   position: relative !important;
   z-index: 2 !important;
+}
+
+.cs_hero .cs_hero_title,
+.cs_hero .cs_hero_subtitle {
+  color: white !important;
 }
 
 /* ===========================================

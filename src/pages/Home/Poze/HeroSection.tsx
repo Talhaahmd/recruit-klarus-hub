@@ -1,20 +1,10 @@
 import React from 'react';
-import heroBgImage from '/poze-assets/img/hero_bg6.jpg';
 
 const HeroSection: React.FC = () => {
   return (
     <section className="cs_hero cs_style_1 cs_type_1 position-relative" id="home">
       <div className="cs_hero_bg_shape">
-        <img 
-          src={heroBgImage} 
-          alt="Hero background image" 
-          style={{
-            width: '100%',
-            height: '100%',
-            objectFit: 'cover',
-            borderRadius: 'inherit'
-          }}
-        />
+        <img src="/hero-background.jpeg" alt="Klarus HR AI Recruitment Platform - Dashboard with Analytics and Engagement Metrics" />
       </div>
       <div className="container position-relative z-2">
         <div className="cs_hero_text text-center">
@@ -32,7 +22,7 @@ const HeroSection: React.FC = () => {
         </div>
         <div className="cs_height_107 cs_height_lg_60"></div>
         <div className="cs_hero_img wow fadeIn" data-wow-duration="0.8s" data-wow-delay="0.25s">
-          <img src="/imgs/screenshots/Video conference laptop mockup (2).jpeg" alt="Klarus HR AI Recruitment Platform - Dashboard with Analytics and Engagement Metrics" />
+          <img src="/hero-background.jpeg" alt="Klarus HR AI Recruitment Platform - Dashboard with Analytics and Engagement Metrics" />
         </div>
       </div>
       <div className="cs_hero_shape4"><img src="/poze-assets/img/polygon-3.svg" alt="Polygon Icon" /></div>
