@@ -191,6 +191,19 @@ body {
   background-color: transparent !important; /* Override Poze's background-color */
 }
 
+/* CSS Background Image with Multiple Fallbacks */
+.cs_hero_bg_image {
+  background-image: 
+    /* Fallback 1: Local asset (imported) */
+    url('/poze-assets/img/hero_bg6.jpg'),
+    /* Fallback 2: Gradient */
+    linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  background-size: cover !important;
+  background-position: center !important;
+  background-repeat: no-repeat !important;
+  background-attachment: scroll !important;
+}
+
 .cs_hero.cs_style_1 .cs_hero_bg_shape {
   display: block !important;
   visibility: visible !important;

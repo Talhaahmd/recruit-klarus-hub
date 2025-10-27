@@ -1,10 +1,20 @@
 import React from 'react';
+import heroBgImage from '/poze-assets/img/hero_bg6.jpg';
 
 const HeroSection: React.FC = () => {
   return (
     <section className="cs_hero cs_style_1 cs_type_1 position-relative" id="home">
       <div className="cs_hero_bg_shape">
-        <img src="/poze-assets/img/hero_bg6.jpg" alt="Hero background image" />
+        <img 
+          src={heroBgImage} 
+          alt="Hero background image" 
+          style={{
+            width: '100%',
+            height: '100%',
+            objectFit: 'cover',
+            borderRadius: 'inherit'
+          }}
+        />
       </div>
       <div className="container position-relative z-2">
         <div className="cs_hero_text text-center">
