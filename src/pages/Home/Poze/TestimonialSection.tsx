@@ -50,14 +50,14 @@ const TestimonialSection: React.FC = () => {
       </div>
       <div className="cs_slider wow fadeIn" data-wow-duration="0.8s" data-wow-delay="0.2s">
         {testimonials.map((testimonial, index) => (
-          <div key={index} className="cs_testimonial cs_style_1" style={{ backgroundColor: 'white !important', color: 'black !important' }}>
+          <div key={index} className="cs_testimonial cs_style_1 cs_testimonial_item">
             <div className="cs_client_info">
               <div className="cs_client_meta">
-                <h4 className="cs_client_name" style={{ color: 'black !important' }}>{testimonial.name}</h4>
-                <p className="mb-0" style={{ color: 'black !important' }}>{testimonial.role}</p>
+                <h4 className="cs_client_name cs_testimonial_name">{testimonial.name}</h4>
+                <p className="mb-0 cs_testimonial_role">{testimonial.role}</p>
               </div>
             </div>
-            <p className="cs_client_review" style={{ color: 'black !important' }}>{testimonial.review}</p>
+            <p className="cs_client_review cs_testimonial_review">{testimonial.review}</p>
             <div className="cs_rating" data-rating="5">
               <div className="cs_rating_percentage"></div>
             </div>

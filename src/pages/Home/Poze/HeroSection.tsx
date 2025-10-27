@@ -16,13 +16,13 @@ const HeroSection: React.FC = () => {
           </p>
         </div>
         <div className="cs_btn_group text-center wow fadeIn" data-wow-duration="0.8s" data-wow-delay="0.25s">
-          <a href="#" aria-label="Optimize my LinkedIn" className="cs_btn cs_type_1 cs_bg_white" style={{ color: '#2563eb' }}>
-            Optimize my LinkedIn
+          <a href="#" aria-label="Free LinkedIn Boost" className="cs_btn cs_type_1 cs_bg_white cs_hero_btn">
+            Free LinkedIn Boost
           </a>
         </div>
         <div className="cs_height_107 cs_height_lg_60"></div>
         <div className="cs_hero_img wow fadeIn" data-wow-duration="0.8s" data-wow-delay="0.25s">
-          <img src="https://res.cloudinary.com/dt93sahp2/image/upload/v1761247770/freepik__background__15090_zngew8.png" alt="Klarus HR AI Recruitment Platform" />
+          <img src="/imgs/screenshots/Video conference laptop mockup (2).jpeg" alt="Klarus HR AI Recruitment Platform - Dashboard with Analytics and Engagement Metrics" />
         </div>
       </div>
       <div className="cs_hero_shape4"><img src="/poze-assets/img/polygon-3.svg" alt="Polygon Icon" /></div>

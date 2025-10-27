@@ -24,9 +24,9 @@ const UserFeatureSection: React.FC = () => {
             <div className="cs_height_60 cs_height_lg_40"></div>
             <ul className="cs_list cs_style_1 cs_mp0">
               {userTypes.map((type, index) => (
-                <li key={index} style={{ color: 'black !important' }}>
+                <li key={index} className="cs_user_feature_item">
                   <span className="cs_list_icon"><img src="/poze-assets/img/arrow.svg" alt="Icon" /></span>
-                  <span className="cs_list_text" style={{ color: 'black !important' }}>{type}</span>
+                  <span className="cs_list_text cs_user_feature_text">{type}</span>
                 </li>
               ))}
             </ul>
