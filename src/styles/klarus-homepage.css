@@ -184,13 +184,45 @@ body {
 }
 
 /* Fix any remaining dark backgrounds */
-.cs_hero {
-  background-color: #2563eb !important;
+/* Note: Removed .cs_hero background-color override to allow background image to show */
+
+/* Ensure hero background image is visible */
+.cs_hero.cs_style_1 {
+  background-color: transparent !important; /* Override Poze's background-color */
+}
+
+.cs_hero.cs_style_1 .cs_hero_bg_shape {
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  z-index: 1 !important;
+}
+
+.cs_hero.cs_style_1 .cs_hero_bg_shape img {
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
 }
 
 .cs_hero .cs_hero_title,
 .cs_hero .cs_hero_subtitle {
   color: white !important;
+}
+
+/* Ensure hero content appears above background image */
+.cs_hero .container {
+  position: relative !important;
+  z-index: 2 !important;
+}
+
+.cs_hero .cs_hero_text,
+.cs_hero .cs_btn_group,
+.cs_hero .cs_hero_img {
+  position: relative !important;
+  z-index: 2 !important;
 }
 
 /* ===========================================
