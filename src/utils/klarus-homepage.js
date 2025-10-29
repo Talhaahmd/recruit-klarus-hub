@@ -98,6 +98,14 @@ class KlarusHomepageManager {
           this.closeMobileMenu();
         }
       });
+      
+      // Prevent scroll events from interfering with mobile menu
+      document.addEventListener('scroll', (e) => {
+        // Don't close mobile menu on scroll - let user scroll within menu
+        if (this.mobileMenuOpen) {
+          e.stopPropagation();
+        }
+      });
     }, 100);
   }
 
@@ -215,14 +223,47 @@ class KlarusHomepageManager {
       });
     });
 
-    // Header scroll effect
+    // Header scroll effect with color change
     let lastScrollTop = 0;
     const header = document.querySelector('.cs_site_header');
+    const mainHeader = document.querySelector('.cs_main_header');
+    const mainHeaderIn = document.querySelector('.cs_main_header_in');
     
     if (header) {
+      // Initialize navbar state on page load
+      const initializeNavbarState = () => {
+        const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+        if (scrollTop > 50) {
+          header.classList.add('cs_scrolled');
+          if (mainHeader) mainHeader.classList.add('cs_scrolled');
+          if (mainHeaderIn) mainHeaderIn.classList.add('cs_scrolled');
+        } else {
+          header.classList.remove('cs_scrolled');
+          if (mainHeader) mainHeader.classList.remove('cs_scrolled');
+          if (mainHeaderIn) mainHeaderIn.classList.remove('cs_scrolled');
+        }
+      };
+      
+      // Initialize on page load
+      initializeNavbarState();
+      
       window.addEventListener('scroll', () => {
         const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
         
+        // Add/remove scrolled class based on scroll position
+        if (scrollTop > 50) {
+          // Add scrolled class for blue background
+          header.classList.add('cs_scrolled');
+          if (mainHeader) mainHeader.classList.add('cs_scrolled');
+          if (mainHeaderIn) mainHeaderIn.classList.add('cs_scrolled');
+        } else {
+          // Remove scrolled class for white background
+          header.classList.remove('cs_scrolled');
+          if (mainHeader) mainHeader.classList.remove('cs_scrolled');
+          if (mainHeaderIn) mainHeaderIn.classList.remove('cs_scrolled');
+        }
+        
+        // Hide/show header on scroll direction (existing functionality)
         if (scrollTop > lastScrollTop && scrollTop > 100) {
           // Scrolling down
           header.classList.add('cs_scrolled_down');
