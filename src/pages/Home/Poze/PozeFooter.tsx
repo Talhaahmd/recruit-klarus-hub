@@ -79,8 +79,6 @@ const PozeFooter: React.FC = () => {
         </div>
         <div className="container cs_copyright_text cs_text_white text-center">
           <div className="cs_powered_by">Powered by Klarus AI</div>
-          &copy; Copyright 2025. Design by
-          <a href="https://themeforest.net/user/awesomethemez/portfolio" aria-label="Site link" target="_blank" rel="noreferrer" className="cs_site_link cs_text_accent"> AwesomeThemez</a>
         </div>
       </div>
     </footer>

@@ -1421,8 +1421,28 @@ body {
 }
 
 /* ===========================================
+   CONTACT SECTION OPTIMIZATION
+   =========================================== */
+.cs_contact {
+  position: relative !important;
+  z-index: 1 !important;
+}
+
+.cs_contact .cs_contact_thumb img {
+  max-height: 400px !important;
+  width: auto !important;
+  object-fit: contain !important;
+}
+
+/* ===========================================
    FOOTER STYLES
    =========================================== */
+.cs_site_footer {
+  position: relative !important;
+  z-index: 2 !important;
+  margin-top: 0 !important;
+}
+
 .cs_powered_by {
   font-size: 14px !important;
   color: #94a3b8 !important;
