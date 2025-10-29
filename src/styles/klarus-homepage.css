@@ -804,6 +804,63 @@ body {
     background-color: white !important;
   }
   
+  /* Mobile Menu Logo */
+  .cs_mobile_menu_logo {
+    text-align: center !important;
+    padding: 20px 0 15px 0 !important;
+    border-bottom: 1px solid #f0f0f0 !important;
+    margin-bottom: 10px !important;
+    list-style: none !important;
+  }
+  
+  .cs_mobile_logo {
+    height: 150px !important;
+    max-height: 1500px !important;
+    width: auto !important;
+  }
+  
+  /* Mobile Social Icons */
+  .cs_mobile_social_icons {
+    text-align: center !important;
+    padding: 15px 0 !important;
+    border-top: 1px solid #f0f0f0 !important;
+    border-bottom: 1px solid #f0f0f0 !important;
+    list-style: none !important;
+  }
+  
+  .cs_mobile_social_icons a {
+    display: inline-block !important;
+    margin: 0 15px !important;
+    font-size: 24px !important;
+    color: #2563eb !important;
+    transition: color 0.3s ease !important;
+    background: none !important;
+    padding: 0 !important;
+    border: none !important;
+  }
+  
+  .cs_mobile_social_icons a:hover {
+    color: #1d4ed8 !important;
+    background: none !important;
+    padding: 0 !important;
+  }
+  
+  /* Powered by Klarus AI */
+  .cs_mobile_powered_by {
+    text-align: center !important;
+    padding: 15px 0 !important;
+    background-color: #f8fafc !important;
+    border-top: 1px solid #e2e8f0 !important;
+    list-style: none !important;
+  }
+  
+  .cs_mobile_powered_by span {
+    font-size: 14px !important;
+    color: #64748b !important;
+    font-weight: 500 !important;
+    background: none !important;
+  }
+  
   /* Mobile close button */
   .cs_close_nav {
     position: absolute !important;
@@ -1349,4 +1406,27 @@ body {
     align-items: center !important;
     justify-content: center !important;
   }
+}
+
+/* ===========================================
+   DESKTOP STYLES - Hide mobile menu elements
+   =========================================== */
+@media screen and (min-width: 768px) {
+  /* Hide mobile menu elements on desktop */
+  .cs_mobile_menu_logo,
+  .cs_mobile_social_icons,
+  .cs_mobile_powered_by {
+    display: none !important;
+  }
+}
+
+/* ===========================================
+   FOOTER STYLES
+   =========================================== */
+.cs_powered_by {
+  font-size: 14px !important;
+  color: #94a3b8 !important;
+  font-weight: 500 !important;
+  font-style: italic !important;
+  margin-bottom: 10px !important;
 }

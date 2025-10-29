@@ -21,6 +21,14 @@ const PozeHeader: React.FC = () => {
             <div className="cs_main_header_center">
               <nav className="cs_nav cs_medium cs_primary_font">
                 <ul className="cs_nav_list cs_onepage_nav">
+                  {/* Mobile Menu Logo */}
+                  <li className="cs_mobile_menu_logo">
+                    <img 
+                      src="https://res.cloudinary.com/dt93sahp2/image/upload/v1761244578/freepik__background__64708_1_ilskfj.png" 
+                      alt="Klarus HR Logo" 
+                      className="cs_mobile_logo"
+                    />
+                  </li>
                   <li><a href="#home" aria-label="Menu link">Home</a></li>
                   <li><a href="#features" aria-label="Menu link">Features</a></li>
                   <li><a href="#testimonial" aria-label="Menu link">Testimonial</a></li>
@@ -30,6 +38,19 @@ const PozeHeader: React.FC = () => {
                   <li className="cs_mobile_auth_btns">
                     <Link to="/login" className="cs_login-btn">Login</Link>
                     <Link to="/signup" className="cs_signup-btn">Sign Up</Link>
+                  </li>
+                  {/* Mobile Social Icons */}
+                  <li className="cs_mobile_social_icons">
+                    <a href="https://www.instagram.com/" aria-label="Instagram" target="_blank" rel="noreferrer">
+                      <i className="fa-brands fa-instagram"></i>
+                    </a>
+                    <a href="https://www.linkedin.com/" aria-label="LinkedIn" target="_blank" rel="noreferrer">
+                      <i className="fa-brands fa-linkedin-in"></i>
+                    </a>
+                  </li>
+                  {/* Powered by Klarus AI */}
+                  <li className="cs_mobile_powered_by">
+                    <span>Powered by Klarus AI</span>
                   </li>
                 </ul>
                 <span className="cs_close_nav"></span>
