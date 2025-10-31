@@ -1,4 +1,5 @@
 import React from 'react';
+import whoImage from '../../../../imgs/screenshots/Klarus Multi-Screen Mockup.png';
 
 const UserFeatureSection: React.FC = () => {
   const userTypes = [
@@ -33,7 +34,7 @@ const UserFeatureSection: React.FC = () => {
           </div>
           <div className="col-xl-6 wow fadeInRight" data-wow-duration="0.8s" data-wow-delay="0.2s">
             <div className="cs_feature_thumb_1 text-center">
-              <img src="/imgs/screenshots/ATS Analysis MacBook Close-up Mockup.png" alt="Klarus HR AI Recruitment Features" />
+              <img src={whoImage} alt="Klarus HR AI Recruitment Features" />
             </div>
           </div>
         </div>

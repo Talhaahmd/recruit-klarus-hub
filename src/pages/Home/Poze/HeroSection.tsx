@@ -1,4 +1,5 @@
 import React from 'react';
+import heroMockup from '../../../../imgs/screenshots/Klarus Dashboard Stylish Blue Mockup.png';
 
 const HeroSection: React.FC = () => {
   return (
@@ -31,7 +32,7 @@ const HeroSection: React.FC = () => {
         </div>
         <div className="cs_height_107 cs_height_lg_60"></div>
         <div className="cs_hero_img wow fadeIn" data-wow-duration="0.8s" data-wow-delay="0.25s">
-          <img src="/imgs/screenshots/Klarus Dashboard Stylish Blue Mockup.png" alt="Klarus HR platform mockup" />
+          <img src={heroMockup} alt="Klarus HR platform mockup" />
         </div>
       </div>
       <div className="cs_hero_shape4"><img src="/poze-assets/img/polygon-3.svg" alt="Polygon Icon" /></div>
