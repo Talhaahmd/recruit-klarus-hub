@@ -47,7 +47,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const location = useLocation();
 
   // Recruitment restriction feature flag - set to true to restrict access
-  const isRecruitmentRestricted = true;
+  const isRecruitmentRestricted = false;
 
   const fetchProfile = async (userId: string) => {
     try {

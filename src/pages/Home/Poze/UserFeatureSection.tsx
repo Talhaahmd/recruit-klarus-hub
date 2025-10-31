@@ -33,7 +33,7 @@ const UserFeatureSection: React.FC = () => {
           </div>
           <div className="col-xl-6 wow fadeInRight" data-wow-duration="0.8s" data-wow-delay="0.2s">
             <div className="cs_feature_thumb_1 text-center">
-              <img src="https://res.cloudinary.com/dt93sahp2/image/upload/v1761248944/Untitled_design_1_csns8i.png" alt="Klarus HR AI Recruitment Features" />
+              <img src="/imgs/screenshots/ATS Analysis MacBook Close-up Mockup.png" alt="Klarus HR AI Recruitment Features" />
             </div>
           </div>
         </div>

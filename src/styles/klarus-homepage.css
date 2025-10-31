@@ -1450,3 +1450,158 @@ body {
   font-style: italic !important;
   margin-bottom: 10px !important;
 }
+
+/* ===========================================
+   TESTIMONIAL CAROUSEL (multi-slide)
+   =========================================== */
+.cs_testimonial_carousel {
+  position: relative !important;
+  overflow: hidden !important;
+  width: 100% !important;
+}
+
+.cs_testimonial_track {
+  display: flex !important;
+  gap: 24px !important; /* spacing between cards */
+  padding: 0 8px !important; /* slight gutter */
+  transition: transform 500ms cubic-bezier(0.22, 1, 0.36, 1) !important;
+  will-change: transform !important;
+}
+
+/* Use CSS var --spv set by component to size slides */
+.cs_testimonial_slide {
+  flex: 0 0 calc((100% / var(--spv, 1)) - (24px * (var(--spv, 1) - 1) / var(--spv, 1))) !important;
+  box-sizing: border-box !important;
+}
+
+/* Card appearance */
+.cs_testimonial_slide .cs_testimonial {
+  background: #ffffff !important;
+  color: #0f172a !important;
+  border-radius: 14px !important;
+  box-shadow: 0 8px 24px rgba(2, 6, 23, 0.08) !important;
+}
+.cs_testimonial_slide .cs_client_name,
+.cs_testimonial_slide .cs_client_review,
+.cs_testimonial_slide .cs_client_meta p {
+  color: #0f172a !important;
+}
+
+/* Nav arrows */
+.cs_carousel_nav {
+  position: absolute !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+  width: 40px !important;
+  height: 40px !important;
+  border-radius: 9999px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  background: rgba(15, 23, 42, 0.6) !important;
+  color: #ffffff !important;
+  border: none !important;
+  cursor: pointer !important;
+  z-index: 5 !important;
+  transition: background 200ms ease !important;
+}
+.cs_carousel_nav:hover { background: rgba(15, 23, 42, 0.8) !important; }
+.cs_carousel_nav.cs_prev { left: 8px !important; }
+.cs_carousel_nav.cs_next { right: 8px !important; }
+.cs_carousel_nav i { pointer-events: none !important; }
+
+/* Dots */
+.cs_carousel_dots {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 8px !important;
+  margin-top: 18px !important;
+}
+.cs_carousel_dot {
+  width: 8px !important;
+  height: 8px !important;
+  border-radius: 9999px !important;
+  background: #cbd5e1 !important;
+  border: 0 !important;
+  padding: 0 !important;
+  cursor: pointer !important;
+}
+.cs_carousel_dot.cs_active { background: var(--accent, #2563eb) !important; }
+
+/* Responsive tweaks */
+@media screen and (max-width: 991px) {
+  .cs_carousel_nav { width: 36px !important; height: 36px !important; }
+}
+@media screen and (max-width: 767px) {
+  .cs_testimonial_track { gap: 16px !important; padding: 0 4px !important; }
+  .cs_carousel_nav { display: none !important; } /* cleaner mobile look like screenshot */
+}
+
+/* ===========================================
+   HERO SIZE OPTIMIZATION
+   =========================================== */
+/* Limit hero mockup height and tighten spacing */
+.cs_hero .cs_hero_img img {
+  max-height: 70vh !important;
+  width: auto !important;
+  height: auto !important;
+  object-fit: contain !important;
+  display: block !important;
+  margin: 0 auto !important;
+}
+/* Reduce the big spacer inside hero */
+.cs_hero .cs_height_107 { height: 24px !important; }
+/* Keep hero section compact */
+.cs_hero.cs_style_1.cs_type_1 {
+  padding-top: 32px !important;
+  padding-bottom: 32px !important;
+}
+
+/* HERO width tuning */
+.cs_hero .cs_hero_img { text-align: center !important; }
+.cs_hero .cs_hero_img img {
+  width: min(90vw, 1100px) !important; /* make it wider */
+  max-height: 65vh !important; /* keep hero fully visible */
+  height: auto !important;
+  object-fit: contain !important;
+}
+@media screen and (max-width: 991px) {
+  .cs_hero .cs_hero_img img { width: min(92vw, 900px) !important; max-height: 60vh !important; }
+}
+@media screen and (max-width: 767px) {
+  .cs_hero .cs_hero_img img { width: 94vw !important; max-height: 56vh !important; }
+}
+
+/* ===========================================
+   IMAGE PLACEHOLDER ENHANCEMENTS (Homepage)
+   =========================================== */
+/* Apply card-like styling to key showcase images */
+.cs_hero .cs_hero_img img,
+.cs_user_feature .cs_feature_thumb_1 img,
+.cs_contact .cs_contact_thumb img {
+  border-radius: 16px !important;
+  background: #ffffff !important;
+  box-shadow: 0 12px 32px rgba(2, 6, 23, 0.12) !important;
+  border: 1px solid rgba(15, 23, 42, 0.06) !important;
+  transition: transform 220ms ease, box-shadow 220ms ease !important;
+}
+
+/* Subtle hover lift (desktop only) */
+@media (hover: hover) and (pointer: fine) {
+  .cs_hero .cs_hero_img img:hover,
+  .cs_user_feature .cs_feature_thumb_1 img:hover,
+  .cs_contact .cs_contact_thumb img:hover {
+    transform: translateY(-2px) scale(1.01) !important;
+    box-shadow: 0 16px 40px rgba(2, 6, 23, 0.16) !important;
+  }
+}
+
+/* Tighter rounding on small screens for balance */
+@media screen and (max-width: 767px) {
+  .cs_hero .cs_hero_img img,
+  .cs_user_feature .cs_feature_thumb_1 img,
+  .cs_contact .cs_contact_thumb img {
+    border-radius: 12px !important;
+  }
+}
