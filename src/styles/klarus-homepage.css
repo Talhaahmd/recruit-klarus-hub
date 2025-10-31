@@ -1454,19 +1454,16 @@ body {
 /* ===========================================
    TESTIMONIAL CAROUSEL (multi-slide)
    =========================================== */
-.cs_testimonial_carousel {
-  position: relative !important;
-  overflow: hidden !important;
-  width: 100% !important;
-}
-
-.cs_testimonial_track {
-  display: flex !important;
-  gap: 24px !important; /* spacing between cards */
-  padding: 0 8px !important; /* slight gutter */
-  transition: transform 500ms cubic-bezier(0.22, 1, 0.36, 1) !important;
-  will-change: transform !important;
-}
+/* TESTIMONIAL LAYOUT REFINEMENT */
+.cs_testimonial_carousel { position: relative !important; overflow: hidden !important; width: 100% !important; }
+.cs_testimonial_track { display: flex !important; flex-wrap: nowrap !important; gap: 0 !important; }
+.cs_testimonial_slide { flex: 0 0 calc(100% / var(--spv, 1)) !important; max-width: calc(100% / var(--spv, 1)) !important; box-sizing: border-box !important; padding: 0 !important; }
+.cs_testimonial_slide .cs_testimonial { margin: 0 12px !important; }
+@media screen and (max-width: 767px) { .cs_testimonial_slide .cs_testimonial { margin: 0 6px !important; } }
+.cs_testimonial_slide { transition: transform 420ms var(--ease-smooth), opacity 420ms var(--ease-smooth) !important; opacity: 0.95 !important; }
+.cs_testimonial_slide.cs_near .cs_testimonial { transform: scale(1.01) !important; box-shadow: var(--shadow-md) !important; }
+.cs_testimonial_slide.cs_center .cs_testimonial { transform: scale(1.03) !important; box-shadow: var(--shadow-lg) !important; }
+.cs_testimonial_slide.cs_center { opacity: 1 !important; }
 
 /* Use CSS var --spv set by component to size slides */
 .cs_testimonial_slide {
@@ -1605,3 +1602,384 @@ body {
     border-radius: 12px !important;
   }
 }
+
+/* ===========================================
+   HERO MOTION & SPACING REFINEMENT
+   =========================================== */
+/* Refined spacing for hero text block */
+.cs_hero.cs_style_1.cs_type_1 .cs_hero_text { margin-top: var(--space-6) !important; margin-bottom: var(--space-6) !important; }
+
+/* Mockup hover tilt (desktop only) */
+@media (hover: hover) and (pointer: fine) {
+  .cs_hero .cs_hero_img { perspective: 1200px !important; }
+  .cs_hero .cs_hero_img img {
+    transition: transform var(--dur-slow) var(--ease-smooth), box-shadow var(--dur-med) var(--ease-smooth) !important;
+    transform-style: preserve-3d !important;
+  }
+  .cs_hero .cs_hero_img img:hover {
+    transform: rotateX(2.2deg) rotateY(-3.2deg) translateZ(0) !important;
+    box-shadow: var(--shadow-lg) !important;
+  }
+}
+
+/* Entrance animations (respect reduced motion) */
+@media (prefers-reduced-motion: no-preference) {
+  .cs_hero .cs_hero_title { opacity: 0; transform: translateY(10px); animation: heroIn var(--dur-slow) var(--ease-smooth) 120ms forwards; }
+  .cs_hero .cs_hero_subtitle { opacity: 0; transform: translateY(12px); animation: heroIn var(--dur-slow) var(--ease-smooth) 220ms forwards; }
+  .cs_hero .cs_btn_group { opacity: 0; transform: translateY(14px); animation: heroIn var(--dur-slow) var(--ease-smooth) 320ms forwards; }
+  .cs_hero .cs_hero_img { opacity: 0; transform: translateY(16px); animation: heroIn var(--dur-slow) var(--ease-smooth) 420ms forwards; }
+}
+@keyframes heroIn { to { opacity: 1; transform: translateY(0); } }
+
+/* Parallax-ready background accents */
+.cs_hero .cs_hero_bg_shape, .cs_hero .cs_hero_shape4, .cs_hero .cs_hero_shape5 { will-change: transform !important; }
+
+/* ===========================================
+   GLOBAL TOKENS & UTILITIES
+   =========================================== */
+:root {
+  /* color system */
+  --bg: #ffffff;
+  --surface: #f8fafc;
+  --text: #0f172a;
+  --muted: #475569;
+  --border: rgba(15, 23, 42, 0.10);
+  --accent: #2563eb; /* already used elsewhere */
+  --accent-2: #1e40af;
+  --success: #16a34a;
+  --warning: #f59e0b;
+  --danger: #dc2626;
+
+  /* radii */
+  --radius-sm: 10px;
+  --radius-md: 14px;
+  --radius-lg: 16px;
+
+  /* elevation */
+  --shadow-sm: 0 4px 12px rgba(2, 6, 23, 0.08);
+  --shadow-md: 0 8px 24px rgba(2, 6, 23, 0.12);
+  --shadow-lg: 0 18px 48px rgba(2, 6, 23, 0.16);
+
+  /* spacing scale */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+
+  /* timing & easing */
+  --ease-smooth: cubic-bezier(0.22, 1, 0.36, 1);
+  --dur-fast: 160ms;
+  --dur-med: 260ms;
+  --dur-slow: 420ms;
+}
+
+/******** Typography & containers ********/
+.cs_section_title { letter-spacing: -0.02em !important; }
+.cs_section_subtitle { color: var(--muted) !important; }
+.container { max-width: 1200px !important; }
+
+/******** Reusable utilities ********/
+.card {
+  background: #fff !important;
+  border-radius: var(--radius-md) !important;
+  box-shadow: var(--shadow-md) !important;
+  border: 1px solid var(--border) !important;
+}
+.elevate-sm { box-shadow: var(--shadow-sm) !important; }
+.elevate-lg { box-shadow: var(--shadow-lg) !important; }
+.rounded-sm { border-radius: var(--radius-sm) !important; }
+.rounded-md { border-radius: var(--radius-md) !important; }
+.rounded-lg { border-radius: var(--radius-lg) !important; }
+.hover-lift { transition: transform var(--dur-med) var(--ease-smooth), box-shadow var(--dur-med) var(--ease-smooth) !important; }
+.hover-lift:hover { transform: translateY(-2px) !important; box-shadow: var(--shadow-lg) !important; }
+.divider { height: 1px !important; background: var(--border) !important; width: 100% !important; }
+
+/******** Focus-visible for accessibility ********/
+:focus-visible {
+  outline: 3px solid rgba(37, 99, 235, 0.65) !important;
+  outline-offset: 2px !important;
+  border-radius: 8px !important;
+}
+
+/******** Section spacing normalization ********/
+.cs_section_heading + .cs_height_85 { height: var(--space-8) !important; }
+@media (max-width: 767px) {
+  .container { padding-left: 16px !important; padding-right: 16px !important; }
+}
+
+/* ===========================================
+   HEADER / NAV POLISH
+   =========================================== */
+/* Subtle shadow and background tint on scroll */
+.cs_site_header.cs_scrolled, .cs_main_header.cs_scrolled, .cs_main_header_in.cs_scrolled {
+  box-shadow: var(--shadow-sm) !important;
+  background: rgba(255, 255, 255, 0.92) !important;
+  backdrop-filter: saturate(1.2) blur(6px) !important;
+}
+
+/* Nav link styles */
+.cs_nav .cs_nav_list > li > a {
+  position: relative !important;
+  color: var(--text) !important;
+  transition: color var(--dur-fast) var(--ease-smooth) !important;
+}
+.cs_nav .cs_nav_list > li > a::after {
+  content: "";
+  position: absolute !important;
+  left: 10% !important;
+  right: 10% !important;
+  bottom: -8px !important;
+  height: 2px !important;
+  background: var(--accent) !important;
+  transform: scaleX(0) !important;
+  transform-origin: center !important;
+  transition: transform var(--dur-med) var(--ease-smooth) !important;
+}
+.cs_nav .cs_nav_list > li > a:hover::after,
+.cs_nav .cs_nav_list > li > a.cs_active::after {
+  transform: scaleX(1) !important;
+}
+
+/* Ensure contrast when header is blue scrolled state (we already toggle classes) */
+.cs_site_header.cs_scrolled .cs_nav .cs_nav_list > li > a { color: var(--text) !important; }
+
+/* Mobile menu reveal (staggered) */
+@media screen and (max-width: 991px) {
+  .cs_nav .cs_nav_list.cs_active > li { opacity: 0; transform: translateX(-8px); transition: opacity var(--dur-med) var(--ease-smooth), transform var(--dur-med) var(--ease-smooth); }
+  .cs_nav .cs_nav_list.cs_active > li:nth-child(1) { transition-delay: 30ms; }
+  .cs_nav .cs_nav_list.cs_active > li:nth-child(2) { transition-delay: 60ms; }
+  .cs_nav .cs_nav_list.cs_active > li:nth-child(3) { transition-delay: 90ms; }
+  .cs_nav .cs_nav_list.cs_active > li:nth-child(4) { transition-delay: 120ms; }
+  .cs_nav .cs_nav_list.cs_active > li:nth-child(5) { transition-delay: 150ms; }
+  .cs_nav .cs_nav_list.cs_active > li:nth-child(6) { transition-delay: 180ms; }
+  .cs_nav .cs_nav_list.cs_active > li:nth-child(7) { transition-delay: 210ms; }
+  .cs_nav .cs_nav_list.cs_active > li { opacity: 1; transform: translateX(0); }
+}
+
+/* ===========================================
+   FEATURE CARDS & USER SECTION POLISH
+   =========================================== */
+/* Grid cards (style_1) */
+.cs_iconbox.cs_style_1.cs_type_1 {
+  background: #ffffff !important;
+  border: 1px solid var(--border) !important;
+  border-radius: var(--radius-md) !important;
+  padding: 22px 18px !important;
+  box-shadow: var(--shadow-sm) !important;
+  transition: transform var(--dur-med) var(--ease-smooth), box-shadow var(--dur-med) var(--ease-smooth) !important;
+}
+.cs_iconbox.cs_style_1.cs_type_1:hover { transform: translateY(-4px) !important; box-shadow: var(--shadow-md) !important; }
+.cs_iconbox.cs_style_1 .cs_iconbox_icon {
+  width: 52px !important; height: 52px !important; border-radius: 12px !important;
+  background: linear-gradient(180deg, rgba(37,99,235,0.18), rgba(37,99,235,0.06)) !important;
+  display: inline-flex !important; align-items: center !important; justify-content: center !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.8) !important;
+}
+.cs_iconbox.cs_style_1 .cs_iconbox_title { margin-top: 14px !important; }
+
+/* About/features (style_2) */
+.cs_iconbox.cs_style_2 {
+  background: #ffffff !important;
+  border: 1px solid var(--border) !important;
+  border-radius: var(--radius-md) !important;
+  padding: 18px 16px !important;
+  box-shadow: var(--shadow-sm) !important;
+  transition: transform var(--dur-med) var(--ease-smooth), box-shadow var(--dur-med) var(--ease-smooth) !important;
+}
+.cs_iconbox.cs_style_2:hover { transform: translateY(-3px) !important; box-shadow: var(--shadow-md) !important; }
+.cs_iconbox.cs_style_2 .cs_number_box { border-radius: 10px !important; }
+
+/* User list polish */
+.cs_user_feature .cs_user_feature_item {
+  background: #ffffff !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 12px !important;
+  padding: 10px 12px !important;
+  box-shadow: var(--shadow-sm) !important;
+  transition: transform var(--dur-fast) var(--ease-smooth), box-shadow var(--dur-fast) var(--ease-smooth) !important;
+}
+.cs_user_feature .cs_user_feature_item + .cs_user_feature_item { margin-top: 10px !important; }
+.cs_user_feature .cs_user_feature_item:hover { transform: translateY(-2px) !important; box-shadow: var(--shadow-md) !important; }
+.cs_user_feature .cs_list_icon { margin-right: 10px !important; }
+
+/* ===========================================
+   REVEAL UTILITIES & TILT BASE
+   =========================================== */
+/* Reveal up utility */
+.reveal-up { opacity: 0; transform: translateY(12px); }
+.reveal-up.is-revealed { opacity: 1; transform: translateY(0); transition: opacity var(--dur-slow) var(--ease-smooth), transform var(--dur-slow) var(--ease-smooth) !important; }
+
+/* Add reveal class to feature cards and user items by default; JS will toggle is-revealed */
+.cs_iconbox.cs_style_1.cs_type_1,
+.cs_iconbox.cs_style_2,
+.cs_user_feature .cs_user_feature_item { will-change: transform, opacity !important; }
+
+/* Tilt base cursor hint */
+.tilt-on-hover { transform-style: preserve-3d !important; }
+
+/* USER FEATURE CHIP LAYOUT FIX */
+.cs_user_feature .cs_user_feature_item {
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+  padding: 12px 14px !important;
+  max-width: 100% !important;
+  overflow: hidden !important;
+  contain: layout paint !important;
+}
+.cs_user_feature .cs_user_feature_item .cs_list_icon { flex: 0 0 auto !important; width: 26px !important; height: 26px !important; display: inline-flex !important; align-items: center !important; justify-content: center !important; border-radius: 9999px !important; background: #f1f5f9 !important; }
+.cs_user_feature .cs_user_feature_item .cs_list_icon img { width: 14px !important; height: 14px !important; }
+.cs_user_feature .cs_user_feature_item .cs_list_text {
+  flex: 1 1 auto !important;
+  min-width: 0 !important; /* allow text to wrap inside flex */
+  white-space: normal !important;
+  overflow-wrap: anywhere !important;
+}
+@media screen and (max-width: 767px) {
+  .cs_user_feature .cs_user_feature_item { padding: 10px 12px !important; }
+}
+
+/* USER FEATURE CHIP READABILITY FIX */
+.cs_user_feature .cs_user_feature_item { position: relative !important; }
+.cs_user_feature .cs_user_feature_item .cs_list_icon {
+  position: static !important; /* override any absolute from template */
+  margin-left: 0 !important;
+  margin-right: 10px !important;
+}
+.cs_user_feature .cs_user_feature_item .cs_list_text {
+  display: block !important;
+  line-height: 1.35 !important;
+}
+/* In case base CSS uses pseudo elements, neutralize them */
+.cs_user_feature .cs_user_feature_item .cs_list_text::before,
+.cs_user_feature .cs_user_feature_item .cs_list_text::after { content: none !important; }
+
+/* TESTIMONIAL INTERACTIVITY ENHANCEMENTS */
+.cs_testimonial_slide .cs_testimonial {
+  transition: transform 360ms var(--ease-smooth), box-shadow 360ms var(--ease-smooth) !important;
+}
+@media (hover: hover) and (pointer: fine) {
+  .cs_testimonial_slide .cs_testimonial:hover { transform: translateY(-3px) !important; box-shadow: var(--shadow-lg) !important; }
+}
+/* Active dot emphasis */
+.cs_carousel_dot { transition: transform 200ms var(--ease-smooth), background 200ms var(--ease-smooth) !important; }
+.cs_carousel_dot.cs_active { transform: scale(1.25) !important; }
+/* Animate nav buttons */
+.cs_carousel_nav { transition: transform 180ms var(--ease-smooth), background 180ms var(--ease-smooth) !important; }
+.cs_carousel_nav:hover { transform: scale(1.06) !important; }
+/* Wrapper animating state (slightly increase motion blur feel) */
+.cs_testimonial_carousel.cs_animating .cs_testimonial_track { transition-duration: 680ms !important; }
+
+/* TESTIMONIAL SCROLL-SNAP MODE */
+.cs_testimonial_carousel.cs_scroll_mode .cs_testimonial_track {
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+  scroll-snap-type: x mandatory !important;
+  -webkit-overflow-scrolling: touch !important;
+}
+.cs_testimonial_carousel.cs_scroll_mode .cs_testimonial_slide { scroll-snap-align: center !important; }
+.cs_testimonial_carousel.cs_scroll_mode .cs_testimonial_track { transform: none !important; transition: none !important; }
+/* Hide scrollbar (non-essential) */
+.cs_testimonial_carousel.cs_scroll_mode .cs_testimonial_track::-webkit-scrollbar { display: none !important; }
+.cs_testimonial_carousel.cs_scroll_mode .cs_testimonial_track { scrollbar-width: none !important; }
+
+/* ===========================================
+   BRANDS MARQUEE
+   =========================================== */
+.cs_brands_marquee { position: relative !important; overflow: hidden !important; }
+.cs_brands_track {
+  display: flex !important; align-items: center !important; gap: 48px !important;
+  width: max-content !important; opacity: 0; /* will become 1 when ready */
+  animation: brandsRun 28s linear infinite;
+}
+.cs_brands_track.is-paused { animation-play-state: paused !important; }
+.cs_brands_track.is-ready { opacity: 1; }
+.cs_brand img { height: 34px !important; width: auto !important; filter: grayscale(1) contrast(0.9) !important; opacity: 0.8 !important; transition: filter 200ms var(--ease-smooth), opacity 200ms var(--ease-smooth) !important; }
+.cs_brand img:hover { filter: grayscale(0) contrast(1) !important; opacity: 1 !important; }
+@keyframes brandsRun { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+@media (prefers-reduced-motion: reduce) {
+  .cs_brands_track { animation: none !important; }
+}
+
+/* ===========================================
+   CTA ENHANCEMENT
+   =========================================== */
+.cs_cta.cs_style_1 {
+  background: linear-gradient(135deg, #2563eb 0%, #1e40af 60%, #0ea5e9 100%) !important;
+  border-radius: var(--radius-lg) !important;
+  padding: 48px 24px !important;
+  overflow: hidden !important;
+  box-shadow: var(--shadow-lg) !important;
+}
+.cs_cta.cs_style_1 .cs_section_title { color: #fff !important; letter-spacing: -0.02em !important; }
+.cs_cta.cs_style_1 .cs_section_subtitle { color: rgba(255,255,255,0.85) !important; }
+
+/* Sheen */
+.cs_cta.cs_style_1::before {
+  content: ""; position: absolute !important; inset: -40% -60% auto -60% !important; height: 300% !important;
+  background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.25) 50%, rgba(255,255,255,0) 100%) !important;
+  transform: translateX(-30%) rotate(20deg);
+  animation: ctaSheen 6s linear infinite;
+  pointer-events: none !important;
+}
+@keyframes ctaSheen { from { transform: translateX(-30%) rotate(20deg); } to { transform: translateX(60%) rotate(20deg); } }
+
+/* Buttons */
+.cs_cta .cs_btn_group .cs_btn { margin: 6px 8px !important; transform: translateZ(0); transition: transform var(--dur-med) var(--ease-smooth), box-shadow var(--dur-med) var(--ease-smooth) !important; }
+.cs_cta .cs_btn_group .cs_btn:hover { transform: translateY(-2px); box-shadow: var(--shadow-md) !important; }
+.cs_cta .cs_btn_group .cs_bg_white { color: var(--text) !important; }
+
+@media screen and (max-width: 767px) {
+  .cs_cta.cs_style_1 { padding: 32px 18px !important; }
+}
+
+/* ===========================================
+   FAQ ACCESSIBLE ACCORDION
+   =========================================== */
+.cs_accordian_wrap .cs_accordian { border: 1px solid var(--border) !important; border-radius: var(--radius-md) !important; box-shadow: var(--shadow-sm) !important; background: #fff !important; overflow: hidden !important; }
+.cs_accordian + .cs_accordian { margin-top: 14px !important; }
+.cs_accordian_title { margin: 0 !important; }
+.cs_accordian_button { all: unset; display: flex !important; align-items: center !important; justify-content: space-between !important; width: 100% !important; cursor: pointer !important; padding: 16px 18px !important; font-weight: 600 !important; color: var(--text) !important; }
+.cs_accordian_button:focus-visible { outline: 3px solid rgba(37, 99, 235, 0.65) !important; outline-offset: 2px !important; border-radius: 8px !important; }
+.cs_accordian_toggle { display: inline-flex !important; width: 24px !important; height: 24px !important; align-items: center !important; justify-content: center !important; transition: transform var(--dur-med) var(--ease-smooth) !important; }
+.cs_accordian.active .cs_accordian_toggle { transform: rotate(180deg) !important; }
+.cs_accordian_body { overflow: hidden !important; transition: max-height var(--dur-slow) var(--ease-smooth) !important; }
+.cs_accordian_body_in { padding: 0 18px 16px 18px !important; color: var(--muted) !important; }
+
+/* ===========================================
+   CONTACT FORM POLISH
+   =========================================== */
+.cs_contact .container .row .cs_section_heading + .cs_height_30 { height: 20px !important; }
+.cs_contact form { background: #ffffff !important; border: 1px solid var(--border) !important; border-radius: var(--radius-lg) !important; box-shadow: var(--shadow-md) !important; padding: 18px !important; }
+.cs_contact .cs_form_field { width: 100% !important; border: 1px solid var(--border) !important; border-radius: 10px !important; background: #fff !important; color: var(--text) !important; transition: box-shadow var(--dur-med) var(--ease-smooth), border-color var(--dur-med) var(--ease-smooth) !important; }
+.cs_contact .cs_form_field:focus { border-color: rgba(37,99,235,0.55) !important; box-shadow: 0 0 0 4px rgba(37,99,235,0.18) !important; outline: none !important; }
+.cs_contact .cs_form_field:invalid { border-color: rgba(220,38,38,0.6) !important; }
+.cs_contact .cs_btn.cs_bg_accent { box-shadow: var(--shadow-sm) !important; transition: transform var(--dur-med) var(--ease-smooth), box-shadow var(--dur-med) var(--ease-smooth) !important; }
+.cs_contact .cs_btn.cs_bg_accent:hover { transform: translateY(-2px) !important; box-shadow: var(--shadow-md) !important; }
+/* Result area styling */
+#cs_result { margin-top: 10px !important; color: var(--muted) !important; font-size: 14px !important; }
+
+/* ===========================================
+   FOOTER REFINEMENTS (no bg change)
+   =========================================== */
+.cs_site_footer .container { padding-top: 28px !important; padding-bottom: 22px !important; }
+.cs_site_footer .cs_footer_logo_responsive, .cs_site_footer .cs_site_branding img { max-height: 56px !important; width: auto !important; display: inline-block !important; }
+/* Divider */
+.cs_site_footer .cs_divider { height: 1px !important; background: rgba(148,163,184,0.22) !important; margin: 18px 0 !important; }
+/* Social icons */
+.cs_site_footer .cs_social_btn.cs_style_1 a { width: 36px !important; height: 36px !important; border-radius: 9999px !important; display: inline-flex !important; align-items: center !important; justify-content: center !important; background: rgba(255,255,255,0.06) !important; transition: transform var(--dur-fast) var(--ease-smooth), background var(--dur-fast) var(--ease-smooth) !important; }
+.cs_site_footer .cs_social_btn.cs_style_1 a:hover { transform: translateY(-2px) !important; background: rgba(255,255,255,0.16) !important; }
+/* Legal row */
+.cs_site_footer .cs_legal { display: flex !important; align-items: center !important; justify-content: space-between !important; gap: 12px !important; font-size: 13px !important; }
+.cs_site_footer .cs_legal a { text-decoration: underline transparent !important; transition: text-decoration-color var(--dur-fast) var(--ease-smooth) !important; }
+.cs_site_footer .cs_legal a:hover { text-decoration-color: currentColor !important; }
+@media screen and (max-width: 767px) { .cs_site_footer .cs_legal { flex-direction: column !important; align-items: flex-start !important; } }
+
+/* HERO header clearance */
+.cs_hero.cs_style_1.cs_type_1 { padding-top: 88px !important; }
+@media screen and (max-width: 991px) { .cs_hero.cs_style_1.cs_type_1 { padding-top: 64px !important; } }
+@media screen and (max-width: 767px) { .cs_hero.cs_style_1.cs_type_1 { padding-top: 48px !important; } }

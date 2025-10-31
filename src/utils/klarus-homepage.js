@@ -378,3 +378,137 @@ window.KlarusHomepage = klarusHomepage;
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = KlarusHomepageManager;
 }
+
+// Active link highlighting using IntersectionObserver
+(function () {
+  if (typeof window === 'undefined' || !('IntersectionObserver' in window)) return;
+  const prefersReduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const sections = document.querySelectorAll('section[id], div[id]');
+  const navLinks = Array.from(document.querySelectorAll('.cs_nav .cs_nav_list > li > a'));
+  if (!sections.length || !navLinks.length) return;
+
+  const map = new Map();
+  navLinks.forEach((a) => {
+    const h = (a.getAttribute('href') || '').replace('#', '');
+    if (h) map.set(h, a);
+  });
+
+  const setActive = (id) => {
+    navLinks.forEach((a) => a.classList.remove('cs_active'));
+    const link = map.get(id);
+    if (link) link.classList.add('cs_active');
+  };
+
+  const io = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          setActive(entry.target.id);
+        }
+      });
+    },
+    { rootMargin: '-35% 0px -55% 0px', threshold: prefersReduced ? 0.25 : 0.5 }
+  );
+
+  sections.forEach((s) => io.observe(s));
+})();
+
+// Hero parallax for background shapes (lightweight)
+(function () {
+  if (typeof window === 'undefined') return;
+  const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (reduce) return;
+  const hero = document.querySelector('.cs_hero');
+  if (!hero) return;
+  const shapeBg = hero.querySelector('.cs_hero_bg_shape');
+  const shape4 = hero.querySelector('.cs_hero_shape4');
+  const shape5 = hero.querySelector('.cs_hero_shape5');
+  if (!shapeBg && !shape4 && !shape5) return;
+
+  let ticking = false;
+  const reset = () => {
+    if (shapeBg) shapeBg.style.transform = 'translateX(-50%)';
+    if (shape4) shape4.style.transform = 'none';
+    if (shape5) shape5.style.transform = 'none';
+  };
+
+  const onScroll = () => {
+    if (ticking) return;
+    ticking = true;
+    requestAnimationFrame(() => {
+      if (window.scrollY < 12) { reset(); ticking = false; return; }
+      const rect = hero.getBoundingClientRect();
+      const progress = Math.min(1, Math.max(0, (window.innerHeight - rect.top) / (window.innerHeight + rect.height)));
+      const y1 = (progress - 0.5) * 18; // subtle
+      const y2 = (progress - 0.5) * 28;
+      if (shapeBg) shapeBg.style.transform = `translate(-50%, ${y1}px)`;
+      if (shape4) shape4.style.transform = `translate3d(0, ${y2}px, 0)`;
+      if (shape5) shape5.style.transform = `translate3d(0, ${-y2}px, 0)`;
+      ticking = false;
+    });
+  };
+  window.addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
+})();
+
+// Reveal feature/user cards on scroll and add tilt-on-hover
+(function () {
+  if (typeof window === 'undefined') return;
+  const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // Reveal
+  const revealTargets = Array.from(document.querySelectorAll('.cs_iconbox.cs_style_1.cs_type_1, .cs_iconbox.cs_style_2, .cs_user_feature .cs_user_feature_item'));
+  revealTargets.forEach((el) => el.classList.add('reveal-up'));
+  if ('IntersectionObserver' in window) {
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach((e) => {
+        if (e.isIntersecting) {
+          e.target.classList.add('is-revealed');
+          io.unobserve(e.target);
+        }
+      });
+    }, { rootMargin: '0px 0px -10% 0px', threshold: reduce ? 0.1 : 0.25 });
+    revealTargets.forEach((el) => io.observe(el));
+  } else {
+    revealTargets.forEach((el) => el.classList.add('is-revealed'));
+  }
+
+  // Tilt
+  if (reduce) return;
+  const tiltTargets = Array.from(document.querySelectorAll('.cs_iconbox.cs_style_1.cs_type_1, .cs_user_feature .cs_user_feature_item'));
+  tiltTargets.forEach((card) => {
+    card.classList.add('tilt-on-hover');
+    const onMove = (e) => {
+      const rect = card.getBoundingClientRect();
+      const cx = rect.left + rect.width / 2;
+      const cy = rect.top + rect.height / 2;
+      const dx = (e.clientX - cx) / (rect.width / 2);
+      const dy = (e.clientY - cy) / (rect.height / 2);
+      const rotateX = Math.max(-6, Math.min(6, -dy * 6));
+      const rotateY = Math.max(-6, Math.min(6, dx * 6));
+      card.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+    };
+    const onLeave = () => {
+      card.style.transform = 'rotateX(0deg) rotateY(0deg)';
+    };
+    card.addEventListener('mousemove', onMove);
+    card.addEventListener('mouseleave', onLeave);
+  });
+})();
+
+// Contact form result helper (non-blocking)
+(function () {
+  if (typeof window === 'undefined') return;
+  const form = document.getElementById('cs_form');
+  const result = document.getElementById('cs_result');
+  if (!form || !result) return;
+  let timer;
+  form.addEventListener('submit', function () {
+    clearTimeout(timer);
+    result.textContent = 'Sending...';
+    timer = setTimeout(() => {
+      result.textContent = 'Submitted. Thank you!';
+      setTimeout(() => { result.textContent = ''; }, 3500);
+    }, 1800);
+  });
+})();
