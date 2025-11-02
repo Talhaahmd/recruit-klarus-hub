@@ -1,4 +1,5 @@
 import React from 'react';
+import aboutImage from '../../../../imgs/screenshots/Global Recruitment Illustration.png';
 
 const SoftwareFeaturesSection: React.FC = () => {
   const features = [
@@ -30,7 +31,7 @@ const SoftwareFeaturesSection: React.FC = () => {
         <div className="row align-items-center cs_gap_y_40">
           <div className="col-xl-6 wow fadeInLeft" data-wow-duration="0.8s" data-wow-delay="0.2s">
             <div className="cs_pr_45 text-center">
-              <img src="https://res.cloudinary.com/dt93sahp2/image/upload/v1760138185/freepik__background__12895_vvm7uc.png" alt="Klarus HR AI Recruitment Platform" />
+              <img src={aboutImage} alt="Klarus HR AI Recruitment Platform" />
             </div>
           </div>
           <div className="col-xl-6 wow fadeIn" data-wow-duration="0.8s" data-wow-delay="0.2s">
