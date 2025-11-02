@@ -1,5 +1,5 @@
 import React from 'react';
-import heroMockup from '../../../../imgs/screenshots/Klarus Dashboard Stylish Blue Mockup.png';
+import heroMockup from '../../../../imgs/screenshots/Klarus Dashboard Clean Mockup.png';
 
 const HeroSection: React.FC = () => {
   return (
