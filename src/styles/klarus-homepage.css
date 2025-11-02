@@ -325,7 +325,7 @@ body {
     position: absolute !important;
     left: 50% !important;
     transform: translateX(-50%) !important;
-    top: -15px !important;
+    top: -32px !important; /* was higher negative to push up */
     z-index: 103 !important;
     width: auto !important;
   }
@@ -1761,6 +1761,28 @@ body {
 }
 
 /* ===========================================
+   COMPACT HEADER FOR DESKTOP
+   =========================================== */
+/* Desktop & Tablet */
+@media screen and (min-width: 768px) {
+  .cs_site_header.cs_style_1 { min-height: 56px !important; padding: 0 !important; }
+  .cs_main_header { padding: 0 !important; }
+  .cs_main_header_in { padding: 6px 0 !important; margin: 0 !important; }
+  .cs_site_branding { margin: 0 !important; padding: 0 !important; }
+  .cs_site_branding img, .cs_logo-responsive { max-height: 34px !important; width: auto !important; }
+  .cs_nav .cs_nav_list { margin: 0 !important; padding: 0 !important; }
+  .cs_nav .cs_nav_list > li { margin: 0 6px !important; }
+  .cs_nav .cs_nav_list > li > a { font-size: 14px !important; padding: 4px 6px !important; }
+  .cs_header_btns { margin: 0 !important; padding: 0 !important; gap: 8px !important; }
+  .cs_header_btns .cs_btn, .cs_header_btns .cs_header_text_btn { padding: 6px 14px !important; font-size: 13px !important; margin: 0 !important; }
+}
+/* Desktop only (larger screens) */
+@media screen and (min-width: 992px) {
+  .cs_nav .cs_nav_list > li { margin: 0 10px !important; }
+  .cs_header_btns .cs_btn, .cs_header_btns .cs_header_text_btn { padding: 7px 18px !important; }
+}
+
+/* ===========================================
    FEATURE CARDS & USER SECTION POLISH
    =========================================== */
 /* Grid cards (style_1) */
@@ -1980,6 +2002,6 @@ body {
 @media screen and (max-width: 767px) { .cs_site_footer .cs_legal { flex-direction: column !important; align-items: flex-start !important; } }
 
 /* HERO header clearance */
-.cs_hero.cs_style_1.cs_type_1 { padding-top: 88px !important; }
+.cs_hero.cs_style_1.cs_type_1 { padding-top: 64px !important; }
 @media screen and (max-width: 991px) { .cs_hero.cs_style_1.cs_type_1 { padding-top: 64px !important; } }
 @media screen and (max-width: 767px) { .cs_hero.cs_style_1.cs_type_1 { padding-top: 48px !important; } }
